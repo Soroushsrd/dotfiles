@@ -1,0 +1,273 @@
+/* style.css for Waybar - ML4W Configuration */
+@import "theme.css";
+
+/* Base Styling */
+* {
+    min-height: 10px;
+    border: none;
+    margin: 0;
+    padding: 0;
+    font-family: "JetBrainsMono Nerd Font";
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Main Bar Background */
+window#waybar>box {
+    background: @main-bg;
+    border-radius: 12px;
+    margin: 10px;
+}
+
+/* Drop Shadow */
+window#waybar {
+    background: @shadow;
+}
+
+/* Tooltips */
+tooltip {
+    background: @main-bg;
+    border: 1.5px solid @main-br;
+    border-radius: 8px;
+}
+
+tooltip label {
+    color: @main-fg;
+    margin: -1.5px 3px;
+    font-weight: normal;
+}
+
+/* Workspaces */
+#workspaces {
+    margin: 4px 0;
+}
+
+#workspaces button {
+    color: @module-fg;
+    border-radius: 8px;
+    margin: 0 2px;
+    padding: 0 6px;
+    transition: none;
+}
+
+#workspaces button:hover {
+    color: @hover-fg;
+    background: @hover-bg;
+    text-shadow: none;
+}
+
+#workspaces button.active {
+    color: @active-fg;
+    background: @active-bg;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.4);
+    padding: 0 10px;
+}
+
+/* Common Modules Styling */
+#custom-appmenu,
+#custom-notification,
+#custom-exit,
+#custom-ml4w-welcome,
+.modules-left,
+.modules-center,
+.modules-right,
+#clock,
+#battery,
+#cpu,
+#memory,
+#network,
+#pulseaudio,
+#bluetooth,
+#tray,
+#custom-updates,
+#backlight,
+#power-profiles-daemon,
+#window,
+#custom-empty,
+#wlr-taskbar {
+    color: @module-fg;
+    background: transparent;
+    margin: 0 2px;
+    padding: 0 8px;
+    border-radius: 8px;
+}
+
+/* Group Styling */
+.group {
+    background: @ml4w-bg;
+    border-radius: 8px;
+    margin: 4px 2px;
+}
+
+.group-box {
+    margin: 2px;
+}
+
+.group-box>* {
+    margin: 2px;
+}
+
+/* Specific Module Styling */
+#custom-appmenu {
+    color: @active-fg;
+    background: @active-bg;
+    padding: 0 12px;
+    margin-left: 6px;
+}
+
+#clock {
+    background: @active-bg;
+    color: @active-fg;
+    padding: 0 12px;
+    margin-right: 6px;
+}
+
+#battery {
+    background: @battery;
+}
+
+#battery.warning {
+    color: @warning;
+}
+
+#battery.critical {
+    color: @critical;
+}
+
+#battery.charging {
+    color: @charging;
+}
+
+#network {
+    background: @tray;
+}
+
+#pulseaudio {
+    background: @pulseaudio;
+}
+
+#bluetooth {
+    background: @tray;
+}
+
+#backlight {
+    background: @backlight;
+}
+
+#custom-updates {
+    background: @memory;
+}
+
+#custom-notification {
+    background: @time;
+}
+
+#custom-exit {
+    color: @main-bg;
+    background: @power;
+    margin-right: 6px;
+}
+
+#custom-exit:hover {
+    color: @hover-fg;
+    background: @hover-bg;
+}
+
+#power-profiles-daemon {
+    background: @battery;
+}
+
+#tray {
+    background: @tray;
+}
+
+#window {
+    background: transparent;
+    padding: 0 12px;
+}
+
+#window label {
+    font-weight: normal;
+}
+
+#custom-ml4w-welcome {
+    background: @ml4w-active;
+    color: @active-fg;
+}
+
+/* WLR Taskbar */
+#wlr-taskbar button {
+    margin: 2px;
+    padding: 0 6px;
+    border-radius: 8px;
+}
+
+#wlr-taskbar button:hover {
+    background: @hover-bg;
+}
+
+#wlr-taskbar button.active {
+    background: @active-bg;
+    color: @active-fg;
+}
+
+/* Media Player */
+#mpris {
+    background: @main-bg;
+    padding: 0 8px;
+}
+
+#mpris:hover {
+    color: @hover-fg;
+}
+
+/* Links and Quicklinks */
+#group-links,
+#group-quicklinks {
+    background: @ml4w-bg;
+}
+
+#group-links button,
+#group-quicklinks button {
+    margin: 2px;
+    padding: 0 8px;
+    border-radius: 8px;
+}
+
+#group-links button:hover,
+#group-quicklinks button:hover {
+    background: @hover-bg;
+}
+
+/* Hardware and Tools */
+#group-hardware,
+#group-tools {
+    background: @ml4w-bg;
+}
+
+/* Animation for hover */
+@keyframes hover-effect {
+    from {
+        background: transparent;
+    }
+
+    to {
+        background: @hover-bg;
+    }
+}
+
+#custom-appmenu:hover,
+#clock:hover,
+#battery:hover,
+#network:hover,
+#pulseaudio:hover,
+#bluetooth:hover,
+#backlight:hover,
+#custom-updates:hover,
+#custom-notification:hover,
+#tray:hover,
+#power-profiles-daemon:hover {
+    color: @hover-fg;
+    animation: hover-effect 0.3s ease-in-out forwards;
+}

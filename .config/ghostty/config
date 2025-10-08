@@ -1,0 +1,67 @@
+font-family = JetBrainsMono NFM SemiBold
+# font-family = Iosevka Nerd Font
+# font-family = SFMono Nerd Font
+# gtk-gsk-renderer = default
+font-size = 11
+title = ""
+theme = Argonaut
+shell-integration = none
+# shell-integration-features = no-cursor,sudo,no-title
+cursor-style = block_hollow
+cursor-opacity = 0.4
+cursor-color = #FFFFFF
+adjust-cell-height = 35%
+adjust-cursor-thickness = 70%
+cursor-text = #000000
+background-opacity = 0.90
+mouse-hide-while-typing = true
+mouse-scroll-multiplier = 2
+window-padding-balance = false
+window-save-state = always
+fullscreen = false
+maximize = false
+window-height = 500
+window-width = 500
+# Remove macOS specific setting
+# macos-titlebar-style=transparent
+# window-colorspace = "display-p3"
+# background = 1C2021
+# foreground = d4be98
+window-padding-y = 2,2
+window-padding-x = 1
+window-inherit-working-directory = true
+# shaders
+# custom-shader = shaders/bloom.glsl
+
+window-decoration = none
+# Use Alt (M) as the primary modifier since it's easier to reach than Super
+# Basic window operations
+keybind = performable:ctrl+c=copy_to_clipboard
+keybind = performable:ctrl+v=paste_from_clipboard
+keybind = alt+r=reload_config
+keybind = alt+q=close_surface
+keybind = alt+n=new_window
+# Tab management - using Alt + number for direct access
+keybind = alt+t=new_tab
+keybind = alt+l=next_tab
+keybind = alt+h=previous_tab
+keybind = alt+comma=move_tab:-1
+keybind = alt+period=move_tab:1
+
+
+# Split windows - using more intuitive keys
+keybind = alt+d=new_split:right
+keybind = alt+u=new_split:up
+keybind = ctrl+up=resize_split:up,10
+keybind = ctrl+down=resize_split:down,10
+keybind = ctrl+left=resize_split:left,10
+keybind = ctrl+right=resize_split:right,10
+keybind = super+e=equalize_splits
+
+keybind = alt+up=goto_split:up
+keybind = alt+down=goto_split:down
+keybind = alt+left=goto_split:left
+keybind = alt+right=goto_split:right
+
+
+

@@ -1,0 +1,106 @@
+/* animation.css for Waybar - ML4W Configuration */
+
+/* Module Hover Animation */
+@keyframes module_expand {
+    0% {
+        font-size: 12px;
+    }
+
+    50% {
+        font-size: 13px;
+    }
+
+    100% {
+        font-size: 12px;
+    }
+}
+
+/* Power Button Animation */
+@keyframes power_expand {
+    0% {
+        font-size: 12px;
+        padding: 0 12px;
+    }
+
+    50% {
+        font-size: 13px;
+        padding: 0 14px;
+    }
+
+    100% {
+        font-size: 12px;
+        padding: 0 12px;
+    }
+}
+
+/* App Menu Animation */
+@keyframes appmenu_expand {
+    0% {
+        font-size: 12px;
+        padding: 0 12px;
+    }
+
+    50% {
+        font-size: 13px;
+        padding: 0 14px;
+    }
+
+    100% {
+        font-size: 12px;
+        padding: 0 12px;
+    }
+}
+
+/* Clock Animation */
+@keyframes clock_expand {
+    0% {
+        font-size: 12px;
+        padding: 0 12px;
+    }
+
+    50% {
+        font-size: 13px;
+        padding: 0 14px;
+    }
+
+    100% {
+        font-size: 12px;
+        padding: 0 12px;
+    }
+}
+
+/* Hover Animations */
+#custom-appmenu:hover {
+    animation: appmenu_expand 0.3s ease-in-out;
+}
+
+#clock:hover {
+    animation: clock_expand 0.3s ease-in-out;
+}
+
+#custom-exit:hover {
+    animation: power_expand 0.3s ease-in-out;
+}
+
+#battery:hover,
+#network:hover,
+#pulseaudio:hover,
+#bluetooth:hover,
+#backlight:hover,
+#custom-updates:hover,
+#custom-notification:hover,
+#custom-ml4w-welcome:hover,
+#window:hover,
+#tray:hover,
+#power-profiles-daemon:hover {
+    animation: module_expand 0.3s ease-in-out;
+}
+
+/* Optional Transition Effects */
+#workspaces button,
+.group button,
+#custom-appmenu,
+#clock,
+#custom-exit {
+    transition: background 0.2s ease, color 0.2s ease;
+}
