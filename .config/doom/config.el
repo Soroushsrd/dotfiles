@@ -6,7 +6,6 @@
 
 (add-to-list 'exec-path "/home/rusty/.opam/default/bin")
 (setenv "PATH" (concat "/home/rusty/.opam/default/bin:" (getenv "PATH")))
-
 ;;;; ============================================================================
 ;;;; Theme & UI
 ;;;; ============================================================================
@@ -15,27 +14,47 @@
 (load-file "~/dotfiles/.config/doom/cargo-toml.el")
 (load-file "~/dotfiles/.config/doom/cpp-templates.el")
 
+(defun my/apply-dark-theme-custom ()
+  "Apply custom faces for dark themes only."
+  (when (eq (car custom-enabled-themes) 'doom-palenight)
+    (setq doom-palenight-padded-modeline t)
+    (custom-set-faces!
+      '(default :background "#16161D")
+      '(mode-line :foreground "#ffffff")
+      '(treemacs-window-background-face :background "#16161D")
+      '(dired-header :background "#16161D")
+      ;; Eldoc box faces
+      '(eldoc-box-body :background "#1a1a1a" :foreground "#ffffff")
+      '(eldoc-box-border :background "#444444")
+      ;; Code blocks in documentation (Markdown)
+      '(markdown-code-face :background "#2a2a3a" :foreground "#c0caf5")
+      '(markdown-inline-code-face :background "#2a2a3a" :foreground "#c0caf5")
+      ;; Generic doc markup face
+      '(font-lock-doc-markup-face :background "#2a2a3a" :foreground "#c0caf5"))))
+
 (defun my/set-theme-by-time()
   "Set theme based on current time of the day."
   (let ((hour (string-to-number (format-time-string "%H"))))
-    (if (and (>= hour 7) (< hour 16))
-        (load-theme 'doom-solarized-light t)
-      (load-theme 'kanagawa t))))
+    (if (and (>= hour 7) (< hour 12))
+        ;; (progn
+        (load-theme 'doom-oksolar-light t)
+      ;; (setq doom-gruvbox-light-variant "hard"))
+      (progn
+        (load-theme 'doom-palenight t)
+        (my/apply-dark-theme-custom)))))
 
-(my/set-theme-by-time)
+(add-hook 'emacs-startup-hook #'my/set-theme-by-time)
+
+;; Update when Emacs gains focus
+;; (add-hook 'after-focus-change-function #'my/set-theme-by-time)
+
 (run-at-time "0 sec" 3600 #'my/set-theme-by-time)
 
-(setq ;; doom-theme 'kanagawa
- doom-font (font-spec :family "JetBrainsMono NFM SemiBold" :size 15))
+;; (my/apply-dark-theme-custom)
+;; (load-theme 'doom-palenight t)
 
-;; (custom-set-faces!
-;;   '(default :background "#000000"))
-;; (after! doom-themes
-;;   (custom-set-faces!
-;;     '(default :background "#000000")
-;;     '(mode-line :foreground "#ffffff")
-;;     '(treemacs-window-background-face :background "#000000")
-;;     '(dired-header :background "#000000")))
+(setq doom-font (font-spec :family "JetBrainsMono NFM SemiBold" :size 15))
+
 
 ;; (after! solaire-mode
 ;;   (solaire-global-mode -1))
@@ -116,6 +135,14 @@
   :config
   (global-wakatime-mode))
 
+;; Using Zathura for pdfs when inside terminal
+(defun my/open-pdf-in-zathura (file)
+  "Open FILE in Zathura."
+  (interactive "fPDF file: ")
+  (start-process "zathura" nil "zathura" (expand-file-name file)))
+(map! :leader
+      :desc "Open PDF in Zathura"
+      "o z" #'my/open-pdf-in-zathura)
 ;;;; ============================================================================
 ;;;; Clipboard (Wayland)
 ;;;; ============================================================================
@@ -145,39 +172,61 @@
 ;;;; ============================================================================
 ;;;; Org Mode
 ;;;; ============================================================================
+(after! ob-ditaa
+  (defun org-babel-execute:ditaa (body params)
+    "Execute ditaa code with BODY and PARAMS using standalone ditaa executable."
+    (let* ((out-file (or (cdr (assq :file params))
+                         (error "ditaa requires a :file parameter")))
+           (cmdline (cdr (assq :cmdline params)))
+           (in-file (org-babel-temp-file "ditaa-"))
+           (cmd (format "ditaa %s %s %s"
+                        (or cmdline "")
+                        (org-babel-process-file-name in-file)
+                        (org-babel-process-file-name out-file))))
+      (with-temp-file in-file (insert body))
+      (message "%s" cmd)
+      (shell-command cmd)
+      nil)))
 
-(after! org
-  (setq org-directory "~/org/"
-        org-agenda-files (list (expand-file-name "tasks.org" org-directory))
-        org-archive-location "~/org/archive.org::* Archived Tasks"
-        org-todo-keywords '((sequence "TODO(t)" "PROG(p)" "DONE(d)"))
-        org-todo-keyword-faces '(("TODO" . (:foreground "#ff6c6b" :weight bold))
-                                 ("PROG" . (:foreground "#ECBE7B" :weight bold))
-                                 ("DONE" . (:foreground "#98be65" :weight bold)))
-        org-agenda-custom-commands
-        '(("n" "My Weekly Agenda"
-           ((agenda "" ((org-agenda-span 'week)))
-            (todo "PROG" ((org-agenda-overriding-header "In Progress")))
-            (todo "TODO" ((org-agenda-overriding-header "To Do:")))
-            (todo "DONE" ((org-agenda-overriding-header "Done"))))
-           nil))
-        org-tag-alist '((:startgroup . nil)
-                        ("work" . ?w)
-                        ("daily" . ?p)
-                        ("project" . ?j)
-                        ("meeting" . ?m)
-                        ("urgent" . ?u)
-                        (:endgroup . nil))
-        org-capture-templates
-        '(("t" "Todo" entry
-           (file+headline "~/org/tasks.org" "Inbox")
-           "** TODO %?\n   CREATED: %U\n")
-          ("w" "Work Task" entry
-           (file+headline "~/org/tasks.org" "Work Tasks")
-           "** TODO %?\n   CREATED: %U\n")
-          ("p" "Personal" entry
-           (file+headline "~/org/tasks.org" "Personal")
-           "** TODO %?\n   CREATED: %U\n"))))
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((ditaa . t)))
+
+(setq org-confirm-babel-evaluate nil)
+(setq org-startup-with-inline-images t)
+
+
+(setq org-directory "~/org/"
+      org-agenda-files (list (expand-file-name "tasks.org" org-directory))
+      org-archive-location "~/org/archive.org::* Archived Tasks"
+      org-todo-keywords '((sequence "TODO(t)" "PROG(p)" "DONE(d)"))
+      org-todo-keyword-faces '(("TODO" . (:foreground "#ff6c6b" :weight bold))
+                               ("PROG" . (:foreground "#ECBE7B" :weight bold))
+                               ("DONE" . (:foreground "#98be65" :weight bold)))
+      org-agenda-custom-commands
+      '(("n" "My Weekly Agenda"
+         ((agenda "" ((org-agenda-span 'week)))
+          (todo "PROG" ((org-agenda-overriding-header "In Progress")))
+          (todo "TODO" ((org-agenda-overriding-header "To Do:")))
+          (todo "DONE" ((org-agenda-overriding-header "Done"))))
+         nil))
+      org-tag-alist '((:startgroup . nil)
+                      ("work" . ?w)
+                      ("daily" . ?p)
+                      ("project" . ?j)
+                      ("meeting" . ?m)
+                      ("urgent" . ?u)
+                      (:endgroup . nil))
+      org-capture-templates
+      '(("t" "Todo" entry
+         (file+headline "~/org/tasks.org" "Inbox")
+         "** TODO %?\n   CREATED: %U\n")
+        ("w" "Work Task" entry
+         (file+headline "~/org/tasks.org" "Work Tasks")
+         "** TODO %?\n   CREATED: %U\n")
+        ("p" "Personal" entry
+         (file+headline "~/org/tasks.org" "Personal")
+         "** TODO %?\n   CREATED: %U\n")))
 
 ;; Auto-save tasks file when idle
 (add-hook 'org-mode-hook
@@ -188,6 +237,15 @@
 ;;;; ============================================================================
 ;;;; LSP & Language Support
 ;;;; ============================================================================
+
+;; Assembly
+(use-package! nasm-mode
+  :mode "\\.asm\\'")
+
+(after! nasm-mode
+  (setq nasm-basic-offset 4))
+;;;; scheme
+(setq geiser-default-implementation 'mit)
 
 ;; Rust
 (after! rustic
@@ -227,6 +285,13 @@
   (custom-set-faces
    '(eglot-inlay-hint-face ((t (:foreground "#54546D" :height 0.8))))))
 
+
+;; FlyMake
+(set-popup-rule! "^\\*Flymake diagnostics"
+  :side 'bottom
+  :size 0.4
+  :select t)
+
 ;; Eldoc
 (after! eldoc
   (setq eldoc-echo-area-use-multiline-p t
@@ -240,11 +305,9 @@
         eldoc-box-position-function #'eldoc-box--default-at-point-position-function-1
         eldoc-idle-delay 0.1)
   (set-face-attribute 'eldoc-box-border nil :background "#444444")
-  (set-face-attribute 'eldoc-box-body nil :background "#1a1a1a" :foreground "#ffffff"))
+  ;; (set-face-attribute 'eldoc-box-body nil :background "#1a1a1a" :foreground "#ffffff")
+  )
 
-(after! eldoc-box
-  (custom-set-faces!
-    '(font-lock-doc-markup-face :background "#1a1a1a")))
 
 (defun my/show-error-at-point ()
   "Show eldoc box only if there's an error/warning at current point."
@@ -409,7 +472,16 @@
       magit-commit-show-gpg-key-id t
       magit-commit-signoff-by-default t)
 (setq magit-commit-arguments '("--gpg-sign"))
-
+(use-package! git-gutter
+  :hook (prog-mode . git-gutter-mode)
+  :config
+  (setq git-gutter:update-interval 0.02))
+(use-package! git-gutter-fringe
+  :after git-gutter
+  :config
+  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 
 ;; C++ templates
 (setq cpp-template-author-name "Soroosh Sardashti"
@@ -419,15 +491,32 @@
 ;;;; Keybindings
 ;;;; ============================================================================
 
+(defun my/list-errors ()
+  "List errors using the appropriate backend (Flymake or Flycheck)."
+  (interactive)
+  (cond
+   ;; If Eglot is managing this buffer, use Flymake
+   ((and (fboundp 'eglot-managed-p) (eglot-managed-p))
+    (call-interactively #'flymake-show-buffer-diagnostics))
+   ;; If Flycheck is active, use it
+   ((and (boundp 'flycheck-mode) flycheck-mode)
+    (call-interactively #'flycheck-list-errors))
+   ;; If Flymake is active (but not Eglot), use it
+   ((and (boundp 'flymake-mode) flymake-mode)
+    (call-interactively #'flymake-show-buffer-diagnostics))
+   ;; Fallback
+   (t
+    (message "No error checking system active in this buffer"))))
+
 ;; Leader bindings
 (map! :leader
       :desc "Eval and print" "j" #'eval-print-last-sexp
       :desc "Eval last sexp" "r" #'eval-last-sexp
       :desc "Paste from clipboard" "v" #'wl-paste
       :desc "Toggle vterm" "t t" #'+vterm/toggle
-      :desc "Toggle treemacs" "\\" #'+treemacs/toggle
+      :desc "Toggle treemacs" "'" #'+treemacs/toggle
       :desc "Next buffer" "TAB" #'evil-next-buffer
-      :desc "List errors" "e" #'flycheck-list-errors
+      :desc "List errors" "e" #'my/list-errors
       :desc "Org capture" "c" #'org-capture
       :desc "Open tasks file" "o t" (lambda () (interactive) (find-file "~/org/tasks.org"))
       :desc "Custom agenda view" "o n" (lambda () (interactive) (org-agenda nil "n"))
