@@ -57,7 +57,7 @@
 (package! merlin)
 (package! merlin-eldoc)
 (package! flycheck-ocaml)
-(package! wakatime-mode)
+;; (package! wakatime-mode)
 (package! solaire-mode :disable t)
 (package! autothemer)
 (package! catppuccin-theme)

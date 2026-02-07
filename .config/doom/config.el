@@ -13,10 +13,11 @@
 (load-file "~/kanagawa-theme-source-code.el")
 (load-file "~/dotfiles/.config/doom/cargo-toml.el")
 (load-file "~/dotfiles/.config/doom/cpp-templates.el")
+;; (load-file "~/dotfiles/.config/doom/osmium.el")
 
 (defun my/apply-dark-theme-custom ()
   "Apply custom faces for dark themes only."
-  (when (eq (car custom-enabled-themes) 'doom-palenight)
+  (when (eq (car custom-enabled-themes) 'solarized-gruvbox-dark)
     (setq doom-palenight-padded-modeline t)
     (custom-set-faces!
       '(default :background "#16161D")
@@ -32,29 +33,33 @@
       ;; Generic doc markup face
       '(font-lock-doc-markup-face :background "#2a2a3a" :foreground "#c0caf5"))))
 
+
+
 (defun my/set-theme-by-time()
   "Set theme based on current time of the day."
   (let ((hour (string-to-number (format-time-string "%H"))))
     (if (and (>= hour 7) (< hour 12))
         ;; (progn
-        (load-theme 'doom-oksolar-light t)
+        (load-theme 'doom-solarized-light t)
       ;; (setq doom-gruvbox-light-variant "hard"))
       (progn
         (load-theme 'doom-palenight t)
         (my/apply-dark-theme-custom)))))
 
-(add-hook 'emacs-startup-hook #'my/set-theme-by-time)
+;; (add-hook 'emacs-startup-hook #'my/set-theme-by-time)
 
-;; Update when Emacs gains focus
-;; (add-hook 'after-focus-change-function #'my/set-theme-by-time)
 
-(run-at-time "0 sec" 3600 #'my/set-theme-by-time)
+;; (run-at-time "0 sec" 3600 #'my/set-theme-by-time)
 
-;; (my/apply-dark-theme-custom)
-;; (load-theme 'doom-palenight t)
-
+;; (load-theme 'doom-solarized-light t)
+;; (load-theme 'solarized-gruvbox-dark t)
+(my/apply-dark-theme-custom)
 (setq doom-font (font-spec :family "JetBrainsMono NFM SemiBold" :size 15))
+(setq doom-theme 'kanagawa)
 
+(after! lsp-mode
+  (setq lsp-semantic-tokens-enable t
+        lsp-enable-file-watchers nil))
 
 ;; (after! solaire-mode
 ;;   (solaire-global-mode -1))
@@ -116,7 +121,7 @@
 ;;;; ============================================================================
 ;;;; Editor Behavior
 ;;;; ============================================================================
-
+(setq shr-inhibit-scripts nil)
 (setq display-line-numbers-type 'relative
       confirm-kill-emacs nil
       scroll-margin 20
@@ -131,9 +136,9 @@
   (mouse-avoidance-mode 'exile))
 
 ;; Wakatime
-(use-package! wakatime-mode
-  :config
-  (global-wakatime-mode))
+;; (use-package! wakatime-mode
+;;   :config
+;;   (global-wakatime-mode))
 
 ;; Using Zathura for pdfs when inside terminal
 (defun my/open-pdf-in-zathura (file)
@@ -248,17 +253,26 @@
 (setq geiser-default-implementation 'mit)
 
 ;; Rust
-(after! rustic
-  (setq rustic-lsp-client 'eglot))
-
+;; (after! rustic
+;;   (setq rustic-lsp-client 'eglot))
 ;; Zig
 (use-package! zig-mode
   :hook (zig-mode . eglot-ensure))
 
+;; LSP UI
+(after! lsp-ui
+  (setq lsp-ui-doc-enable t
+        lsp-ui-doc-show-with-cursor nil
+        lsp-ui-doc-delay 0.2
+        lsp-ui-doc-position 'at-point
+        lsp-ui-doc-max-width 80
+        lsp-ui-doc-max-height 20))
 ;; Eglot
 (use-package! eglot
+  :init
+  (setq eglot-enable-semantic-tokens t)
   :hook ((tuareg-mode . eglot-ensure)
-         (rustic-mode . eglot-ensure)
+         ;; (rustic-mode . eglot-ensure)
          (toml-ts-mode . eglot-ensure)
          (c-mode . eglot-ensure)
          (c++-mode . eglot-ensure))
@@ -377,7 +391,9 @@
 
 ;; Tree-sitter
 (setq treesit-language-source-alist
-      '((cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+      '((typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+        (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+        (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
         (c "https://github.com/tree-sitter/tree-sitter-c")))
 
 ;; Flycheck inline
@@ -537,19 +553,57 @@
                "i" #'cpp-template-insert-pimpl-pattern))
 
 ;; Normal mode bindings
+(map! :n "C-j" (lambda () (interactive)
+                 (if (and (boundp 'lsp-mode) lsp-mode)
+                     (lsp-ui-doc-scroll-down)
+                   (eldoc-box-scroll-up)))
+      :n "C-k" (lambda () (interactive)
+                 (if (and (boundp 'lsp-mode) lsp-mode)
+                     (lsp-ui-doc-scroll-up)
+                   (eldoc-box-scroll-down))))
+
 (map! :n "y" #'evil-yank
       :n "p" #'evil-paste-after
       :n "<backtab>" #'evil-prev-buffer
       :n "M-h" #'evil-window-left
       :n "M-j" #'evil-window-down
       :n "M-k" #'evil-window-up
-      :n "M-l" #'evil-window-right
-      :n "C-j" #'eldoc-box-scroll-up
-      :n "C-k" #'eldoc-box-scroll-down)
+      :n "M-l" #'evil-window-right)
+;; :n "C-j" #'eldoc-box-scroll-up
+;; :n "C-k" #'eldoc-box-scroll-down)
 
 ;; Eglot mode bindings
 (map! :map eglot-mode-map
-      :n "E" #'my/show-error-at-point
-      :n "K" (if (display-graphic-p)
-                 #'eldoc-box-help-at-point
-               #'eldoc))
+      :n "E" #'my/show-error-at-point)
+;; :n "K" (if (display-graphic-p)
+;;            #'eldoc-box-help-at-point
+;;          #'eldoc))
+(defun my/lsp-ui-doc-show-and-focus ()
+  "Show lsp-ui-doc and focus into it for scrolling."
+  (interactive)
+  (lsp-ui-doc-show)
+  (lsp-ui-doc-focus-frame))
+
+(map! :map lsp-mode-map
+      :n "K" #'my/lsp-ui-doc-show-and-focus)
+
+(set-popup-rule! "^\\*vterm-claude\\*" :ignore t)
+
+(defun my/claude-terminal ()
+  "Open Claude CLI in a right side window."
+  (interactive)
+  (let ((claude-buffer "*vterm-claude*"))
+    (unless (get-buffer claude-buffer)
+      (let ((buf (generate-new-buffer claude-buffer)))
+        (with-current-buffer buf
+          (vterm-mode)
+          (vterm-send-string "claude\n"))))
+    (let ((win (display-buffer-in-side-window
+                (get-buffer claude-buffer)
+                '((side . right)
+                  (slot . 0)
+                  (window-width . 0.45)))))
+      (select-window win))))
+
+(map! :leader
+      :desc "Claude Terminal" "o c" #'my/claude-terminal)
