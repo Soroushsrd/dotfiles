@@ -13,53 +13,88 @@
 (load-file "~/kanagawa-theme-source-code.el")
 (load-file "~/dotfiles/.config/doom/cargo-toml.el")
 (load-file "~/dotfiles/.config/doom/cpp-templates.el")
-;; (load-file "~/dotfiles/.config/doom/osmium.el")
+(load-file "~/dotfiles/.config/doom/claude-agent.el")
+(load-file "~/dotfiles/.config/doom/osmium.el")
+(load-file "~/dotfiles/.config/doom/themes/doom-rose-pine-theme.el")
+(load-file "~/dotfiles/.config/doom/themes/rose-pine-moon-theme.el")
+(load-file "~/dotfiles/.config/doom/themes/doom-rose-pine-dawn-theme.el")
+
+(require 'ef-themes)
+(mapc #'require (mapcar #'intern
+                        (mapcar #'file-name-sans-extension
+                                (directory-files
+                                 (file-name-directory (locate-library "ef-themes"))
+                                 nil "^ef-.*-theme\\.el$"))))
 
 (defun my/apply-dark-theme-custom ()
   "Apply custom faces for dark themes only."
-  (when (eq (car custom-enabled-themes) 'solarized-gruvbox-dark)
-    (setq doom-palenight-padded-modeline t)
-    (custom-set-faces!
-      '(default :background "#16161D")
-      '(mode-line :foreground "#ffffff")
-      '(treemacs-window-background-face :background "#16161D")
-      '(dired-header :background "#16161D")
-      ;; Eldoc box faces
-      '(eldoc-box-body :background "#1a1a1a" :foreground "#ffffff")
-      '(eldoc-box-border :background "#444444")
-      ;; Code blocks in documentation (Markdown)
-      '(markdown-code-face :background "#2a2a3a" :foreground "#c0caf5")
-      '(markdown-inline-code-face :background "#2a2a3a" :foreground "#c0caf5")
-      ;; Generic doc markup face
-      '(font-lock-doc-markup-face :background "#2a2a3a" :foreground "#c0caf5"))))
+  (interactive)
+  (custom-set-faces!
+    '(default :background "#16161D")
+    '(mode-line :foreground "#ffffff")
+    '(treemacs-window-background-face :background "#16161D")
+    '(dired-header :background "#16161D")
+    ;; Eldoc box faces
+    '(eldoc-box-body :background "#1a1a1a" :foreground "#ffffff")
+    '(eldoc-box-border :background "#444444")
+    ;; Code blocks in documentation (Markdown)
+    '(markdown-code-face :background "#2a2a3a" :foreground "#c0caf5")
+    '(markdown-inline-code-face :background "#2a2a3a" :foreground "#c0caf5")
+    ;; Generic doc markup face
+    '(font-lock-doc-markup-face :background "#2a2a3a" :foreground "#c0caf5")))
 
-
+(defun my/undo-dark-theme-custom ()
+  "Undo custom dark theme face modifications."
+  (interactive)
+  (custom-set-faces!
+    '(default :background unspecified)
+    '(mode-line :foreground unspecified)
+    '(treemacs-window-background-face :background unspecified)
+    '(dired-header :background unspecified)
+    '(eldoc-box-body :background unspecified :foreground unspecified)
+    '(eldoc-box-border :background unspecified)
+    '(markdown-code-face :background unspecified :foreground unspecified)
+    '(markdown-inline-code-face :background unspecified :foreground unspecified)
+    '(font-lock-doc-markup-face :background unspecified :foreground unspecified)))
 
 (defun my/set-theme-by-time()
   "Set theme based on current time of the day."
   (let ((hour (string-to-number (format-time-string "%H"))))
-    (if (and (>= hour 7) (< hour 12))
-        ;; (progn
-        (load-theme 'doom-solarized-light t)
-      ;; (setq doom-gruvbox-light-variant "hard"))
+    (if (and (>= hour 7) (< hour 13))
+        (load-theme 'doom-gruvbox-light t)
       (progn
-        (load-theme 'doom-palenight t)
+        (load-theme 'doom-molokai)
         (my/apply-dark-theme-custom)))))
 
-;; (add-hook 'emacs-startup-hook #'my/set-theme-by-time)
+(defun my/apply-transparency ()
+  "Apply transparent background."
+  (interactive)
+  (add-to-list 'default-frame-alist '(alpha-background . 90))
+  (set-frame-parameter nil 'alpha-background 90))
 
+(defun my/undo-transparency ()
+  "Undo transparent background."
+  (interactive)
+  (add-to-list 'default-frame-alist '(alpha-background . 100))
+  (set-frame-parameter nil 'alpha-background 100))
+;; (add-hook 'emacs-startup-hook #'my/set-theme-by-time)
 
 ;; (run-at-time "0 sec" 3600 #'my/set-theme-by-time)
 
-;; (load-theme 'doom-solarized-light t)
-;; (load-theme 'solarized-gruvbox-dark t)
-(my/apply-dark-theme-custom)
+(load-theme 'ef-deuteranopia-dark t )
+(my/apply-transparency)
 (setq doom-font (font-spec :family "JetBrainsMono NFM SemiBold" :size 15))
-(setq doom-theme 'kanagawa)
 
-(after! lsp-mode
-  (setq lsp-semantic-tokens-enable t
-        lsp-enable-file-watchers nil))
+;; (setq doom-theme 'doom-osmium)
+
+
+
+;; (after! lsp-mode
+;;   (setq lsp-semantic-tokens-enable t
+;;         lsp-idle-delay 0.1
+;;         lsp-inlay-hint-enable t)
+;;   (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.cargo\\'")
+;;   (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]target\\'"))
 
 ;; (after! solaire-mode
 ;;   (solaire-global-mode -1))
@@ -99,8 +134,8 @@
   '(doom-dashboard-banner :foreground "#a855f7" :weight bold))
 
 ;; Transparency
-(add-to-list 'default-frame-alist '(alpha-background . 90))
-(set-frame-parameter nil 'alpha-background 90)
+;; (add-to-list 'default-frame-alist '(alpha-background . 90))
+;; (set-frame-parameter nil 'alpha-background 90)
 
 (unless (display-graphic-p)
   (defun my/apply-terminal-transparency (&optional frame)
@@ -121,7 +156,7 @@
 ;;;; ============================================================================
 ;;;; Editor Behavior
 ;;;; ============================================================================
-(setq shr-inhibit-scripts nil)
+;; (setq shr-inhibit-scripts nil)
 (setq display-line-numbers-type 'relative
       confirm-kill-emacs nil
       scroll-margin 20
@@ -253,40 +288,38 @@
 (setq geiser-default-implementation 'mit)
 
 ;; Rust
-;; (after! rustic
-;;   (setq rustic-lsp-client 'eglot))
-;; Zig
-(use-package! zig-mode
-  :hook (zig-mode . eglot-ensure))
+(after! rustic
+  (setq rustic-lsp-client 'eglot))
 
-;; LSP UI
-(after! lsp-ui
-  (setq lsp-ui-doc-enable t
-        lsp-ui-doc-show-with-cursor nil
-        lsp-ui-doc-delay 0.2
-        lsp-ui-doc-position 'at-point
-        lsp-ui-doc-max-width 80
-        lsp-ui-doc-max-height 20))
+;; ;; LSP UI
+;; (after! lsp-ui
+;;   (setq lsp-ui-doc-enable t
+;;         lsp-ui-doc-show-with-cursor nil
+;;         lsp-ui-doc-delay 0.2
+;;         lsp-ui-doc-position 'at-point
+;;         lsp-ui-doc-max-width 80
+;;         lsp-ui-doc-max-height 20))
 ;; Eglot
 (use-package! eglot
   :init
   (setq eglot-enable-semantic-tokens t)
   :hook ((tuareg-mode . eglot-ensure)
-         ;; (rustic-mode . eglot-ensure)
+         (rustic-mode . eglot-ensure)
          (toml-ts-mode . eglot-ensure)
          (c-mode . eglot-ensure)
          (c++-mode . eglot-ensure))
   :config
   (setq eglot-connect-timeout 60)
-
   ;; Language servers
   (add-to-list 'eglot-server-programs '(tuareg-mode . ("ocamllsp")))
   (add-to-list 'eglot-server-programs '(rustic-mode . ("rust-analyzer")))
-  (add-to-list 'eglot-server-programs '(zig-mode . ("zls")))
+  ;; (add-to-list 'eglot-server-programs '(zig-mode . ("zls")))
   (add-to-list 'eglot-server-programs
                '((c-mode c++-mode) .
                  ("clangd"
                   "--background-index"
+                  "--inlay-hints=true"
+                  "--inlay-hint-designators=true"
                   "--clang-tidy"
                   "--completion-style=detailed"
                   "--header-insertion=never"
@@ -294,6 +327,12 @@
                   "--compile-commands-dir=build"
                   "--query-driver=/usr/bin/g++-*,/usr/bin/clang++-*"))))
 
+
+(after! eglot
+  (setq eglot-inlay-hints-mode t)
+  (add-hook 'eglot-managed-mode-hook #'eglot-inlay-hints-mode))
+(after! lsp-mode
+  (setq lsp-inlay-hint-enable t))
 ;; Inlay hints
 (with-eval-after-load 'eglot
   (custom-set-faces
@@ -488,8 +527,9 @@
       magit-commit-show-gpg-key-id t
       magit-commit-signoff-by-default t)
 (setq magit-commit-arguments '("--gpg-sign"))
+
 (use-package! git-gutter
-  :hook (prog-mode . git-gutter-mode)
+  :hook prog-mode
   :config
   (setq git-gutter:update-interval 0.02))
 (use-package! git-gutter-fringe
@@ -508,9 +548,12 @@
 ;;;; ============================================================================
 
 (defun my/list-errors ()
-  "List errors using the appropriate backend (Flymake or Flycheck)."
+  "List errors using the appropriate backend."
   (interactive)
   (cond
+   ;; If lsp-mode is active, use its diagnostics
+   ((and (boundp 'lsp-mode) lsp-mode)
+    (call-interactively #'lsp-ui-flycheck-list))
    ;; If Eglot is managing this buffer, use Flymake
    ((and (fboundp 'eglot-managed-p) (eglot-managed-p))
     (call-interactively #'flymake-show-buffer-diagnostics))
@@ -542,25 +585,25 @@
 
 ;; C++ template bindings
 (map! :leader
-      (:prefix ("m" . "templates")
-               "p" #'cpp-template-new-project
-               "c" #'cpp-template-new-class
-               "h" #'cpp-template-new-header-only-class
-               "m" #'cpp-template-insert-method
-               "g" #'cpp-template-insert-getter-setter
-               "s" #'cpp-template-insert-singleton-pattern
-               "r" #'cpp-template-insert-smart-ptr-typedef
-               "i" #'cpp-template-insert-pimpl-pattern))
+      (:prefix "m"
+       :desc "New project"        "p" #'cpp-template-new-project
+       :desc "New class"          "c" #'cpp-template-new-class
+       :desc "Header-only class"  "h" #'cpp-template-new-header-only-class
+       :desc "Insert method"      "m" #'cpp-template-insert-method
+       :desc "Getter/Setter"      "g" #'cpp-template-insert-getter-setter
+       :desc "Singleton"          "s" #'cpp-template-insert-singleton-pattern
+       :desc "Smart ptr typedef"  "r" #'cpp-template-insert-smart-ptr-typedef
+       :desc "PIMPL pattern"      "i" #'cpp-template-insert-pimpl-pattern))
 
 ;; Normal mode bindings
-(map! :n "C-j" (lambda () (interactive)
-                 (if (and (boundp 'lsp-mode) lsp-mode)
-                     (lsp-ui-doc-scroll-down)
-                   (eldoc-box-scroll-up)))
-      :n "C-k" (lambda () (interactive)
-                 (if (and (boundp 'lsp-mode) lsp-mode)
-                     (lsp-ui-doc-scroll-up)
-                   (eldoc-box-scroll-down))))
+;; (map! :n "C-j" (lambda () (interactive)
+;;                  (if (and (boundp 'lsp-mode) lsp-mode)
+;;                      (lsp-ui-doc-scroll-down)
+;;                    (eldoc-box-scroll-up)))
+;;       :n "C-k" (lambda () (interactive)
+;;                  (if (and (boundp 'lsp-mode) lsp-mode)
+;;                      (lsp-ui-doc-scroll-up)
+;;                    (eldoc-box-scroll-down))))
 
 (map! :n "y" #'evil-yank
       :n "p" #'evil-paste-after
@@ -568,42 +611,45 @@
       :n "M-h" #'evil-window-left
       :n "M-j" #'evil-window-down
       :n "M-k" #'evil-window-up
-      :n "M-l" #'evil-window-right)
-;; :n "C-j" #'eldoc-box-scroll-up
-;; :n "C-k" #'eldoc-box-scroll-down)
+      :n "M-l" #'evil-window-right
+      :n "C-j" #'eldoc-box-scroll-up
+      :n "C-k" #'eldoc-box-scroll-down)
 
 ;; Eglot mode bindings
 (map! :map eglot-mode-map
-      :n "E" #'my/show-error-at-point)
-;; :n "K" (if (display-graphic-p)
-;;            #'eldoc-box-help-at-point
-;;          #'eldoc))
-(defun my/lsp-ui-doc-show-and-focus ()
-  "Show lsp-ui-doc and focus into it for scrolling."
-  (interactive)
-  (lsp-ui-doc-show)
-  (lsp-ui-doc-focus-frame))
+      :n "E" #'my/show-error-at-point
+      :n "K" (if (display-graphic-p)
+                 #'eldoc-box-help-at-point
+               #'eldoc))
 
-(map! :map lsp-mode-map
-      :n "K" #'my/lsp-ui-doc-show-and-focus)
+;; (defun my/lsp-ui-doc-show-and-focus ()
+;;   "Show lsp-ui-doc and focus into it for scrolling."
+;;   (interactive)
+;;   (lsp-ui-doc-show)
+;;   (lsp-ui-doc-focus-frame))
 
-(set-popup-rule! "^\\*vterm-claude\\*" :ignore t)
+;; (map! :map lsp-mode-map
+;;       :n "K" #'my/lsp-ui-doc-show-and-focus)
 
-(defun my/claude-terminal ()
-  "Open Claude CLI in a right side window."
-  (interactive)
-  (let ((claude-buffer "*vterm-claude*"))
-    (unless (get-buffer claude-buffer)
-      (let ((buf (generate-new-buffer claude-buffer)))
-        (with-current-buffer buf
-          (vterm-mode)
-          (vterm-send-string "claude\n"))))
-    (let ((win (display-buffer-in-side-window
-                (get-buffer claude-buffer)
-                '((side . right)
-                  (slot . 0)
-                  (window-width . 0.45)))))
-      (select-window win))))
+;; Claude Agent
+(map! :leader
+      :desc "Claude Agent" "o c" #'claude-agent-open)
+
+;; (map! :leader
+;;       :desc "Review diffs" "a r" #'claude-agent-review)
+
+;; (map! :map claude-agent-chat-mode-map
+;;       :leader
+;;       :desc "Review diffs" "a r" #'claude-agent-review
+;;       :desc "Reset" "R" #'claude-agent-reset)
+
 
 (map! :leader
-      :desc "Claude Terminal" "o c" #'my/claude-terminal)
+      (:prefix ("d" . "Custom Modifications")
+       :desc "Apply dark theme modifications" "d" #'my/apply-dark-theme-custom
+       :desc "Undo dark theme modifications" "u" #'my/undo-dark-theme-custom
+       :desc "Apply transparent background" "b" #'my/apply-transparency
+       :desc "Undo transparent background" "t" #'my/undo-transparency))
+
+
+;;; config.el ends here

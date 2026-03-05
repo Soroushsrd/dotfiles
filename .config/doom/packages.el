@@ -52,6 +52,8 @@
 ;; (unpin! pinned-package another-pinned-package)
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;; (unpin! t)
+;;; Code:
+
 (package! eldoc-box)
 (package! lsp-ui)
 (package! merlin)
@@ -60,15 +62,14 @@
 ;; (package! wakatime-mode)
 (package! solaire-mode :disable t)
 (package! autothemer)
-(package! catppuccin-theme)
 (package! flycheck-inline)
 (package! imenu-list)
 (package! toml-mode)
 (package! solarized-theme)
-(package! color-theme-sanityinc-tomorrow)
 (package! eldoc-cmake)
-(package! sexy-theme)
-(package! hydandata-light-theme)
 (package! git-gutter)
 (package! git-gutter-fringe)
 (package! nasm-mode)
+(package! ef-themes)
+
+;;; packages.el ends here
