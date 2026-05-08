@@ -399,15 +399,6 @@
   },
 
     
-  "custom/pomodoro": {
-      "exec": "~/.config/waybar/pomodoro.sh",
-      "interval": 1,
-      "on-click": "~/.config/waybar/pomodoro.sh start",
-      "on-click-right": "~/.config/waybar/pomodoro.sh break",
-      "on-click-middle": "~/.config/waybar/pomodoro.sh stop",
-      "tooltip": true,
-      "tooltip-format": "Left: Start work | Right: Start break | Middle: Stop\nRun 'pomodoro.sh stats' for daily history"
-  },
   // backlight:
   "backlight": {
     "format": "{icon} {percent}%",
