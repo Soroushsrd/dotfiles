@@ -1,0 +1,469 @@
+{
+        // MAIN BAR //
+        "layer": "top",
+        "position": "top",
+        "name": "main",
+        "height": 28,
+        "reload_style_on_change": true,
+        // "output": "eDP-1",
+
+        "margin-top": 10,
+        "margin-left": 24,
+        "margin-right": 24,
+
+        "modules-left": [
+	    "custom/appmenuicon",
+            "hyprland/workspaces",
+            "hyprland/submap",
+            "hyprland/window",
+        ],
+
+	"modules-right": [
+	    "custom/updates",
+	    "custom/spacer3",
+	    "group/hardware",
+	    "bluetooth",
+	    "network",
+	    "custom/spacer2",
+	    "pulseaudio",
+	    "custom/spacer3",
+        "battery",
+	    "custom/spacer4",
+	    "clock",
+	    "custom/notification",
+	    "custom/ml4w-welcome",
+	    "custom/exit",
+	],
+
+        // Modules
+
+	  // Network
+	  "network": {
+	    "format": "{ifname}",
+	    "format-wifi": "   {essid}",
+	    "format-ethernet": "  {ifname}",
+	    "format-disconnected": "Disconnected ⚠",
+	    "tooltip-format": " {ifname} via {gwaddri}",
+	    "tooltip-format-wifi": "  {ifname} @ {essid}\nIP: {ipaddr}\nStrength: {signalStrength}%\nFreq: {frequency}MHz\nUp: {bandwidthUpBits} Down: {bandwidthDownBits}",
+	    "tooltip-format-ethernet": " {ifname}\nIP: {ipaddr}\n up: {bandwidthUpBits} down: {bandwidthDownBits}",
+	    "tooltip-format-disconnected": "Disconnected",
+	    "max-length": 60,
+	    "on-click": "~/.config/ml4w/settings/networkmanager.sh",
+	    "on-click-right": "~/.config/ml4w/scripts/nm-applet.sh toggle",
+	  },
+	  // SwayNC
+	  "custom/notification": {
+	    "tooltip-format": "Left: Notifications\nRight: Do not disturb",
+	    "format": "{icon}",
+	    "format-icons": {
+	      "notification":
+		"<span rise='8pt'><span foreground='red'><sup></sup></span></span>",
+	      "none": "",
+	      "dnd-notification":
+		"<span rise='8pt'><span foreground='red'><sup></sup></span></span>",
+	      "dnd-none": "",
+	      "inhibited-notification":
+		"<span rise='8pt'><span foreground='red'><sup></sup></span></span>",
+	      "inhibited-none": "",
+	      "dnd-inhibited-notification":
+		"<span rise='8pt'><span foreground='red'><sup></sup></span></span>",
+	      "dnd-inhibited-none": ""
+	    },
+	    "return-type": "json",
+	    "exec-if": "which swaync-client",
+	    "exec": "swaync-client -swb",
+	    "on-click": "swaync-client -t -sw",
+	    "on-click-right": "swaync-client -d -sw",
+	    "escape": true
+	  },
+	  // Power Menu
+	  "custom/exit": {
+	    "format": "",
+	    "on-click": "~/.config/ml4w/scripts/wlogout.sh",
+	    "on-click-right": "hyprlock",
+	    "tooltip-format": "Left: Power menu\nRight: Lock screen"
+	  },
+	  // Bluetooth
+	  "bluetooth": {
+	    "format": " {status}",
+	    "format-disabled": "",
+	    "format-off": "",
+	    "interval": 30,
+	    "on-click": "blueman-manager",
+	    "format-no-controller": ""
+	  },
+        "disk": {
+            "interval": 16,
+            "format": " {percentage_used}%",
+            "tooltip": "{}",
+            "tooltip-format": "Free {free}",
+            "on-click": "qdirstat & aplay ~/.config/sounds/interact.wav",
+            "states": {
+                "warning": 85,
+                "critical": 95,
+            },
+        },
+
+        "custom/timer": {
+            "exec": "~/.config/hypr/themes/Mocha-Power/timer.sh",
+            "return-type": "json",
+            "format": "{}",
+            "on-click": "~/.config/hypr/themes/Mocha-Power/timer.sh click",
+            "on-click-right": "~/.config/hypr/themes/Mocha-Power/timer.sh right",
+            "on-click-middle": "~/.config/hypr/themes/Mocha-Power/timer.sh middle",
+            "on-scroll-up": "~/.config/hypr/themes/Mocha-Power/timer.sh down", // previously up
+            "on-scroll-down": "~/.config/hypr/themes/Mocha-Power/timer.sh up", // previously down
+            "tooltip": true,
+            "escape": true,
+            "scroll-step": 10,
+        },
+
+        "cava": {
+            // "cava_config": "~/.config/picom.conf",
+            "framerate": 30,
+            "autosens": 0,
+            "sensitivity": 30,
+            "bars": 16,
+            "lower_cutoff_freq": 20,
+            "higher_cutoff_freq": 20000,
+            "hide_on_silence": true,
+            // "format_silent": "quiet",
+            "method": "pipewire",
+            "source": "auto",
+            "stereo": false,
+            "reverse": false,
+            "bar_delimiter": 0,
+            "monstercat": false,
+            "waves": false,
+            "noise_reduction": 0.2,
+            "input_delay": 2,
+            "sleep_timer": 5,
+            // "format-icons": ["▁","▁","▁","▁","▁","▁","▁","▁","▁","▁","▁","▁","▁", "▂", "▃", "▄", "▅", "▆", "▇", "█" ],
+            "format-icons": ["⡀", "⡀", "⡄", "⡆", "⡇"],
+        },
+
+        "group/traym": {
+            "orientation": "horizontal",
+            "drawer": {},
+            "modules": ["custom/trayicon", "tray"],
+        },
+
+        "group/storage": {
+            "orientation": "horizontal",
+            "drawer": {
+                "transition-duration": "500",
+                "transition-left-to-right": "true",
+                "children-class": "drawer-child",
+                //"click-to-reveal": "false"
+            },
+            "modules": ["memory#ram", "memory#swap"],
+        },
+
+
+        // Battery
+        "battery": {
+            "states": {
+            // "good": 95,
+            "warning": 30,
+            "critical": 15
+            },
+            "format": "{icon}  {capacity}%",
+            "format-charging": "  {capacity}%",
+            "format-plugged": "  {capacity}%",
+            "format-alt": "{icon}  {time}",
+            // "format-good": "", // An empty format will hide the module
+            // "format-full": "",
+            "format-icons": [" ", " ", " ", " ", " "]
+        },
+
+        "clock": {
+            "interval": 1,
+            "format": " {:%H:%M:%S    %a %d.%m}",
+            "tooltip-format": "{calendar}",
+            "calendar": {
+                "weeks-pos": "right",
+                "mode": "month",
+                "format": {
+                    "months": "<span color='#cba6f7'><b>{}</b></span>",
+                    "days": "<span color='#cdd6f4'><b>{}</b></span>",
+                    "weeks": "<span color='#94e2d5'> W{}</span>",
+                    "weekdays": "<span color='#f9e2af'><b>{}</b></span>",
+                    "today": "<span color='#f5e0dc'><b><u>{}</u></b></span>",
+                },
+            },
+            "on-click": "chromium --app=https://calendar.google.com & aplay ~/.config/sounds/interact.wav",
+        },
+
+        "cpu": {
+            "interval": 4,
+            "min-length": 6,
+            "format": " {usage}%",
+            "states": {
+                "warning": 80,
+                "critical": 95,
+            },
+        },
+
+        "hyprland/language": {
+            "format": " {}",
+            "format-fi": "Vittu",
+            "format-ru": "Блять",
+            "min-length": 8,
+            "on-click": "hyprctl switchxkblayout current next & aplay ~/.config/sounds/interact.wav",
+            "tooltip": false,
+            "class": "language",
+        },
+
+        "memory#ram": {
+            "interval": 4,
+            "format": " {percentage}%",
+            "states": {
+                "warning": 80,
+                "critical": 95,
+            },
+            "tooltip": "{}",
+            "tooltip-format": "{used}/{total} GiB",
+        },
+
+        "memory#swap": {
+            "interval": 16,
+            "format": "󰾵 {swapPercentage}%",
+            "tooltip": "{}",
+            "tooltip-format": "{swapUsed}/{swapTotal}GiB",
+        },
+
+	"group/hardware": {
+	    "orientation": "horizontal",
+	    "drawer": {
+		"transition-duration": 500,
+		"transition-left-to-right": false
+	    },
+	    "modules": [
+		"custom/hwicon",
+		"cpu",
+		"temperature",
+		"memory#ram",
+		"memory#swap",
+		"disk"
+	    ]
+	},
+
+	"custom/hwicon": {
+	    "format": "HW",
+	    "tooltip-format": "System resources"
+	},
+	"custom/ml4w-welcome": {
+	    "on-click": "flatpak run com.ml4w.sidebar",
+	    "format": "󱗼",
+	    "tooltip-format": "Open ML4W Sidebar App"
+	},
+
+	  "custom/appmenuicon": {
+	    "format": "",
+	    "on-click": "sleep 0.2;rofi -show drun -replace",
+	    "on-click-right": "~/.config/hypr/scripts/keybindings.sh",
+	    "tooltip-format": "Left: Open the application launcher\nRight: Show all keybindings"
+	  },
+
+	  // Updates Count
+	  "custom/updates": {
+	    "format": "  {}",
+	    "escape": true,
+	    "return-type": "json",
+	    "exec": "~/.config/ml4w/scripts/updates.sh",
+	    "interval": 1800,
+	    "on-click": "~/.config/ml4w/settings/installupdates.sh",
+	    "on-click-right": "~/.config/ml4w/settings/software.sh"
+	  },
+        "network#info": {
+            "interval": 2,
+            "format": "󱘖  Offline",
+            "format-wifi": "{icon} {bandwidthDownBits}",
+            "format-ethernet": "󰈀 {bandwidthDownBits}",
+            "min-length": 11,
+            "tooltip": "{}",
+            "tooltip-format-wifi": "{ifname}\n{essid}\n{signalStrength}% \n{frequency} GHz\n󰇚 {bandwidthDownBits}\n󰕒 {bandwidthUpBits}",
+            "tooltip-format-ethernet": "{ifname}\n󰇚 {bandwidthDownBits} \n󰕒 {bandwidthUpBits}",
+            "on-click": "iwgtk& aplay ~/.config/sounds/interact.wav",
+            "format-icons": ["󰤫", "󰤟", "󰤢", "󰤥", "󰤨"],
+            "states": {
+                "normal": 25,
+            },
+        },
+
+        "network#up": {
+            "interval": 4,
+            "format": " ",
+            "format-wifi": "󰕒 {bandwidthUpBits}",
+            "format-ethernet": "󰕒 {bandwidthUpBits}",
+            "format-disconnected": " ",
+            "min-length": 11,
+        },
+
+        "network#down": {
+            "interval": 4,
+            "format": "󰇚 {bandwidthDownBits}",
+            "format-wifi": "󰇚 {bandwidthDownBits}",
+            "format-ethernet": "󰇚 {bandwidthDownBits}",
+            "min-length": 11,
+        },
+
+        "hyprland/submap": {
+            "always-on": true,
+            "default-submap": "",
+            "format": "{}",
+            "format-RESIZE": "{}lol",
+            "tooltip": false,
+        },
+
+        "hyprland/window": {
+            "format": "{title}",
+            "max-length": 48,
+            "tooltip": false,
+            "icon": true,
+            "icon-size": 18,
+            "tooltip": true,
+        },
+
+        "hyprland/workspaces": {
+            "disable-scroll-wraparound": true,
+            "smooth-scrolling-threshold": 4,
+            "enable-bar-scroll": true,
+            "format": "{icon}",
+            "show-special": true,
+            "special-visible-only": false,
+            "format-icons": {
+                "magic": "",
+                "zellij": "",
+                "10": "󰊴",
+                "lock": "",
+            },
+        },
+
+        "pulseaudio#output": {
+            "format": "{icon} {volume}%",
+            "format-bluetooth": "{icon} {volume}%",
+            "format-source-muted": "{volume}",
+            "format-icons": {
+                "headphone": "",
+                "hands-free": "",
+                "headset": "",
+                "phone": "",
+                "portable": "",
+                "car": "",
+                "default": ["", ""],
+            },
+            "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+            "on-click-right": "pwvucontrol & aplay ~/.config/sounds/interact.wav",
+            "on-scroll-down": "sh -c 'vol=$(pactl get-sink-volume @DEFAULT_SINK@ | grep -oP \"\\d+(?=%)\" | head -1); if [ \"$vol\" -lt 100 ]; then pactl set-sink-volume @DEFAULT_SINK@ +2%; else pactl set-sink-volume @DEFAULT_SINK@ 110%; fi'",
+            "on-scroll-up": "pactl set-sink-volume @DEFAULT_SINK@ -2%",
+            "tooltip": true,
+            "scroll-step": 4,
+        },
+
+	  "pulseaudio": {
+	    // "scroll-step": 1, // %, can be a float
+	    "format": "{icon}    {volume}%",
+	    "format-bluetooth": "{volume}% {icon} {format_source}",
+	    "format-bluetooth-muted": " {icon} {format_source}",
+	    "format-muted": " {format_source}",
+	    "format-source": "{volume}% ",
+	    "format-source-muted": "",
+	    "format-icons": {
+	      "headphone": " ",
+	      "hands-free": " ",
+	      "headset": " ",
+	      "phone": " ",
+	      "portable": " ",
+	      "car": " ",
+	      "default": ["", "", ""]
+	    },
+	    "on-click": "pavucontrol"
+	  },
+
+        "temperature": {
+            "critical-threshold": 90,
+            "interval": 4,
+            "format": "{icon} {temperatureC}°",
+            "format-icons": ["", "", "", "", ""],
+            "tooltip": false,
+        },
+
+        "tray": {
+            "icon-size": 18,
+            "spacing": 8,
+        },
+
+        "custom/spacer": {
+            "format": " ",
+            "tooltip": false,
+        },
+
+        "custom/spacer1": {
+            "format": "",
+            "tooltip": false,
+        },
+
+        "custom/spacer2": {
+            "format": "",
+            "tooltip": false,
+        },
+
+        "custom/spacer3": {
+            "format": "",
+            "tooltip": false,
+        },
+
+        "custom/spacer4": {
+            "format": "",
+            "tooltip": false,
+        },
+
+        "custom/spacer5": {
+            "format": "",
+            "tooltip": false,
+        },
+
+        "custom/spacer6": {
+            "format": "",
+            "tooltip": false,
+        },
+
+        "custom/trayicon": {
+            // "format": " ",
+            // "format": "Zäni",
+            // "format": "󰣇 ",
+            // "format": " ",
+            "format": "ᗧ ",
+            "tooltip": false,
+            "on-click": " bash ~/.config/scripts/pacman.sh",
+            "on-scroll-up": "",
+            "on-scroll-down": "",
+        },
+    },
+
+    {
+        // INDICATOR BAR //
+        "layer": "top",
+        "position": "top",
+        "name": "indicator",
+        "passthrough": true,
+        "reload_style_on_change": true,
+        // "output": "eDP-1",
+
+        "height": 30,
+
+        "margin-top": -29,
+        // "margin-left": 10,
+        "margin-right": 24,
+
+        "modules-right": ["custom/batteryindicator"],
+
+        "custom/batteryindicator": {
+            "interval": 4,
+            "return-type": "json",
+            "tooltip": false,
+            "format": " ",
+            "exec": "~/.config/waybar/themes/mochaPower/bat-pp.sh bar",
+        },
+}
