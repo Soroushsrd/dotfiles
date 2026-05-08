@@ -1,0 +1,28 @@
+elpa/
+elpa-*/
+straight/
+eln-cache/
+*.elc
+auto-save-list/
+backups/
+*~
+recentf
+history
+projectile.cache
+transient/
+tramp
+places
+bookmarks
+.last-package-update-day
+network-security.data
+
+# Org-mode generated
+.org-id-locations
+
+# Custom file (machine-generated)
+custom.el
+
+# eshell / vterm state
+eshell/
+.cache/
+var/
