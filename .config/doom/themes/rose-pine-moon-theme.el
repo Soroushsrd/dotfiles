@@ -1,5 +1,5 @@
 ;;; rose-pine-dawn-theme.el --- All natural pine, faux fur and a bit of soho vibes for the classy minimalist.
-
+;;
 ;; Authors: Israel Romero <@caelie>
 ;; URL: http://github.com/caelie/rose-pine-emacs
 ;; Version: 0.2
@@ -35,7 +35,7 @@
   (cursor     "#c4a7e7")) ;; cursor
 
 
-  ;; Faces
+ ;; Faces
  ((default                   (:background base :foreground text))
 
   ;; Structural
@@ -95,31 +95,31 @@
 
   ;; Highlight line mode
   (with-eval-after-load "hl-line"
-  (set-face-attribute 'hl-line nil
-                                          :background high))
+    (set-face-attribute 'hl-line nil
+                        :background high))
 
   ;; Buttons
   (with-eval-after-load "cus-edit"
-  (set-face-attribute 'custom-button nil
-                                          :foreground (face-foreground 'faded)
-                                          :background (face-background 'default)
-                                          :box `(:line-width 1
-                                                         :color ,(face-foreground 'faded)
-                                                         :style nil))
-  (set-face-attribute 'custom-button-mouse nil
-                                          :foreground (face-foreground 'faded)
-                                          :background (face-background 'subtle)
-                                          :box `(:line-width 1
-                                                         :color ,(face-foreground 'faded)
-                                                         :style nil))
-  (set-face-attribute 'custom-button-pressed nil
-                                          :foreground (face-background 'default)
-                                          :background (face-foreground 'iris)
-                                          :inherit 'iris
-                                          :box `(:line-width 1
-                                                         :color ,(face-foreground 'iris)
-                                                         :style nil)
-                                          :inverse-video nil))
+    (set-face-attribute 'custom-button nil
+                        :foreground (face-foreground 'faded)
+                        :background (face-background 'default)
+                        :box `(:line-width 1
+                               :color ,(face-foreground 'faded)
+                               :style nil))
+    (set-face-attribute 'custom-button-mouse nil
+                        :foreground (face-foreground 'faded)
+                        :background (face-background 'subtle)
+                        :box `(:line-width 1
+                               :color ,(face-foreground 'faded)
+                               :style nil))
+    (set-face-attribute 'custom-button-pressed nil
+                        :foreground (face-background 'default)
+                        :background (face-foreground 'iris)
+                        :inherit 'iris
+                        :box `(:line-width 1
+                               :color ,(face-foreground 'iris)
+                               :style nil)
+                        :inverse-video nil))
 
   ;; Documentation
   (with-eval-after-load "info"
@@ -132,7 +132,7 @@
     (info-title-3                          (:foreground surface))
     (info-title-4                          (:foreground surface)))
 
- ;; Bookmarks
+  ;; Bookmarks
   (with-eval-after-load "bookmark"
     (bookmark-menu-heading              (:foreground surface))
     (bookmark-menu-bookmark             (:foreground iris)))
@@ -213,25 +213,25 @@
     (ido-only-match                         (:foreground faded))
     (ido-subdir                             (:foreground surface))
 
-  ;; Eros and Rainbow-delimiters
-  (eros-result-overlay-face                 (:foreground  text :background base))
-  (rainbow-delimiters-base-error-face       (:foreground  love :background base))
-  (rainbow-delimiters-depth-1-face          (:foreground  gold))
-  (rainbow-delimiters-depth-2-face          (:foreground  text))
-  (rainbow-delimiters-depth-3-face          (:foreground  text))
-  (rainbow-delimiters-depth-4-face          (:foreground  text))
-  (rainbow-delimiters-depth-5-face          (:foreground  text))
-  (rainbow-delimiters-depth-6-face          (:foreground  text))
-  (rainbow-delimiters-depth-7-face          (:foreground  text))
-  (rainbow-delimiters-depth-8-face          (:foreground  text))
-  (rainbow-delimiters-depth-9-face          (:foreground  text))
+    ;; Eros and Rainbow-delimiters
+    (eros-result-overlay-face                 (:foreground  text :background base))
+    (rainbow-delimiters-base-error-face       (:foreground  love :background base))
+    (rainbow-delimiters-depth-1-face          (:foreground  gold))
+    (rainbow-delimiters-depth-2-face          (:foreground  text))
+    (rainbow-delimiters-depth-3-face          (:foreground  text))
+    (rainbow-delimiters-depth-4-face          (:foreground  text))
+    (rainbow-delimiters-depth-5-face          (:foreground  text))
+    (rainbow-delimiters-depth-6-face          (:foreground  text))
+    (rainbow-delimiters-depth-7-face          (:foreground  text))
+    (rainbow-delimiters-depth-8-face          (:foreground  text))
+    (rainbow-delimiters-depth-9-face          (:foreground  text))
 
 
-  ;; Diff
-  (with-eval-after-load "diff-mode"
-    (diff-header                                      (:foreground faded))
-    (diff-file-header                                 (:foreground surface))
-    (diff-context                                     (:foreground text)))
+    ;; Diff
+    (with-eval-after-load "diff-mode"
+      (diff-header                                      (:foreground faded))
+      (diff-file-header                                 (:foreground surface))
+      (diff-context                                     (:foreground text)))
     (diff-removed                                     (:foreground faded))
     (diff-changed                                     (:foreground love))
     (diff-added                                       (:foreground iris))
@@ -240,36 +240,36 @@
     (diff-refine-removed                    (:foreground faded))
     (set-face-attribute     'diff-refine-removed nil :strike-through t))
 
-;; Term
-(with-eval-after-load "term"
-  (term-bold                                   (:foreground surface))
-  (set-face-attribute 'term-color-black nil
-                                          :foreground (face-foreground 'text)
-                                          :background (face-foreground 'text))
-  (set-face-attribute 'term-color-white nil
-                                          :foreground (face-background 'text)
-                                          :background (face-background 'text))
-  (set-face-attribute 'term-color-blue nil
-                                          :foreground "#31748f"
-                                          :background "#3783a1")
-  (set-face-attribute 'term-color-cyan nil
-                                          :foreground "#9ccfd8"
-                                          :background "#89c6d0")
-  (set-face-attribute 'term-color-green nil
-                                          :foreground "#706e86"
-                                          :background "#7c7a92")
-  (set-face-attribute 'term-color-magenta nil
-                                          :foreground "#c4a7e7"
-                                          :background "#b692e1")
-  (set-face-attribute 'term-color-red nil
-                                          :foreground "#eb6f92"
-                                          :background "#ee85a2")
-  (set-face-attribute 'term-color-yellow nil
-                                          :foreground "#f6c177"
-                                          :background "#f4b65f"))
+  ;; Term
+  (with-eval-after-load "term"
+    (term-bold                                   (:foreground surface))
+    (set-face-attribute 'term-color-black nil
+                        :foreground (face-foreground 'text)
+                        :background (face-foreground 'text))
+    (set-face-attribute 'term-color-white nil
+                        :foreground (face-background 'text)
+                        :background (face-background 'text))
+    (set-face-attribute 'term-color-blue nil
+                        :foreground "#31748f"
+                        :background "#3783a1")
+    (set-face-attribute 'term-color-cyan nil
+                        :foreground "#9ccfd8"
+                        :background "#89c6d0")
+    (set-face-attribute 'term-color-green nil
+                        :foreground "#706e86"
+                        :background "#7c7a92")
+    (set-face-attribute 'term-color-magenta nil
+                        :foreground "#c4a7e7"
+                        :background "#b692e1")
+    (set-face-attribute 'term-color-red nil
+                        :foreground "#eb6f92"
+                        :background "#ee85a2")
+    (set-face-attribute 'term-color-yellow nil
+                        :foreground "#f6c177"
+                        :background "#f4b65f"))
 
-(with-eval-after-load "calendar"
-  (calendar-today                         (:foreground surface)))
+  (with-eval-after-load "calendar"
+    (calendar-today                         (:foreground surface)))
 
 
 

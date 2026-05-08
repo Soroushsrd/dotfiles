@@ -5,26 +5,16 @@
 ;;;; ============================================================================
 
 (add-to-list 'exec-path "/home/rusty/.opam/default/bin")
+(add-to-list 'custom-theme-load-path "~/dotfiles/.config/doom/themes/")
 (setenv "PATH" (concat "/home/rusty/.opam/default/bin:" (getenv "PATH")))
 ;;;; ============================================================================
 ;;;; Theme & UI
 ;;;; ============================================================================
 
-(load-file "~/kanagawa-theme-source-code.el")
 (load-file "~/dotfiles/.config/doom/cargo-toml.el")
 (load-file "~/dotfiles/.config/doom/cpp-templates.el")
-(load-file "~/dotfiles/.config/doom/claude-agent.el")
-(load-file "~/dotfiles/.config/doom/osmium.el")
-(load-file "~/dotfiles/.config/doom/themes/doom-rose-pine-theme.el")
-(load-file "~/dotfiles/.config/doom/themes/rose-pine-moon-theme.el")
-(load-file "~/dotfiles/.config/doom/themes/doom-rose-pine-dawn-theme.el")
-
-(require 'ef-themes)
-(mapc #'require (mapcar #'intern
-                        (mapcar #'file-name-sans-extension
-                                (directory-files
-                                 (file-name-directory (locate-library "ef-themes"))
-                                 nil "^ef-.*-theme\\.el$"))))
+;; (load-file "~/dotfiles/.config/doom/claude-agent.el")
+;; (load-file "~/dotfiles/.config/doom/osmium.el")
 
 (defun my/apply-dark-theme-custom ()
   "Apply custom faces for dark themes only."
@@ -34,6 +24,7 @@
     '(mode-line :foreground "#ffffff")
     '(treemacs-window-background-face :background "#16161D")
     '(dired-header :background "#16161D")
+    '(consult-line-number-prefix :backgrond "#16161D")
     ;; Eldoc box faces
     '(eldoc-box-body :background "#1a1a1a" :foreground "#ffffff")
     '(eldoc-box-border :background "#444444")
@@ -60,11 +51,13 @@
 (defun my/set-theme-by-time()
   "Set theme based on current time of the day."
   (let ((hour (string-to-number (format-time-string "%H"))))
-    (if (and (>= hour 7) (< hour 13))
+    (if (and (>= hour 7) (< hour 18))
         (load-theme 'doom-gruvbox-light t)
       (progn
-        (load-theme 'doom-molokai)
-        (my/apply-dark-theme-custom)))))
+        (load-theme 'doom-monokai-classic)))))
+
+;; (add-hook 'emacs-startup-hook #'my/set-theme-by-time)
+;; (run-at-time "0 sec" 3600 #'my/set-theme-by-time)
 
 (defun my/apply-transparency ()
   "Apply transparent background."
@@ -77,16 +70,36 @@
   (interactive)
   (add-to-list 'default-frame-alist '(alpha-background . 100))
   (set-frame-parameter nil 'alpha-background 100))
-;; (add-hook 'emacs-startup-hook #'my/set-theme-by-time)
 
-;; (run-at-time "0 sec" 3600 #'my/set-theme-by-time)
 
-(load-theme 'ef-deuteranopia-dark t )
-(my/apply-transparency)
-(setq doom-font (font-spec :family "JetBrainsMono NFM SemiBold" :size 15))
 
+(defun my/improve-line-number ()
+  "Darken the line number face."
+  (interactive)
+  (custom-set-faces!
+    '(line-number :background unspecified :foreground "#3d3d4a" )
+    '(fringe :background unspecified :foreground unspecified)
+    '(line-number-current-line :background unspecified :foreground "#7e9cd8" :bold t))
+  )
+
+;; (load-theme 'monokai-alt t)
+;; (custom-set-faces!
+;;   '(default :foreground "#504945")
+;;   '(font-lock-builtin-face :foreground "#8f3f71")
+;;   '(font-lock-function-call-face :forground "#8f3f71"))
+;; (my/apply-dark-theme-custom)
+;; (if (eq doom-theme 'base16-sparky)
+;;     (custom-set-faces!
+;;       '(font-lock-comment-face :foreground "#a0a0a0")
+;;       '(font-lock-comment-delimiter-face :foreground "#a0a0a0")))
 ;; (setq doom-theme 'doom-osmium)
 
+;; (my/apply-transparency)
+(setq doom-font (font-spec :family "JetBrainsMono NFM" :weight 'bold :size 15 :height 120)
+      doom-theme 'doom-fel)
+(setq-default line-spacing 0.45)  ; roughly matches 145% line height
+(my/undo-dark-theme-custom)
+(my/improve-line-number)
 
 
 ;; (after! lsp-mode
@@ -129,6 +142,9 @@
   (insert "\n\n"))
 
 (setq +doom-dashboard-ascii-banner-fn #'doom-dashboard-draw-ascii-banner-fn)
+(add-hook '+doom-dashboard-mode-hook
+          (lambda ()
+            (setq-local line-spacing 0)))
 
 (custom-set-faces!
   '(doom-dashboard-banner :foreground "#a855f7" :weight bold))
@@ -170,10 +186,6 @@
   :config
   (mouse-avoidance-mode 'exile))
 
-;; Wakatime
-;; (use-package! wakatime-mode
-;;   :config
-;;   (global-wakatime-mode))
 
 ;; Using Zathura for pdfs when inside terminal
 (defun my/open-pdf-in-zathura (file)
@@ -212,6 +224,73 @@
 ;;;; ============================================================================
 ;;;; Org Mode
 ;;;; ============================================================================
+
+(setq org-directory "~/org/")
+
+;; Tell Doom where the todo file lives (relative to org-directory)
+(setq +org-capture-todo-file "tasks.org")
+
+(after! org
+  ;; ---- TODO keywords: "|" separates active from done states ----
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "PROG(p)" "|" "DONE(d)")))
+
+  (setq org-todo-keyword-faces
+        '(("TODO" . (:foreground "#ff6c6b" :weight bold))
+          ("PROG" . (:foreground "#ECBE7B" :weight bold))
+          ("DONE" . (:foreground "#98be65" :weight bold))))
+
+  ;; ---- Agenda ----
+  (setq org-agenda-files (list (expand-file-name "tasks.org" org-directory)))
+
+  (setq org-agenda-custom-commands
+        '(("n" "My Weekly Agenda"
+           ((agenda "" ((org-agenda-span 'week)))
+            (todo "PROG" ((org-agenda-overriding-header "In Progress")))
+            (todo "TODO" ((org-agenda-overriding-header "To Do")))
+            (todo "DONE" ((org-agenda-overriding-header "Done"))))
+           nil)))
+
+  ;; ---- Archive ----
+  (setq org-archive-location "~/org/archive.org::* Archived Tasks")
+
+  ;; ---- Tags ----
+  (setq org-tag-alist
+        '((:startgroup . nil)
+          ("work"    . ?w)
+          ("daily"   . ?p)
+          ("project" . ?j)
+          ("meeting" . ?m)
+          ("urgent"  . ?u)
+          (:endgroup . nil)))
+
+  ;; ---- Capture templates ----
+  ;; Use +org-capture-todo-file so Doom resolves paths consistently
+  (setq org-capture-templates
+        '(("t" "Todo" entry
+           (file+headline +org-capture-todo-file "Inbox")
+           "* TODO %?\n  CREATED: %U\n"
+           :empty-lines 1)
+          ("w" "Work Task" entry
+           (file+headline +org-capture-todo-file "Work Tasks")
+           "* TODO %?\n  CREATED: %U\n"
+           :empty-lines 1)
+          ("p" "Personal" entry
+           (file+headline +org-capture-todo-file "Personal")
+           "* TODO %?\n  CREATED: %U\n"
+           :empty-lines 1)))
+
+  ;; ---- Log done time ----
+  (setq org-log-done 'time)
+
+  ;; ---- Babel ----
+  (setq org-confirm-babel-evaluate nil)
+  (setq org-startup-with-inline-images t)
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((ditaa . t))))
+
+;; ---- Ditaa (standalone binary, not jar) ----
 (after! ob-ditaa
   (defun org-babel-execute:ditaa (body params)
     "Execute ditaa code with BODY and PARAMS using standalone ditaa executable."
@@ -228,52 +307,30 @@
       (shell-command cmd)
       nil)))
 
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((ditaa . t)))
-
-(setq org-confirm-babel-evaluate nil)
-(setq org-startup-with-inline-images t)
-
-
-(setq org-directory "~/org/"
-      org-agenda-files (list (expand-file-name "tasks.org" org-directory))
-      org-archive-location "~/org/archive.org::* Archived Tasks"
-      org-todo-keywords '((sequence "TODO(t)" "PROG(p)" "DONE(d)"))
-      org-todo-keyword-faces '(("TODO" . (:foreground "#ff6c6b" :weight bold))
-                               ("PROG" . (:foreground "#ECBE7B" :weight bold))
-                               ("DONE" . (:foreground "#98be65" :weight bold)))
-      org-agenda-custom-commands
-      '(("n" "My Weekly Agenda"
-         ((agenda "" ((org-agenda-span 'week)))
-          (todo "PROG" ((org-agenda-overriding-header "In Progress")))
-          (todo "TODO" ((org-agenda-overriding-header "To Do:")))
-          (todo "DONE" ((org-agenda-overriding-header "Done"))))
-         nil))
-      org-tag-alist '((:startgroup . nil)
-                      ("work" . ?w)
-                      ("daily" . ?p)
-                      ("project" . ?j)
-                      ("meeting" . ?m)
-                      ("urgent" . ?u)
-                      (:endgroup . nil))
-      org-capture-templates
-      '(("t" "Todo" entry
-         (file+headline "~/org/tasks.org" "Inbox")
-         "** TODO %?\n   CREATED: %U\n")
-        ("w" "Work Task" entry
-         (file+headline "~/org/tasks.org" "Work Tasks")
-         "** TODO %?\n   CREATED: %U\n")
-        ("p" "Personal" entry
-         (file+headline "~/org/tasks.org" "Personal")
-         "** TODO %?\n   CREATED: %U\n")))
-
-;; Auto-save tasks file when idle
+;; ---- Auto-save tasks.org when idle (with nil guard) ----
 (add-hook 'org-mode-hook
           (lambda ()
-            (when (string-match-p "tasks\\.org$" (buffer-file-name))
+            (when (and (buffer-file-name)
+                       (string-match-p "tasks\\.org$" (buffer-file-name)))
               (auto-save-mode 1))))
 
+;; ---- Ensure tasks.org has required headlines ----
+(defun my/ensure-tasks-org-structure ()
+  "Create required headlines in tasks.org if they don't exist."
+  (let ((tasks-file (expand-file-name "tasks.org" org-directory)))
+    (when (and (file-exists-p tasks-file))
+      (with-current-buffer (find-file-noselect tasks-file)
+        (org-with-wide-buffer
+         (dolist (headline '("Inbox" "Work Tasks" "Personal"))
+           (goto-char (point-min))
+           (unless (re-search-forward
+                    (format "^\\* %s" (regexp-quote headline)) nil t)
+             (goto-char (point-max))
+             (unless (bolp) (insert "\n"))
+             (insert (format "* %s\n" headline)))))
+        (save-buffer)))))
+
+(add-hook 'emacs-startup-hook #'my/ensure-tasks-org-structure)
 ;;;; ============================================================================
 ;;;; LSP & Language Support
 ;;;; ============================================================================
@@ -290,7 +347,9 @@
 ;; Rust
 (after! rustic
   (setq rustic-lsp-client 'eglot))
-
+;; (after! rustic
+;;   (setq rustic-lsp-client 'eglot)
+;;   (setq rustic-treesitter-derive t))  ; tells rustic to derive from rust-ts-mode
 ;; ;; LSP UI
 ;; (after! lsp-ui
 ;;   (setq lsp-ui-doc-enable t
@@ -305,14 +364,15 @@
   (setq eglot-enable-semantic-tokens t)
   :hook ((tuareg-mode . eglot-ensure)
          (rustic-mode . eglot-ensure)
+         ;; (rust-ts-mode . eglot-ensure)
          (toml-ts-mode . eglot-ensure)
          (c-mode . eglot-ensure)
          (c++-mode . eglot-ensure))
   :config
   (setq eglot-connect-timeout 60)
   ;; Language servers
-  (add-to-list 'eglot-server-programs '(tuareg-mode . ("ocamllsp")))
   (add-to-list 'eglot-server-programs '(rustic-mode . ("rust-analyzer")))
+  ;; (add-to-list 'eglot-server-programs '(rust-ts-mode . ("rust-analyzer")))
   ;; (add-to-list 'eglot-server-programs '(zig-mode . ("zls")))
   (add-to-list 'eglot-server-programs
                '((c-mode c++-mode) .
@@ -388,6 +448,8 @@
   "Run 'cargo fmt --all' in the project root and refresh diagnostics."
   (when (and (derived-mode-p 'rust-mode 'rustic-mode)
              (locate-dominating-file default-directory "Cargo.toml"))
+    ;; (when (and (derived-mode-p 'rust-ts-mode)  ;; was rust-mode 'rustic-mode
+    ;;            (locate-dominating-file default-directory "Cargo.toml"))
     (let ((project-root (locate-dominating-file default-directory "Cargo.toml"))
           (current-buffer (current-buffer)))
       (set-process-sentinel
@@ -422,7 +484,8 @@
                      (message "CMake finished, restarting Eglot...")
                      (dolist (buf (buffer-list))
                        (with-current-buffer buf
-                         (when (and (derived-mode-p 'c-mode 'c++-mode)
+                         ;; (when (and (derived-mode-p 'c-mode 'c++-mode)
+                         (when (and (derived-mode-p 'c-ts-mode 'c++-ts-mode)
                                     (eglot-managed-p))
                            (eglot-reconnect (eglot-current-server)))))))))))
 
@@ -433,6 +496,7 @@
       '((typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
         (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
         (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+        (rust "https://github.com/tree-sitter/tree-sitter-rust")
         (c "https://github.com/tree-sitter/tree-sitter-c")))
 
 ;; Flycheck inline
@@ -585,7 +649,7 @@
 
 ;; C++ template bindings
 (map! :leader
-      (:prefix "m"
+      (:prefix ("m" . "CPP Projects")
        :desc "New project"        "p" #'cpp-template-new-project
        :desc "New class"          "c" #'cpp-template-new-class
        :desc "Header-only class"  "h" #'cpp-template-new-header-only-class
@@ -647,6 +711,8 @@
 (map! :leader
       (:prefix ("d" . "Custom Modifications")
        :desc "Apply dark theme modifications" "d" #'my/apply-dark-theme-custom
+       ;; :desc "Apply darker line number" "l" #'my/darken-line-number
+       :desc "Apply default line number" "i" #'my/improve-line-number
        :desc "Undo dark theme modifications" "u" #'my/undo-dark-theme-custom
        :desc "Apply transparent background" "b" #'my/apply-transparency
        :desc "Undo transparent background" "t" #'my/undo-transparency))

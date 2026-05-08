@@ -56,10 +56,6 @@
 
 (package! eldoc-box)
 (package! lsp-ui)
-(package! merlin)
-(package! merlin-eldoc)
-(package! flycheck-ocaml)
-;; (package! wakatime-mode)
 (package! solaire-mode :disable t)
 (package! autothemer)
 (package! flycheck-inline)
@@ -70,6 +66,6 @@
 (package! git-gutter)
 (package! git-gutter-fringe)
 (package! nasm-mode)
-(package! ef-themes)
-
+(package! base16-theme)
+(package! eglot :pin nil)
 ;;; packages.el ends here
