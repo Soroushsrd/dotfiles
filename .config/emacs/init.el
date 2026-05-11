@@ -479,8 +479,9 @@
                     nil :local)))))))
 
 ;;;; Theme + modeline
-(use-package doom-themes)
+;; (use-package doom-themes)
   ;; :config (load-theme 'doom-molokai t))
+
 (use-package sexy-theme
   :config (load-theme 'sexy t))
 
@@ -571,6 +572,12 @@
 
 ;;;; Local lisp
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
+(defun my/elisp-format-on-save ()
+  "Formats lisp code on save."
+  (when (eq major-mode 'emacs-lisp-mode)
+    (indent-region (point-min) (point-max))))
+
+(add-hook 'before-save-hook #'my/elisp-format-on-save)
 
 (require 'cpp-templates)
 (setq cpp-template-author-name "Soroosh Sardashti"
