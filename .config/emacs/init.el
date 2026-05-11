@@ -256,7 +256,7 @@
                       :foreground "#957FB8"   
                       :weight 'bold)
   ;; ── Method / function calls ───────────────────────────────────────────
-  (set-face-attribute 'font-lock-function-name-face nil
+  (set-face-attribute 'font-lock-function-call-face nil
                       :foreground "#7FB4CA"))
 
 
@@ -310,8 +310,7 @@
 ;;;; LSP — Eglot
 (use-package eglot
   :ensure nil
-  :hook ((rust-mode    . eglot-ensure)
-         (rust-ts-mode . eglot-ensure)
+  :hook ((rustic-mode    . eglot-ensure)
          (c-mode       . eglot-ensure)
          (c++-mode     . eglot-ensure)
          (c-ts-mode    . eglot-ensure)
@@ -330,12 +329,12 @@
                '((c-mode c++-mode c-ts-mode c++-ts-mode) .
                  ("clangd"
                   "--background-index"
-                  "--inlay-hints=true"
                   "--clang-tidy"
                   "--completion-style=detailed"
                   "--header-insertion=never"
                   "--header-insertion-decorators=0"
-                  "--compile-commands-dir=build")))
+                  "--fallback-style=llvm"
+                  "--query-driver=/usr/bin/g++-*,/usr/bin/clang++-*")))
   (add-hook 'eglot-managed-mode-hook #'eglot-inlay-hints-mode))
 
 (with-eval-after-load 'eglot
@@ -441,6 +440,9 @@
         (rust "https://github.com/tree-sitter/tree-sitter-rust")
         (toml "https://github.com/tree-sitter/tree-sitter-toml")))
 
+(setq rustic-treesitter-derive t)  ; rustic uses rust-ts-mode as base
+(add-to-list 'major-mode-remap-alist '(rust-mode . rust-ts-mode))
+
 ;;;; Terminal
 (use-package vterm
   :commands (vterm vterm-other-window)
@@ -479,11 +481,11 @@
                     nil :local)))))))
 
 ;;;; Theme + modeline
-;; (use-package doom-themes)
-;; :config (load-theme 'doom-molokai t))
+(use-package doom-themes
+:config (load-theme 'doom-solarized-dark-high-contrast t))
 
-(use-package sexy-theme
-  :config (load-theme 'sexy t))
+;; (use-package sexy-theme
+;;   :config (load-theme 'sexy t))
 
 (use-package nerd-icons)
 
