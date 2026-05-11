@@ -224,7 +224,7 @@
         centaur-tabs-show-new-tab-button  nil
         centaur-tabs-cycle-scope          'tabs
         centaur-tabs-adjust-buffer-order  'right)
-        ;; centaur-tabs-label-fixed-length   8)  ; pads label to fixed width → more breathing room
+  ;; centaur-tabs-label-fixed-length   8)  ; pads label to fixed width → more breathing room
   :config
   (centaur-tabs-mode t)
   (centaur-tabs-change-fonts "CaskaydiaCove Nerd Font Propo" 110)  ; function call goes here
@@ -275,7 +275,7 @@
         dired-recursive-deletes 'always
         dired-listing-switches "-alh --group-directories-first"
         delete-by-moving-to-trash t)
-;; Evil-friendly keybinds inside dired
+  ;; Evil-friendly keybinds inside dired
   (with-eval-after-load 'evil
     (evil-define-key 'normal dired-mode-map
       (kbd "h")   #'dired-up-directory
@@ -480,7 +480,7 @@
 
 ;;;; Theme + modeline
 ;; (use-package doom-themes)
-  ;; :config (load-theme 'doom-molokai t))
+;; :config (load-theme 'doom-molokai t))
 
 (use-package sexy-theme
   :config (load-theme 'sexy t))
@@ -489,6 +489,9 @@
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1))
+(doom-modeline-def-segment buffer-info
+  (concat (doom-modeline--buffer-mode-icon) " " (doom-modeline--buffer-name) " "))
+
 
 ;;;; Dashboard
 (use-package dashboard
