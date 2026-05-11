@@ -310,7 +310,8 @@
 ;;;; LSP — Eglot
 (use-package eglot
   :ensure nil
-  :hook ((rustic-mode    . eglot-ensure)
+  :hook ((rustic-mode  . eglot-ensure)
+         (rust-ts-mode . eglot-ensure)
          (c-mode       . eglot-ensure)
          (c++-mode     . eglot-ensure)
          (c-ts-mode    . eglot-ensure)
@@ -321,8 +322,10 @@
   :config
   (setq eglot-connect-timeout 60
         eglot-events-buffer-size 0
-        eglot-autoshutdown t
+        eglot-sync-connect 10
         eglot-send-changes-idle-time 0.5)
+  (add-to-list 'eglot-server-programs
+               '(rust-ts-mode . ("rust-analyzer")))
   (add-to-list 'eglot-server-programs
                '(cmake-mode . ("neocmakelsp" "--stdio")))
   (add-to-list 'eglot-server-programs
@@ -481,11 +484,11 @@
                     nil :local)))))))
 
 ;;;; Theme + modeline
-(use-package doom-themes
-:config (load-theme 'doom-solarized-dark-high-contrast t))
+;; (use-package doom-themes
+;;   :config (load-theme 'doom-molokai t))
 
-;; (use-package sexy-theme
-;;   :config (load-theme 'sexy t))
+(use-package sexy-theme
+  :config (load-theme 'sexy t))
 
 (use-package nerd-icons)
 
