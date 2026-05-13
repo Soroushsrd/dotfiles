@@ -357,18 +357,8 @@
   (setq eldoc-box-max-pixel-width 800
         eldoc-box-max-pixel-height 600
         eldoc-box-offset '(16 16 16))
-  (set-face-attribute 'eldoc-box-border nil :background "#444444")
+  (set-face-attribute 'eldoc-box-border nil :background "#444444"))
 
-  (defun my/eldoc-box-bind-quit ()
-    (with-current-buffer (get-buffer-create eldoc-box-buffer)
-      (local-set-key (kbd "q") #'eldoc-box-quit-frame)
-      (local-set-key (kbd "Q") #'eldoc-box-quit-frame)
-      (local-set-key [escape]  #'eldoc-box-quit-frame)
-      (evil-local-set-key 'normal (kbd "q") #'eldoc-box-quit-frame)
-      (evil-local-set-key 'normal [escape]  #'eldoc-box-quit-frame)))
-
-  (advice-add 'eldoc-box-help-at-point :after
-              (lambda (&rest _) (my/eldoc-box-bind-quit))))
 
 ;; K to show docs (Doom-style)
 (with-eval-after-load 'evil
@@ -379,6 +369,7 @@
                   (if (display-graphic-p)
                       (eldoc-box-help-at-point)
                     (eldoc))))))
+;; TODO: write the same thing as above for quitting the frame
 
 ;;;; Org
 (use-package org
@@ -484,11 +475,19 @@
                     nil :local)))))))
 
 ;;;; Theme + modeline
-;; (use-package doom-themes
-;;   :config (load-theme 'doom-molokai t))
+(use-package doom-themes
+  :config (load-theme 'doom-molokai t)
 
-(use-package sexy-theme
-  :config (load-theme 'sexy t))
+  ;; Override background colors after theme loads
+  (custom-set-faces
+   '(default ((t (:background "#0d0d0d"))))          ; main bg
+   '(fringe  ((t (:background "#0d0d0d"))))          ; fringe matches
+   '(line-number ((t (:background "#0d0d0d"))))      ; line number gutter
+   '(mode-line ((t (:background "#111111"))))))      ; slightly darker modeline
+
+
+;; (use-package sexy-theme
+;;   :config (load-theme 'sexy t))
 
 (use-package nerd-icons)
 
@@ -674,3 +673,6 @@
 ;;     (add-to-list 'load-path (expand-file-name "emacs/site-lisp" opam-share))
 ;;     (autoload 'merlin-mode "merlin" nil t nil)
 ;;     (setq merlin-command 'opam)))
+
+(require 'article)
+
