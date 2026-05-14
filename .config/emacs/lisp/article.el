@@ -59,7 +59,7 @@
              (display (format "  [%s] %s\n" name title)))
         (insert-text-button
          display
-         'action (lambda (_) (browse-url url))
+         'action (lambda (_) (eww url))
          'follow-link t
          'help-echo url)))))
 
