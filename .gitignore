@@ -3,4 +3,9 @@
 *.log
 tmp/
 
-~/.config/ml4w/cache/
+~/dotfiles/.config/ml4w/cache/
+~/dotfiles/.config/emacs/elpa/*
+~/dotfiles/.config/emacs/auto-save-list/*
+~/dotfiles/.config/emacs/.cache/*
+~/dotfiles/.config/emacs/eln-cache/*
+
