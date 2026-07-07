@@ -173,3 +173,11 @@
         pdf-view-use-scaling t
         pdf-view-resize-factor 1.1)
   (add-hook 'pdf-view-mode-hook #'pdf-view-roll-minor-mode))
+
+(use-package wakatime-mode
+  :ensure t
+  :init
+  (global-wakatime-mode)
+  :config
+  (setq wakatime-cli-path (expand-file-name "~/.wakatime/wakatime-cli")))
+
