@@ -52,7 +52,7 @@
       (make-process
        :name "cmake-rebuild"
        :buffer "*CMake*"
-       :command '("cmake" "-B" "build")
+       :command '("cmake" "-B" "build" "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
        :sentinel (lambda (_proc event)
                    (when (string-match-p "finished" event)
                      (message "CMake finished, restarting Eglot...")
@@ -73,7 +73,7 @@
          (when (string-match-p "finished" event)
            (with-current-buffer buf (revert-buffer t t t))))))))
 
-(add-hook 'after-save-hook #'my/zig-fmt-on-save)
+(add-hook 'before-save-hook #'my/zig-fmt-on-save)
 
 (add-hook 'before-save-hook #'my/rust-fmt-on-save)
 ;; (add-hook 'after-save-hook #'my/cargo-fmt-all)

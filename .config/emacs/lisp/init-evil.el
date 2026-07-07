@@ -11,7 +11,8 @@
   (setq evil-split-window-below t)
   (setq evil-vsplit-window-right t)
   :config
-  (evil-mode 1))
+  (evil-mode 1)
+  (global-evil-surround-mode 1))
 
 (use-package evil-collection
   :after evil
@@ -53,6 +54,7 @@
   ;; Files
   "f p" '((lambda () (interactive) (find-file user-init-file)) :which-key "edit init.el")
   "f s" '(save-buffer :which-key "save")
+  "'" '(my/treemacs-here :which-key "Open file tree")
 
   ;; Buffers
   "b b" '(switch-to-buffer :which-key "switch buffer")
@@ -98,8 +100,6 @@
   "t t" '(my/vterm-toggle :which-key "toggle vterm")
   "t T" '(vterm :which-key "vterm fullscreen")
 
-  ;; File tree
-  "'"   '(my/treemacs-here :which-key "file tree (here)")
 
   ;; C++ templates
   "m p" '(cpp-template-new-project :which-key "new project")
@@ -129,6 +129,8 @@
       (kbd "M-j") #'evil-window-down
       (kbd "M-k") #'evil-window-up
       (kbd "M-l") #'evil-window-right)))
+(with-eval-after-load 'evil
+  (evil-define-key 'insert 'global (kbd "RET") #'newline-and-indent))
 
 ;;;; which-key
 (use-package which-key

@@ -73,9 +73,16 @@ actually invalidates eglot's token cache."
   (setq eglot-stay-out-of '(yasnippet))
   :config
   (setq eglot-connect-timeout 60
-        eglot-events-buffer-size 0
+        eglot-events-buffer-size 2000000
         eglot-sync-connect 10
-        eglot-send-changes-idle-time 0.5)
+        eglot-send-changes-idle-time 0.1)
+  (setq-default eglot-workspace-configuration
+                '(:rust-analyzer
+                  (:inlayHints
+                   (:typeHints (:enable t)
+                               :closureReturnTypeHints (:enable "always")
+                               :parameterHints (:enable t)
+                               :chainingHints (:enable t)))))
   (add-to-list 'eglot-server-programs
                '(rust-ts-mode . ("rust-analyzer")))
   (add-to-list 'eglot-server-programs
@@ -88,8 +95,8 @@ actually invalidates eglot's token cache."
                   "--background-index"
                   "--clang-tidy"
                   "--completion-style=detailed"
-                  "--header-insertion=never"
-                  "--header-insertion-decorators=0"
+                  "--header-insertion=iwyu"
+                  "--header-insertion-decorators=1"
                   "--fallback-style=llvm"
                   "--query-driver=/usr/bin/g++-*,/usr/bin/clang++-*")))
   (add-hook 'eglot-managed-mode-hook #'eglot-inlay-hints-mode))
