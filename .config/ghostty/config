@@ -1,10 +1,11 @@
 font-family = JetBrainsMono NFM SemiBold
-# font-family = Iosevka Nerd Font
+# font-family = CaskaydiaCove Nerd Font Propo
 # font-family = SFMono Nerd Font
 # gtk-gsk-renderer = default
 font-size = 12
+font-style-bold = true
 title = ""
-theme = Argonaut
+theme = Duckbones
 shell-integration = none
 # shell-integration-features = no-cursor,sudo,no-title
 cursor-style = block_hollow
@@ -43,10 +44,10 @@ keybind = alt+q=close_surface
 keybind = alt+n=new_window
 # Tab management - using Alt + number for direct access
 keybind = alt+t=new_tab
-keybind = alt+l=next_tab
-keybind = alt+h=previous_tab
-keybind = alt+comma=move_tab:-1
-keybind = alt+period=move_tab:1
+keybind = alt+x=next_tab
+keybind = alt+p=previous_tab
+# keybind = alt+comma=move_tab:-1
+# keybind = alt+period=move_tab:1
 
 
 # Split windows - using more intuitive keys
@@ -62,6 +63,9 @@ keybind = alt+up=goto_split:up
 keybind = alt+down=goto_split:down
 keybind = alt+left=goto_split:left
 keybind = alt+right=goto_split:right
+
+quit-after-last-window-closed = true
+quit-after-last-window-closed-delay = 5m
 
 
 
