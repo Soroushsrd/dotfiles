@@ -35,6 +35,10 @@
 (my/load "init-evil")
 (my/load "init-lsp")
 (my/load "init-org")
+(my/load "escape-dashboard")
 (my/load "init-ui")
 (my/load "init-tools")
 (my/load "init-langs")
+
+(with-eval-after-load 'evil
+  (evil-set-initial-state 'escape-mode 'emacs))
