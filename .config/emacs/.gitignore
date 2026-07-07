@@ -1,5 +1,6 @@
 elpa/
 elpa-*/
+custom.el
 straight/
 eln-cache/
 *.elc
