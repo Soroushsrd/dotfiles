@@ -60,28 +60,39 @@
 
 ;;;; Theme + modeline
 (use-package doom-themes)
-;; :config (load-theme 'doom-solarized-dark-high-contrast t))
+;; :config (load-theme 'doom-monokai-spectrum t))
 ;; (load-theme 'kanagawa-wave)
-;; (load-theme 'jazz)
-;; (use-package doric-themes)
 
-;; Override background colors after theme loads
-(use-package darktooth-theme)
+(use-package kusanagi-theme
+  :vc (:url "https://github.com/LionyxML/kusanagi-theme" :rev :newest))
 
 (use-package base16-theme
   :ensure t
   :config
-  (load-theme 'base16-tokyodark-terminal t))
+  (load-theme 'base16-ayu-dark t))
 
 (use-package gotham-theme)
 (use-package sublime-themes)
 
+;; Override Nord's background with the deep slate from your image
+;; (custom-set-faces
+;;  '(default ((t (:background "#162635"))))
+;;  '(fringe  ((t (:background "#162635"))))
+;;  '(tab-line ((t (:background "#1A3042" :foreground "#162635"))))
+;;  '(line-number ((t (:background "#162635"))))
+;;  '(centaur-tabs-selected
+;;    ((t (:background "#1A3042" :foreground "#A5D4DE"))))
+;;  '(centaur-tabs-unselected
+;;    ((t (:background "#162635" :foreground "#618D9D"))))
+;;  '(mode-line ((t (:background "#1A3042")))))
 
-(custom-set-faces
- ;; '(default ((t (:background "#0d0d0d"))))          ; main bg
- '(fringe  ((t (:background "#11121d"))))          ; fringe matches
- '(line-number ((t (:background "#11121d")))))     ; line number gutter
+;; used for base16-tokyodark-terminal theme
+;; (custom-set-faces
+;;  ;; '(default ((t (:background "#0d0d0d"))))          ; main bg
+;;  '(fringe  ((t (:background "#11121d"))))          ; fringe matches
+;;  '(line-number ((t (:background "#11121d")))))     ; line number gutter
 ;; '(mode-line ((t (:background "#111111")))))      ; slightly darker modeline
+
 (use-package nerd-icons)
 (use-package doom-modeline
   :init (doom-modeline-mode 1))
@@ -117,3 +128,5 @@
       (kbd "f") #'elfeed)))
 
 (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+(require 'escape-dashboard)
+(add-hook 'emacs-startup-hook #'escape t)
