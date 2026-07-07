@@ -10,4 +10,6 @@
 
 (setq rustic-treesitter-derive t)  ; rustic uses rust-ts-mode as base
 (add-to-list 'major-mode-remap-alist '(rust-mode . rust-ts-mode))
+(add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+(add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
 (setq treesit-font-lock-level 4)
