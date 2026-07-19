@@ -16,90 +16,70 @@
   :config (setq company-idle-delay 0.0
                 company-minimum-prefix-length 1))
 
-;;;; LSP — Eglot
-(defun my/rust-kick-semantic-tokens ()
-  "Force eglot to re-request semantic tokens by generating a no-op edit.
-Runs once rust-analyzer is responsive, since a phantom didChange is what
-actually invalidates eglot's token cache."
-  (when (and (eglot-managed-p)
-             (derived-mode-p 'rust-ts-mode 'rustic-mode))
-    (let ((buf (current-buffer))
-          (attempts 0))
-      (cl-labels
-          ((ready-p ()
-             (let ((server (eglot-current-server)))
-               (and server
-                    (ignore-errors
-                      (jsonrpc-request
-                       server :textDocument/documentSymbol
-                       (list :textDocument (eglot--TextDocumentIdentifier))
-                       :timeout 0.5)
-                      t))))
-           (kick ()
-             (with-current-buffer buf
-               (let ((inhibit-modification-hooks nil)
-                     (modified (buffer-modified-p)))
-                 (save-excursion
-                   (goto-char (point-min))
-                   ;; Phantom edit: insert then delete a space.
-                   ;; This fires didChange (twice), invalidating eglot's
-                   ;; semantic-tokens cache and forcing a real re-fetch.
-                   (insert " ")
-                   (delete-char -1))
-                 ;; Restore the unmodified flag so we don't dirty the buffer.
-                 (unless modified (set-buffer-modified-p nil)))))
-           (poll ()
-             (when (and (buffer-live-p buf) (< attempts 60)) ; ~30s ceiling
-               (with-current-buffer buf
-                 (if (ready-p)
-                     (kick)
-                   (cl-incf attempts)
-                   (run-with-timer 0.5 nil #'poll))))))
-        (run-with-timer 0.5 nil #'poll)))))
+;;;; LSP — lsp-mode
+(setq read-process-output-max (* 3 1024 1024)) ; 3mb, rust-analyzer is chatty
+(setq gc-cons-threshold 100000000)
 
-(add-hook 'eglot-managed-mode-hook #'my/rust-kick-semantic-tokens)
-
-(use-package eglot
+(use-package lsp-mode
   :ensure t
-  :hook ((rustic-mode  . eglot-ensure)
-         (rust-ts-mode . eglot-ensure)
-         (c-mode       . eglot-ensure)
-         (zig-ts-mode . eglot-ensure)
-         (c++-mode     . eglot-ensure)
-         (c-ts-mode    . eglot-ensure)
-         (c++-ts-mode  . eglot-ensure)
-         (tuareg-mode  . eglot-ensure))
   :init
-  (setq eglot-stay-out-of '(yasnippet))
+  (setq lsp-keymap-prefix "C-c l")
+  :hook ((rustic-mode  . lsp-deferred)
+         (rust-ts-mode . lsp-deferred)
+         (c-mode       . lsp-deferred)
+         (c++-mode     . lsp-deferred)
+         (c-ts-mode    . lsp-deferred)
+         (c++-ts-mode  . lsp-deferred)
+         (zig-ts-mode  . lsp-deferred)
+         (tuareg-mode  . lsp-deferred)
+         (lsp-mode     . lsp-enable-which-key-integration))
+  :commands (lsp lsp-deferred)
   :config
-  (setq eglot-connect-timeout 60
-        eglot-events-buffer-size 2000000
-        eglot-sync-connect 10
-        eglot-send-changes-idle-time 0.1)
-  (setq-default eglot-workspace-configuration
-                '(:rust-analyzer
-                  (:inlayHints
-                   (:typeHints (:enable t)
-                               :closureReturnTypeHints (:enable "always")
-                               :parameterHints (:enable t)
-                               :chainingHints (:enable t)))))
-  (add-to-list 'eglot-server-programs
-               '(rust-ts-mode . ("rust-analyzer")))
-  (add-to-list 'eglot-server-programs
-               '((zig-ts-mode zig-mode) . ("zls")))
-  (add-to-list 'eglot-server-programs
-               '(cmake-mode . ("neocmakelsp" "--stdio")))
-  (add-to-list 'eglot-server-programs
-               '((c-mode c++-mode c-ts-mode c++-ts-mode) .
-                 ("clangd"
-                  "--background-index"
-                  "--clang-tidy"
-                  "--completion-style=detailed"
-                  "--header-insertion=iwyu"
-                  "--header-insertion-decorators=1"
-                  "--fallback-style=llvm"
-                  "--query-driver=/usr/bin/g++-*,/usr/bin/clang++-*")))
-  (add-hook 'eglot-managed-mode-hook #'eglot-inlay-hints-mode))
+  (setq lsp-idle-delay 0.3
+        lsp-log-io nil                     ; set t only when debugging
+        lsp-completion-provider :capf
+        lsp-headerline-breadcrumb-enable nil)
+
+  ;; --- Inlay hints 
+  (setq lsp-inlay-hint-enable t)
+
+  ;; --- rust-analyzer tuning ---
+  (setq lsp-rust-analyzer-server-display-inlay-hints t
+        lsp-rust-analyzer-display-parameter-hints t
+        lsp-rust-analyzer-display-chaining-hints t
+        lsp-rust-analyzer-display-closure-return-type-hints t
+        lsp-rust-analyzer-display-lifetime-elision-hints-enable "skip_trivial"
+        lsp-inlay-hint-type-format "%s")
+
+  ;; --- clangd
+  (setq lsp-clients-clangd-args
+        '("--background-index"
+          "--clang-tidy"
+          "--completion-style=detailed"
+          "--header-insertion=iwyu"
+          "--header-insertion-decorators=1"
+          "--fallback-style=llvm"
+          "--query-driver=/usr/bin/g++-*,/usr/bin/clang++-*")))
+
+(setq rustic-treesitter-derive nil)  ; don't layer rust-ts-mode under rustic
+
+;; Inlay hint face 
+(with-eval-after-load 'lsp-mode
+  (set-face-attribute 'lsp-inlay-hint-face nil :foreground "#54546D" :height 0.8))
+
+;;;; lsp-ui — only for hover docs (K), sideline off
+(use-package lsp-ui
+  :ensure t
+  :after lsp-mode
+  :commands lsp-ui-mode
+  :config
+  (setq lsp-ui-sideline-enable nil          
+        lsp-ui-doc-enable t
+        lsp-ui-doc-position 'at-point
+        lsp-ui-doc-show-with-cursor nil    
+        lsp-ui-doc-show-with-mouse nil
+        lsp-ui-doc-max-width 100
+        lsp-ui-doc-max-height 25))
 
 (with-eval-after-load 'eglot
   (set-face-attribute 'eglot-inlay-hint-face nil :foreground "#54546D" :height 0.8))
@@ -121,12 +101,8 @@ actually invalidates eglot's token cache."
   (set-face-attribute 'eldoc-box-border nil :background "#444444"))
 
 
-;; K to show docs (Doom-style)
-(with-eval-after-load 'evil
-  (with-eval-after-load 'eglot
-    (evil-define-key 'normal eglot-mode-map
-      (kbd "K") (lambda ()
-                  (interactive)
-                  (if (display-graphic-p)
-                      (eldoc-box-help-at-point)
-                    (eldoc))))))
+;; K to show docs (Doom-style) 
+(defun my/lsp-bind-K ()
+  (evil-local-set-key 'normal (kbd "K") #'lsp-ui-doc-glance))
+(add-hook 'lsp-ui-mode-hook #'my/lsp-bind-K)
+

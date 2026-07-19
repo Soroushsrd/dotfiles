@@ -6,8 +6,9 @@
          ("\\.cmake\\'" . cmake-mode)))
 
 (use-package toml-mode)
+
 (use-package rustic
-  :init (setq rustic-lsp-client 'eglot))
+  :init (setq rustic-lsp-client 'lsp-mode))
 
 ;;;; Local lisp
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
@@ -31,16 +32,15 @@
 
 ;;;; Auto-actions on save
 (defun my/rust-fmt-on-save ()
-  "Format the current Rust buffer in place via eglot (rust-analyzer)."
+  "Format the current Rust buffer in place via lsp (rust-analyzer)."
   (when (and (derived-mode-p 'rust-ts-mode 'rustic-mode)
-             (eglot-managed-p))
-    (eglot-format)))
-
+             (bound-and-true-p lsp-mode))
+    (lsp-format-buffer)))
 (defun my/clang-fmt-on-save ()
-  "Run eglot-format on save for C/C++ buffers."
+  "Run lsp-format-buffer on save for C/C++ buffers."
   (when (and (derived-mode-p 'c-mode 'c++-mode 'c-ts-mode 'c++-ts-mode)
-             (eglot-managed-p))
-    (eglot-format)))
+             (bound-and-true-p lsp-mode))
+    (lsp-format-buffer)))
 
 (defun my/auto-cmake-on-save ()
   "Regenerate build files when CMakeLists.txt is saved."
@@ -55,13 +55,13 @@
        :command '("cmake" "-B" "build" "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
        :sentinel (lambda (_proc event)
                    (when (string-match-p "finished" event)
-                     (message "CMake finished, restarting Eglot...")
+                     (message "CMake finished, restarting LSP...")
                      (dolist (buf (buffer-list))
                        (with-current-buffer buf
                          (when (and (derived-mode-p 'c-mode 'c++-mode 'c-ts-mode 'c++-ts-mode)
-                                    (fboundp 'eglot-managed-p)
-                                    (eglot-managed-p))
-                           (eglot-reconnect (eglot-current-server)))))))))))
+                                    (bound-and-true-p lsp-mode))
+                           (dolist (w (lsp-workspaces))
+                             (lsp-workspace-restart w)))))))))))
 (defun my/zig-fmt-on-save ()
   "Run 'zig fmt' on the current file after save."
   (when (and (derived-mode-p 'zig-ts-mode 'zig-mode)
@@ -76,7 +76,6 @@
 (add-hook 'before-save-hook #'my/zig-fmt-on-save)
 
 (add-hook 'before-save-hook #'my/rust-fmt-on-save)
-;; (add-hook 'after-save-hook #'my/cargo-fmt-all)
 (add-hook 'after-save-hook #'my/auto-cmake-on-save)
 (add-hook 'before-save-hook #'my/clang-fmt-on-save)
 
