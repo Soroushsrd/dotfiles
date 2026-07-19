@@ -1,6 +1,7 @@
 ;;; init-ui.el -*- lexical-binding:t ; -*-
 
 
+
 ;;;; Tabs
 (setq switch-to-buffer-obey-display-actions nil)
 (use-package centaur-tabs
@@ -60,7 +61,7 @@
 
 ;;;; Theme + modeline
 (use-package doom-themes)
-;; :config (load-theme 'doom-monokai-spectrum t))
+;; :config (load-theme 'doom-gruvbox-light t))
 ;; (load-theme 'kanagawa-wave)
 
 (use-package kusanagi-theme
@@ -73,6 +74,9 @@
 
 (use-package gotham-theme)
 (use-package sublime-themes)
+
+;; (use-package autothemer :ensure t)
+;; (load-theme 'mito-laser t)
 
 ;; Override Nord's background with the deep slate from your image
 ;; (custom-set-faces
@@ -97,7 +101,26 @@
 (use-package doom-modeline
   :init (doom-modeline-mode 1))
 (doom-modeline-def-segment buffer-info
-  (concat (doom-modeline--buffer-mode-icon) " " (doom-modeline--buffer-name) " "))
+                           (concat (doom-modeline--buffer-mode-icon) " " (doom-modeline--buffer-name) " "))
+
+(use-package flycheck :ensure t :defer t)
+
+;; (use-package punch-line
+;;   :vc (:url "https://github.com/konrad1977/punch-line" :rev :newest)
+;;   :demand t
+;;   :config
+;;   (setq punch-line-left-separator "  "
+;;         punch-line-right-separator "  "
+;;         punch-line-modal-divider-style 'flame
+;;         punch-show-copilot-info nil
+;;         punch-show-weather-info nil)
+;;   (set-face-attribute 'punch-line-evil-normal-face nil  :foreground "#1F1F28" :background "#7E9CD8" :weight 'bold)
+;;   (set-face-attribute 'punch-line-evil-insert-face nil  :foreground "#1F1F28" :background "#76946A" :weight 'bold)
+;;   (set-face-attribute 'punch-line-evil-visual-face nil  :foreground "#DCD7BA" :background "#957FB8" :weight 'bold)
+;;   (set-face-attribute 'punch-line-evil-replace-face nil :foreground "#DCD7BA" :background "#C34043" :weight 'bold)
+;;   (set-face-attribute 'punch-line-time-face nil         :foreground "#9CABCA" :background "#1F1F28")
+;;   (punch-line-mode 1)
+;;   (punch-load-tasks))
 
 ;;;; Dashboard
 (use-package dashboard
