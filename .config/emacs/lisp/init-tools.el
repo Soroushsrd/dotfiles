@@ -62,7 +62,8 @@
     default-directory))
 
 ;;;; Git
-(use-package magit)
+(use-package magit
+  :defer t)
 
 (use-package git-gutter
   :hook (prog-mode . git-gutter-mode)
@@ -116,6 +117,7 @@
 
 ;; (require 'article)
 (use-package elfeed
+  :commands (elfeed elfeed-update)
   :config
   (setq elfeed-feeds
         '(;; --- existing emacs ---
@@ -160,9 +162,8 @@
           ("https://www.modernescpp.com/index.php?format=feed&type=rss" cpp)                 ; Rainer Grimm
           ("https://artificial-mind.net/blog/rss.xml"          cpp graphics)
           ("https://herbsutter.com/feed/"                      cpp)
-          ("https://devblogs.microsoft.com/cppblog/feed/"      cpp msvc)))
+          ("https://devblogs.microsoft.com/cppblog/feed/"      cpp msvc))))
 
-  (add-hook 'emacs-startup-hook #'elfeed-update))
 
 (use-package pdf-tools
   :ensure t
@@ -181,3 +182,22 @@
   :config
   (setq wakatime-cli-path (expand-file-name "~/.wakatime/wakatime-cli")))
 
+(add-hook 'org-mode-hook
+          (lambda ()
+            (setq fill-column 85)
+            (auto-fill-mode 1)))
+
+(use-package flymake
+  :ensure nil
+  :hook (prog-mode . flymake-mode))
+
+(setq flymake-show-diagnostics-at-end-of-line 'short)
+(setq lsp-diagnostics-provider :flymake)
+(add-hook 'rust-ts-mode-hook
+          (lambda ()
+            (remove-hook 'flymake-diagnostic-functions
+                         'rust-ts-flymake t)))   ; buffer-local removal(add-hook 'rust-ts-mode-hook
+(add-hook 'rust-ts-mode-hook
+          (lambda ()
+            (remove-hook 'flymake-diagnostic-functions
+                         'rust-ts-flymake t)))   ; buffer-local removal

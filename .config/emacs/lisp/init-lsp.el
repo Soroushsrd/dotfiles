@@ -63,6 +63,7 @@
 
 (setq rustic-treesitter-derive nil)  ; don't layer rust-ts-mode under rustic
 
+
 ;; Inlay hint face 
 (with-eval-after-load 'lsp-mode
   (set-face-attribute 'lsp-inlay-hint-face nil :foreground "#54546D" :height 0.8))
