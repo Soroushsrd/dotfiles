@@ -44,7 +44,7 @@
   "SPC" '(execute-extended-command :which-key "M-x")
   "f f"   '(find-file :which-key "dired")
   "/"   '(consult-ripgrep :which-key "search project")
-  "e"    '(flymake-show-buffer-diagnostics :which-key "buffer diagnostics")
+  "e"    '(consult-flycheck :which-key "diagnostics")
 
   ;; ClaudeCode
 
