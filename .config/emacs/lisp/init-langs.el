@@ -1,5 +1,6 @@
 ;; init-langs.el -*- lexical-binding: t; -*-
 
+;;;; Code:
 ;;;; Language modes
 (use-package cmake-mode
   :mode (("CMakeLists\\.txt\\'" . cmake-mode)
@@ -8,7 +9,7 @@
 (use-package toml-mode)
 
 (use-package rustic
-  :init (setq rustic-lsp-client 'lsp-mode))
+  :init (setq rustic-lsp-client 'eglot))
 
 ;;;; Local lisp
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
@@ -32,15 +33,15 @@
 
 ;;;; Auto-actions on save
 (defun my/rust-fmt-on-save ()
-  "Format the current Rust buffer in place via lsp (rust-analyzer)."
+  "Format the current Rust buffer in place via eglot (rust-analyzer)."
   (when (and (derived-mode-p 'rust-ts-mode 'rustic-mode)
-             (bound-and-true-p lsp-mode))
-    (lsp-format-buffer)))
+             (eglot-managed-p))
+    (eglot-format)))
 (defun my/clang-fmt-on-save ()
-  "Run lsp-format-buffer on save for C/C++ buffers."
+  "Run eglot-format on save for C/C++ buffers."
   (when (and (derived-mode-p 'c-mode 'c++-mode 'c-ts-mode 'c++-ts-mode)
-             (bound-and-true-p lsp-mode))
-    (lsp-format-buffer)))
+             (eglot-managed-p))
+    (eglot-format)))
 
 (defun my/auto-cmake-on-save ()
   "Regenerate build files when CMakeLists.txt is saved."
@@ -55,13 +56,13 @@
        :command '("cmake" "-B" "build" "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
        :sentinel (lambda (_proc event)
                    (when (string-match-p "finished" event)
-                     (message "CMake finished, restarting LSP...")
+                     (message "CMake finished, restarting Eglot...")
                      (dolist (buf (buffer-list))
                        (with-current-buffer buf
                          (when (and (derived-mode-p 'c-mode 'c++-mode 'c-ts-mode 'c++-ts-mode)
-                                    (bound-and-true-p lsp-mode))
-                           (dolist (w (lsp-workspaces))
-                             (lsp-workspace-restart w)))))))))))
+                                    (fboundp 'eglot-managed-p)
+                                    (eglot-managed-p))
+                           (eglot-reconnect (eglot-current-server)))))))))))
 (defun my/zig-fmt-on-save ()
   "Run 'zig fmt' on the current file after save."
   (when (and (derived-mode-p 'zig-ts-mode 'zig-mode)
@@ -82,9 +83,12 @@
 (use-package zig-ts-mode
   :mode "\\.\\(zig\\|zon\\)\\'")
 (defun my/project-find-zig (dir)
-  "Find Zig project root by locating build.zig or build.zig.zon."
+  "Find Zig project root by locating build.zig or build.zig.zon DIR."
   (when-let ((root (or (locate-dominating-file dir "build.zig.zon")
                        (locate-dominating-file dir "build.zig"))))
     (cons 'transient root)))
 
 (add-hook 'project-find-functions #'my/project-find-zig)
+
+(provide 'init-langs)
+;;; init-langs.el ends here
