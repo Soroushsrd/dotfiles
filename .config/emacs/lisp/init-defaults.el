@@ -1,5 +1,6 @@
 ;;; init-defaults.el -*- lexical-binding: t; -*-
 
+;;; Code:
 ;;;; Sane defaults
 (setq-default indent-tabs-mode nil
               tab-width 4
@@ -40,6 +41,7 @@
 (setq wl-copy-process nil)
 
 (defun wl-copy (text)
+  "Set copying settings for the TEXT."
   (setq wl-copy-process (make-process :name "wl-copy"
                                       :buffer nil
                                       :command '("wl-copy" "-f" "-n")
@@ -49,6 +51,7 @@
   (process-send-eof wl-copy-process))
 
 (defun wl-paste ()
+  "Set pasting settings."
   (if (and wl-copy-process (process-live-p wl-copy-process))
       nil
     (with-temp-buffer
@@ -58,3 +61,6 @@
 
 (setq interprogram-cut-function 'wl-copy
       interprogram-paste-function 'wl-paste)
+
+(provide 'init-defaults)
+;;; init-defaults.el ends here

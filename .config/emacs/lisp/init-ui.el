@@ -1,15 +1,14 @@
 ;;; init-ui.el -*- lexical-binding:t ; -*-
 
-
-
+;;; Code:
 ;;;; Tabs
 (setq switch-to-buffer-obey-display-actions nil)
 (use-package centaur-tabs
   :demand
   :init
   (setq centaur-tabs-style                "chamfer"
-        centaur-tabs-set-bar              'under
-        x-underline-at-descent-line t
+        centaur-tabs-set-bar              'left
+        centaur-tabs-gray-out-icons       'buffer
         centaur-tabs-height               25
         centaur-tabs-set-icons            t
         centaur-tabs-icon-type            'nerd-icons
@@ -30,8 +29,8 @@
       (or (string-prefix-p "*" name)
           (string-prefix-p "magit" name)
           (string-prefix-p " " name)
-          (memq (with-current-buffer name major-mode)
-                '(dired-mode treemacs-mode dashboard-mode))))))
+          (with-current-buffer x
+            (memq major-mode '(dired-mode treemacs-mode dashboard-mode)))))))
 
 ;;;; Dired
 (use-package dired
@@ -60,23 +59,31 @@
   :after dired)
 
 ;;;; Theme + modeline
-(use-package doom-themes)
-;; :config (load-theme 'doom-gruvbox-light t))
+(use-package doom-themes
+  :defer t)
+;; :ensure t
+;; :config
+;; (load-theme 'doom-moonlight t))
 ;; (load-theme 'kanagawa-wave)
+;; (use-package kusanagi-theme
+;;   :vc (:url "https://github.com/LionyxML/kusanagi-theme" :rev :newest)
+;;   :ensure t
+;;   :config
+;;   (load-theme 'kusanagi t))
 
-(use-package kusanagi-theme
-  :vc (:url "https://github.com/LionyxML/kusanagi-theme" :rev :newest))
 
 (use-package base16-theme
   :ensure t
   :config
-  (load-theme 'base16-ayu-dark t))
+  (load-theme 'base16-spaceduck t))
 
-(use-package gotham-theme)
-(use-package sublime-themes)
 
-;; (use-package autothemer :ensure t)
-;; (load-theme 'mito-laser t)
+(use-package gotham-theme
+  :defer t)
+
+(use-package sublime-themes
+  :defer t)
+
 
 ;; Override Nord's background with the deep slate from your image
 ;; (custom-set-faces
@@ -95,32 +102,24 @@
 ;;  ;; '(default ((t (:background "#0d0d0d"))))          ; main bg
 ;;  '(fringe  ((t (:background "#11121d"))))          ; fringe matches
 ;;  '(line-number ((t (:background "#11121d")))))     ; line number gutter
-;; '(mode-line ((t (:background "#111111")))))      ; slightly darker modeline
+;; ;; '(mode-line ((t (:background "#111111")))))      ; slightly darker modeline
 
 (use-package nerd-icons)
 (use-package doom-modeline
   :init (doom-modeline-mode 1))
 (doom-modeline-def-segment buffer-info
-                           (concat (doom-modeline--buffer-mode-icon) " " (doom-modeline--buffer-name) " "))
+  (concat (doom-modeline--buffer-mode-icon) " " (doom-modeline--buffer-name) " "))
 
-(use-package flycheck :ensure t :defer t)
+(use-package flycheck
+  :ensure t
+  :hook (prog-mode . global-flycheck-mode))
 
-;; (use-package punch-line
-;;   :vc (:url "https://github.com/konrad1977/punch-line" :rev :newest)
-;;   :demand t
-;;   :config
-;;   (setq punch-line-left-separator "  "
-;;         punch-line-right-separator "  "
-;;         punch-line-modal-divider-style 'flame
-;;         punch-show-copilot-info nil
-;;         punch-show-weather-info nil)
-;;   (set-face-attribute 'punch-line-evil-normal-face nil  :foreground "#1F1F28" :background "#7E9CD8" :weight 'bold)
-;;   (set-face-attribute 'punch-line-evil-insert-face nil  :foreground "#1F1F28" :background "#76946A" :weight 'bold)
-;;   (set-face-attribute 'punch-line-evil-visual-face nil  :foreground "#DCD7BA" :background "#957FB8" :weight 'bold)
-;;   (set-face-attribute 'punch-line-evil-replace-face nil :foreground "#DCD7BA" :background "#C34043" :weight 'bold)
-;;   (set-face-attribute 'punch-line-time-face nil         :foreground "#9CABCA" :background "#1F1F28")
-;;   (punch-line-mode 1)
-;;   (punch-load-tasks))
+(use-package flycheck-eglot
+  :ensure t
+  :after (flycheck eglot)
+  :config (global-flycheck-eglot-mode 1))
+(use-package consult-flycheck :ensure t :after (consult flycheck))
+
 
 ;;;; Dashboard
 (use-package dashboard

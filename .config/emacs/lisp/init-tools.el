@@ -1,5 +1,6 @@
 ;; init-tools.el -*- lexical-binding: t; -*-
 
+;;; Code:
 ;;;; ClaudeCode
 (use-package eat
   :commands (eat eat-other-window))
@@ -35,7 +36,7 @@
 (use-package treemacs-magit :after (treemacs magit))
 
 (defun my/treemacs-here ()
-  "Open treemacs rooted at the current file's directory. Toggle if already visible."
+  "Open treemacs rooted at the current file's directory.  Toggle if already visible."
   (interactive)
   (let* ((file (buffer-file-name))
          (dir (or (when-let ((proj (project-current)))
@@ -56,14 +57,17 @@
           (ignore-errors (treemacs-goto-file-node file))))))))
 
 (defun my/project-root ()
-  "Returns the current projec root or default-directory if none."
+  "Return the current projec root or 'default-directory' if none."
   (if-let ((proj (project-current)))
       (project-root proj)
     default-directory))
 
 ;;;; Git
 (use-package magit
-  :defer t)
+  :defer t
+  :config
+  (setq magit-bury-buffer-function #'magit-restore-window-configuration))
+
 
 (use-package git-gutter
   :hook (prog-mode . git-gutter-mode)
@@ -86,8 +90,7 @@
         vterm-timer-delay 0.01))
 
 (defun my/vterm-toggle ()
-  "Toggle a vterm buffer at the bottom of the frame.
-   Kills the window+buffer automatically when the shell process exits."
+  "Toggle a vterm buffer at the bottom of the frame.  Kill the window+buffer automatically when the shell process exits."
   (interactive)
   (let ((buf (get-buffer "*vterm*")))
     (cond
@@ -165,15 +168,6 @@
           ("https://devblogs.microsoft.com/cppblog/feed/"      cpp msvc))))
 
 
-(use-package pdf-tools
-  :ensure t
-  :mode ("\\.pdf\\'" . pdf-view-mode)
-  :config
-  (pdf-tools-install :no-query)
-  (setq pdf-view-display-size 'fit-page
-        pdf-view-use-scaling t
-        pdf-view-resize-factor 1.1)
-  (add-hook 'pdf-view-mode-hook #'pdf-view-roll-minor-mode))
 
 (use-package wakatime-mode
   :ensure t
@@ -187,17 +181,6 @@
             (setq fill-column 85)
             (auto-fill-mode 1)))
 
-(use-package flymake
-  :ensure nil
-  :hook (prog-mode . flymake-mode))
+(provide 'init-tools)
+;;; init-tools.el ends here
 
-(setq flymake-show-diagnostics-at-end-of-line 'short)
-(setq lsp-diagnostics-provider :flymake)
-(add-hook 'rust-ts-mode-hook
-          (lambda ()
-            (remove-hook 'flymake-diagnostic-functions
-                         'rust-ts-flymake t)))   ; buffer-local removal(add-hook 'rust-ts-mode-hook
-(add-hook 'rust-ts-mode-hook
-          (lambda ()
-            (remove-hook 'flymake-diagnostic-functions
-                         'rust-ts-flymake t)))   ; buffer-local removal
