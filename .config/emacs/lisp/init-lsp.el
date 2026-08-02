@@ -24,6 +24,8 @@
   :ensure t
   :hook ((rustic-mode  . eglot-ensure)
          (rust-ts-mode . eglot-ensure)
+         (elixir-ts-mode . eglot-ensure)
+         (heex-ts-mode . eglot-ensure)
          (c-mode       . eglot-ensure)
          (c++-mode     . eglot-ensure)
          (c-ts-mode    . eglot-ensure)
@@ -49,6 +51,8 @@
   (add-to-list 'eglot-server-programs
                '(rust-ts-mode . ("rust-analyzer")))
   (add-to-list 'eglot-server-programs
+               '((elixir-ts-mode heex-ts-mode) . ("expert" "--stdio")))
+  (add-to-list 'eglot-server-programs
                '((zig-ts-mode zig-mode) . ("zls")))
   (add-to-list 'eglot-server-programs
                '(cmake-mode . ("neocmakelsp" "--stdio")))
@@ -61,7 +65,10 @@
                   "--header-insertion=iwyu"
                   "--header-insertion-decorators=1"
                   "--fallback-style=llvm"
-                  "--query-driver=/usr/bin/g++-*,/usr/bin/clang++-*"))))
+                  "--query-driver=/usr/bin/g++-*,/usr/bin/clang++-*")))
+  (add-hook 'elixir-ts-mode-hook
+            (lambda ()
+              (add-hook 'before-save-hook #'eglot-format-buffer nil t))))
 
 
 ;; Inlay hint face

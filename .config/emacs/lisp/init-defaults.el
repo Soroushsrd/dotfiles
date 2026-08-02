@@ -33,8 +33,11 @@
 
 ;;;; Fonts
 (set-face-attribute 'default nil
-                    :family "CaskaydiaCove Nerd Font Propo"
-                    :height 120 :weight 'bold)
+                    ;; :family "RobotoMono Nerd Font"
+                    :family "JetBrainsMono Nerd Font"
+                    :height 130 :weight 'medium)
+(set-face-attribute 'fixed-pitch nil
+                    :family "JetBrainsMono Nerd Font" :weight 'medium)
 (setq-default line-spacing 0.15)
 
 ;;;; Clipboard (Wayland)
@@ -61,6 +64,10 @@
 
 (setq interprogram-cut-function 'wl-copy
       interprogram-paste-function 'wl-paste)
+
+;; project roots
+(setq project-vc-extra-root-markers
+      '("mix.exs" "Cargo.toml" "build.zig" "compile_commands.json" ".project"))
 
 (provide 'init-defaults)
 ;;; init-defaults.el ends here

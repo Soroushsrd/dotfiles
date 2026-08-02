@@ -8,6 +8,13 @@
 
 (use-package toml-mode)
 
+(use-package elixir-ts-mode
+  :ensure nil                       ; built in on Emacs 30+
+  :mode (("\\.exs?\\'"    . elixir-ts-mode)
+         ("mix\\.lock\\'" . elixir-ts-mode)
+         ("\\.heex\\'"    . heex-ts-mode)))
+(setq elixir-ts-indent-offset 2)
+
 (use-package rustic
   :init (setq rustic-lsp-client 'eglot))
 

@@ -72,10 +72,33 @@
 ;;   (load-theme 'kusanagi t))
 
 
+;;; Leuven theme
+(load-theme 'leuven t)
+(defvar my/code-weight 'medium)
+(defun my/unthin-faces (&optional _theme)
+  "Leuven hardcodes :weight normal on many faces; re-assert weight."
+  (dolist (face '(font-lock-keyword-face
+                  font-lock-function-name-face
+                  font-lock-variable-name-face
+                  font-lock-type-face
+                  font-lock-constant-face
+                  font-lock-builtin-face
+                  font-lock-string-face
+                  font-lock-comment-face
+                  font-lock-doc-face))
+    (when (facep face)
+      (set-face-attribute face nil :weight my/code-weight :slant 'normal)))
+  ;; pure white halates badly with astigmatism
+  (set-face-background 'default "#FBFAF7")
+  ;; Leuven's comment gray is too low-contrast
+  (set-face-foreground 'font-lock-comment-face "#5F6368"))
+
+(add-hook 'enable-theme-functions #'my/unthin-faces)
+
 (use-package base16-theme
-  :ensure t
-  :config
-  (load-theme 'base16-spaceduck t))
+  :defer t)
+;; :config
+;; (load-theme 'base16-catppuccin-mocha t))
 
 
 (use-package gotham-theme
@@ -124,7 +147,9 @@
 ;;;; Dashboard
 (use-package dashboard
   :init
-  (setq dashboard-startup-banner (expand-file-name "banners/rewrite-in-rust.txt" user-emacs-directory)
+  (setq dashboard-startup-banner (expand-file-name "banners/better-lambda.png" user-emacs-directory)
+        dashboard-image-banner-max-height 300
+        dashboard-image-banner-max-width 300
         dashboard-center-content t
         dashboard-vertically-center-content t
         dashboard-show-shortcuts nil
@@ -132,7 +157,7 @@
         dashboard-set-file-icons t
         dashboard-set-navigator t
         dashboard-projects-backend 'project-el
-        dashboard-items '((recents   . 8)
+        dashboard-items '((recents   . 5)
                           ;; (agenda    . 5)
                           (projects . 5)
                           (bookmarks . 5)))
@@ -152,3 +177,6 @@
 (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
 (require 'escape-dashboard)
 (add-hook 'emacs-startup-hook #'escape t)
+
+(provide 'init-ui)
+;;; init-ui.el ends here
