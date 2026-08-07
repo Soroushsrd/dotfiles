@@ -66,8 +66,11 @@
       interprogram-paste-function 'wl-paste)
 
 ;; project roots
-(setq project-vc-extra-root-markers
-      '("mix.exs" "Cargo.toml" "build.zig" "compile_commands.json" ".project"))
+(with-eval-after-load 'project
+  (setq project-find-functions
+        (cons 'project-try-vc (remq 'project-try-vc project-find-functions)))
+  (setq project-vc-extra-root-markers
+        '("mix.exs" "build.zig" "compile_commands.json" ".project")))
 
 (provide 'init-defaults)
 ;;; init-defaults.el ends here

@@ -73,39 +73,32 @@
 
 
 ;;; Leuven theme
-(load-theme 'leuven t)
-(defvar my/code-weight 'medium)
-(defun my/unthin-faces (&optional _theme)
-  "Leuven hardcodes :weight normal on many faces; re-assert weight."
-  (dolist (face '(font-lock-keyword-face
-                  font-lock-function-name-face
-                  font-lock-variable-name-face
-                  font-lock-type-face
-                  font-lock-constant-face
-                  font-lock-builtin-face
-                  font-lock-string-face
-                  font-lock-comment-face
-                  font-lock-doc-face))
-    (when (facep face)
-      (set-face-attribute face nil :weight my/code-weight :slant 'normal)))
-  ;; pure white halates badly with astigmatism
-  (set-face-background 'default "#FBFAF7")
-  ;; Leuven's comment gray is too low-contrast
-  (set-face-foreground 'font-lock-comment-face "#5F6368"))
+;; (load-theme 'leuven t)
+;; (defvar my/code-weight 'medium)
+;; (defun my/unthin-faces (&optional _theme)
+;;   "Leuven hardcodes :weight normal on many faces; re-assert weight."
+;;   (dolist (face '(font-lock-keyword-face
+;;                   font-lock-function-name-face
+;;                   font-lock-variable-name-face
+;;                   font-lock-type-face
+;;                   font-lock-constant-face
+;;                   font-lock-builtin-face
+;;                   font-lock-string-face
+;;                   font-lock-comment-face
+;;                   font-lock-doc-face))
+;;     (when (facep face)
+;;       (set-face-attribute face nil :weight my/code-weight :slant 'normal)))
+;;   ;; pure white halates badly with astigmatism
+;;   (set-face-background 'default "#FBFAF7")
+;;   ;; Leuven's comment gray is too low-contrast
+;;   (set-face-foreground 'font-lock-comment-face "#5F6368"))
 
-(add-hook 'enable-theme-functions #'my/unthin-faces)
+;; (add-hook 'enable-theme-functions #'my/unthin-faces)
 
 (use-package base16-theme
-  :defer t)
-;; :config
-;; (load-theme 'base16-catppuccin-mocha t))
-
-
-(use-package gotham-theme
-  :defer t)
-
-(use-package sublime-themes
-  :defer t)
+  :ensure t 
+  :config
+  (load-theme 'base16-catppuccin-mocha t))
 
 
 ;; Override Nord's background with the deep slate from your image
@@ -147,7 +140,7 @@
 ;;;; Dashboard
 (use-package dashboard
   :init
-  (setq dashboard-startup-banner (expand-file-name "banners/better-lambda.png" user-emacs-directory)
+  (setq dashboard-startup-banner (expand-file-name "banners/functional.png" user-emacs-directory)
         dashboard-image-banner-max-height 300
         dashboard-image-banner-max-width 300
         dashboard-center-content t
