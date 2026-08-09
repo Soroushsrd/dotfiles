@@ -8,15 +8,15 @@
 
 (use-package toml-mode)
 
-(use-package elixir-ts-mode
-  :ensure nil                       ; built in on Emacs 30+
-  :mode (("\\.exs?\\'"    . elixir-ts-mode)
-         ("mix\\.lock\\'" . elixir-ts-mode)
-         ("\\.heex\\'"    . heex-ts-mode)))
-(setq elixir-ts-indent-offset 2)
-
 (use-package rustic
   :init (setq rustic-lsp-client 'eglot))
+;;;; Racket
+(use-package racket-mode
+  :mode ("\\.rkt\\'" . racket-mode)
+  :hook ((racket-mode . racket-xp-mode)          ; background check + xref + eldoc
+         (racket-repl-mode . racket-xp-mode))
+  :config
+  (setq racket-show-functions '(racket-show-echo-area))) ; hints in echo area, not overlays
 
 ;;;; Local lisp
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
@@ -50,6 +50,11 @@
              (eglot-managed-p))
     (eglot-format)))
 
+(defun my/racket-fmt-on-save ()
+  "Indent whole Racket buffer on save."
+  (when (derived-mode-p 'racket-mode)
+    (indent-region (point-min) (point-max))))
+
 (defun my/auto-cmake-on-save ()
   "Regenerate build files when CMakeLists.txt is saved."
   (when (and (buffer-file-name)
@@ -70,32 +75,12 @@
                                     (fboundp 'eglot-managed-p)
                                     (eglot-managed-p))
                            (eglot-reconnect (eglot-current-server)))))))))))
-(defun my/zig-fmt-on-save ()
-  "Run 'zig fmt' on the current file after save."
-  (when (and (derived-mode-p 'zig-ts-mode 'zig-mode)
-             (executable-find "zig"))
-    (let ((buf (current-buffer)))
-      (set-process-sentinel
-       (start-process "zig-fmt" nil "zig" "fmt" (buffer-file-name))
-       (lambda (_proc event)
-         (when (string-match-p "finished" event)
-           (with-current-buffer buf (revert-buffer t t t))))))))
 
-(add-hook 'before-save-hook #'my/zig-fmt-on-save)
 
 (add-hook 'before-save-hook #'my/rust-fmt-on-save)
 (add-hook 'after-save-hook #'my/auto-cmake-on-save)
 (add-hook 'before-save-hook #'my/clang-fmt-on-save)
-
-(use-package zig-ts-mode
-  :mode "\\.\\(zig\\|zon\\)\\'")
-(defun my/project-find-zig (dir)
-  "Find Zig project root by locating build.zig or build.zig.zon DIR."
-  (when-let ((root (or (locate-dominating-file dir "build.zig.zon")
-                       (locate-dominating-file dir "build.zig"))))
-    (cons 'transient root)))
-
-(add-hook 'project-find-functions #'my/project-find-zig)
+(add-hook 'before-save-hook #'my/racket-fmt-on-save)
 
 (provide 'init-langs)
 ;;; init-langs.el ends here

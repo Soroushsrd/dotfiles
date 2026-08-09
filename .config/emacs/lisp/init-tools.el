@@ -158,7 +158,6 @@
           ("https://lemire.me/blog/feed/"                      performance simd)             ; Daniel Lemire — SIMD, bit hacks, perf
           ("https://travisdowns.github.io/feed.xml"            performance cpu)              ; Travis Downs — CPU performance
           ("https://easyperf.net/blog/feed.xml"                performance cpu)              ; Denis Bakhvalov — perf engineering
-          ("https://blog.cloudflare.com/rss/"                  systems networking)
           ("https://danluu.com/atom.xml"                       systems performance)          ; Dan Luu — performance, systems
 
           ;; --- c++ ---
