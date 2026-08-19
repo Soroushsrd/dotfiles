@@ -64,41 +64,23 @@
 ;; :ensure t
 ;; :config
 ;; (load-theme 'doom-moonlight t))
-;; (load-theme 'kanagawa-wave)
+
 ;; (use-package kusanagi-theme
 ;;   :vc (:url "https://github.com/LionyxML/kusanagi-theme" :rev :newest)
 ;;   :ensure t
 ;;   :config
 ;;   (load-theme 'kusanagi t))
 
-
-;;; Leuven theme
-;; (load-theme 'leuven t)
-;; (defvar my/code-weight 'medium)
-;; (defun my/unthin-faces (&optional _theme)
-;;   "Leuven hardcodes :weight normal on many faces; re-assert weight."
-;;   (dolist (face '(font-lock-keyword-face
-;;                   font-lock-function-name-face
-;;                   font-lock-variable-name-face
-;;                   font-lock-type-face
-;;                   font-lock-constant-face
-;;                   font-lock-builtin-face
-;;                   font-lock-string-face
-;;                   font-lock-comment-face
-;;                   font-lock-doc-face))
-;;     (when (facep face)
-;;       (set-face-attribute face nil :weight my/code-weight :slant 'normal)))
-;;   ;; pure white halates badly with astigmatism
-;;   (set-face-background 'default "#FBFAF7")
-;;   ;; Leuven's comment gray is too low-contrast
-;;   (set-face-foreground 'font-lock-comment-face "#5F6368"))
-
-;; (add-hook 'enable-theme-functions #'my/unthin-faces)
+;; (load-theme 'sexy t)
+(use-package autothemer
+  :ensure t)
+(load-theme 'kanagawa t)
+;; (load-theme 'gruber-darker t)
 
 (use-package base16-theme
-  :ensure t 
-  :config
-  (load-theme 'base16-catppuccin-mocha t))
+  :defer t )
+;; :config
+;; (load-theme 'base16-rose-pine t))
 
 
 ;; Override Nord's background with the deep slate from your image
@@ -119,8 +101,19 @@
 ;;  '(fringe  ((t (:background "#11121d"))))          ; fringe matches
 ;;  '(line-number ((t (:background "#11121d")))))     ; line number gutter
 ;; ;; '(mode-line ((t (:background "#111111")))))      ; slightly darker modeline
+(use-package nerd-icons
+  :config
+  (setq nerd-icons-color-icons t))
+(with-eval-after-load 'nerd-icons
+  (dolist (spec '((nerd-icons-lblue   . "#7FB4CA")   ; springBlue
+                  (nerd-icons-blue    . "#7E9CD8")   ; crystalBlue
+                  (nerd-icons-purple  . "#957FB8")   ; oniViolet
+                  (nerd-icons-green   . "#98BB6C")   ; springGreen
+                  (nerd-icons-orange  . "#FFA066")   ; surimiOrange
+                  (nerd-icons-yellow  . "#E6C384")   ; carpYellow
+                  (nerd-icons-red     . "#E46876"))) ; waveRed
+    (set-face-attribute (car spec) nil :foreground (cdr spec))))
 
-(use-package nerd-icons)
 (use-package doom-modeline
   :init (doom-modeline-mode 1))
 (doom-modeline-def-segment buffer-info
@@ -145,15 +138,15 @@
         dashboard-image-banner-max-width 300
         dashboard-center-content t
         dashboard-vertically-center-content t
-        dashboard-show-shortcuts nil
+        dashboard-show-shortcuts t
         dashboard-set-heading-icons t
         dashboard-set-file-icons t
         dashboard-set-navigator t
+        dashboard-icon-type 'nerd-icons
         dashboard-projects-backend 'project-el
-        dashboard-items '((recents   . 5)
+        dashboard-items '((recents   . 8)
                           ;; (agenda    . 5)
-                          (projects . 5)
-                          (bookmarks . 5)))
+                          ))
   :config
   (dashboard-setup-startup-hook)
   (set-face-attribute 'dashboard-banner-logo-title nil :foreground "#a855f7" :weight 'bold)
@@ -170,6 +163,8 @@
 (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
 (require 'escape-dashboard)
 (add-hook 'emacs-startup-hook #'escape t)
+(with-eval-after-load 'dashboard
+  (set-face-attribute 'dashboard-items-face nil :foreground 'unspecified))
 
 (provide 'init-ui)
 ;;; init-ui.el ends here
