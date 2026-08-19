@@ -33,7 +33,7 @@
   "Load FILE from the lisp/ subdirectory of 'user-emacs-directory'."
   (load (expand-file-name (concat "lisp/" file) user-emacs-directory)
         nil 'nomessage))
-
+(add-to-list 'load-path (expand-file-name "~/.config/emacs/lisp/"))
 ;; order matters
 (my/load "init-defaults")
 (my/load "init-treesit")   
