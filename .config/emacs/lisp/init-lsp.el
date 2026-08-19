@@ -99,15 +99,27 @@
   (set-face-attribute 'eldoc-box-border nil :background "#444444"))
 
 
+;; ;; K to show docs (Doom-style)
+;; (with-eval-after-load 'evil
+;;   (with-eval-after-load 'eglot
+;;     (evil-define-key 'normal eglot-mode-map
+;;       (kbd "K") (lambda ()
+;;                   (interactive)
+;;                   (if (display-graphic-p)
+;;                       (eldoc-box-help-at-point)
+;;                     (eldoc))))))
 ;; K to show docs (Doom-style)
+(defun my/lsp-doc-at-point ()
+  "Show docs at point: child frame in GUI, *eldoc* window in TTY."
+  (interactive)
+  (if (display-graphic-p)
+      (eldoc-box-help-at-point)
+    (eldoc)                    ; kick off a fresh async hover request
+    (run-at-time 0.15 nil (lambda () (eldoc-doc-buffer t)))))
+
 (with-eval-after-load 'evil
   (with-eval-after-load 'eglot
     (evil-define-key 'normal eglot-mode-map
-      (kbd "K") (lambda ()
-                  (interactive)
-                  (if (display-graphic-p)
-                      (eldoc-box-help-at-point)
-                    (eldoc))))))
-
+      (kbd "K") #'my/lsp-doc-at-point)))
 (provide 'init-lsp)
 ;;; init-lsp.el ends here
