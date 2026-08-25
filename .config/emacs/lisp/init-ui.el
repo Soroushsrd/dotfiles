@@ -59,28 +59,40 @@
   :after dired)
 
 ;;;; Theme + modeline
-(use-package doom-themes
-  :defer t)
-;; :ensure t
-;; :config
-;; (load-theme 'doom-moonlight t))
-
-;; (use-package kusanagi-theme
-;;   :vc (:url "https://github.com/LionyxML/kusanagi-theme" :rev :newest)
+;; (use-package doom-themes
 ;;   :ensure t
 ;;   :config
-;;   (load-theme 'kusanagi t))
+;;   (load-theme 'doom-monokai-octagon t))
 
 ;; (load-theme 'sexy t)
+;; for kanagawa only
 (use-package autothemer
   :ensure t)
 (load-theme 'kanagawa t)
+(with-eval-after-load 'company
+  (custom-set-faces
+   '(company-tooltip
+     ((t (:background "#223249" :foreground "#DCD7BA"))))
+   '(company-tooltip-selection
+     ((t (:background "#2D4F67" :foreground "#C8C093" :weight bold))))
+   '(company-tooltip-common
+     ((t (:foreground "#7E9CD8" :weight bold))))
+   '(company-tooltip-common-selection
+     ((t (:foreground "#7FB4CA" :weight bold))))
+   '(company-tooltip-annotation
+     ((t (:foreground "#957FB8"))))
+   '(company-tooltip-annotation-selection
+     ((t (:foreground "#98BB6C"))))
+   '(company-scrollbar-bg ((t (:background "#16161D"))))
+   '(company-scrollbar-fg ((t (:background "#54546D"))))))
+;;
+;; (load-theme 'sexy t)
 ;; (load-theme 'gruber-darker t)
 
 (use-package base16-theme
-  :defer t )
+  :defer t)
 ;; :config
-;; (load-theme 'base16-rose-pine t))
+;; (load-theme 'base16-tender t))
 
 
 ;; Override Nord's background with the deep slate from your image
@@ -95,12 +107,6 @@
 ;;    ((t (:background "#162635" :foreground "#618D9D"))))
 ;;  '(mode-line ((t (:background "#1A3042")))))
 
-;; used for base16-tokyodark-terminal theme
-;; (custom-set-faces
-;;  ;; '(default ((t (:background "#0d0d0d"))))          ; main bg
-;;  '(fringe  ((t (:background "#11121d"))))          ; fringe matches
-;;  '(line-number ((t (:background "#11121d")))))     ; line number gutter
-;; ;; '(mode-line ((t (:background "#111111")))))      ; slightly darker modeline
 (use-package nerd-icons
   :config
   (setq nerd-icons-color-icons t))

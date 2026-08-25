@@ -7,6 +7,12 @@
          ("\\.cmake\\'" . cmake-mode)))
 
 (use-package toml-mode)
+(use-package tla-ts-mode
+  :vc (:url "https://github.com/Davidbrcz/tla-ts-mode" :rev :newest)
+  :mode "\\.tla\\'"
+  :ensure t
+  :config
+  (setq treesit-load-name-override-list '((tla "libtree-sitter-tlaplus" "tree_sitter_tlaplus"))))
 
 (use-package rustic
   :init (setq rustic-lsp-client 'eglot))

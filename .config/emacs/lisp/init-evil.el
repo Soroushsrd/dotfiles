@@ -130,11 +130,14 @@
       (kbd "M-j") #'evil-window-down
       (kbd "M-k") #'evil-window-up
       (kbd "M-l") #'evil-window-right)))
-(with-eval-after-load 'evil
-  (evil-define-key 'insert 'global (kbd "RET") #'newline-and-indent))
+
+(add-hook 'prog-mode-hook
+          (lambda ()
+            (local-set-key (kbd "RET") #'newline-and-indent)))
 
 ;;;; which-key
 (use-package which-key
+  :ensure nil ;; built-in
   :config
   (setq which-key-idle-delay 0.3)
   (which-key-mode))

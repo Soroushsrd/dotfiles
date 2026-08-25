@@ -69,17 +69,14 @@
   (setq magit-bury-buffer-function #'magit-restore-window-configuration))
 
 
-(use-package git-gutter
-  :hook (prog-mode . git-gutter-mode)
-  :config (setq git-gutter:update-interval 0.02))
-
-(use-package git-gutter-fringe
-  :after git-gutter
+(use-package diff-hl
+  :ensure t
+  :hook (after-init . global-diff-hl-mode)
   :config
-  (define-fringe-bitmap 'git-gutter-fr:added    [224] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:deleted  [128 192 224 240] nil nil 'bottom))
-
+  (add-hook 'diff-hl-mode-on-hook
+            (lambda ()
+              (unless (display-graphic-p)
+                (diff-hl-margin-local-mode)))))
 
 ;;;; Terminal
 (use-package vterm
@@ -101,22 +98,25 @@
      (buf
       (let ((win (split-window-below -15)))
         (select-window win)
-        (switch-to-buffer buf)))
+        (switch-to-buffer buf)
+        (evil-insert-state)))
      ;; doesn't exist → create it
      (t
       (let ((default-directory (my/project-root))
             (win (split-window-below -15)))
         (select-window win)
-        (vterm)
-        ;; hook fires when the vterm process (your shell) exits
-        (with-current-buffer "*vterm*"
-          (add-hook 'vterm-exit-functions
-                    (lambda (_buf _event)
-                      (let ((w (get-buffer-window "*vterm*")))
-                        (when w (delete-window w)))
-                      (when (get-buffer "*vterm*")
-                        (kill-buffer "*vterm*")))
-                    nil :local)))))))
+        (vterm))))))
+
+(defun my/vterm-exit-cleanup (buf _event)
+  "Close the window showing BUF when its shell exits."
+  (when (buffer-live-p buf)
+    (let ((win (get-buffer-window buf)))
+      (when (and win (not (one-window-p t)))
+        (delete-window win)))))
+
+(with-eval-after-load 'vterm
+  (setq vterm-kill-buffer-on-exit t)
+  (add-hook 'vterm-exit-functions #'my/vterm-exit-cleanup))
 
 ;; (require 'article)
 (use-package elfeed

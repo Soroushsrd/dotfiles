@@ -28,7 +28,7 @@
 (recentf-mode 1)
 (setq recentf-max-saved-items 200)
 
-(setq display-line-numbers-type 'relative)
+(setq display-line-numbers-type 'absolute)
 (global-display-line-numbers-mode)
 
 ;;;; Fonts
@@ -39,7 +39,6 @@
 (set-face-attribute 'fixed-pitch nil
                     :family "JetBrainsMono Nerd Font" :weight 'medium)
 (setq-default line-spacing 0.15)
-
 ;;;; Clipboard (Wayland)
 (setq wl-copy-process nil)
 
@@ -71,6 +70,7 @@
         (cons 'project-try-vc (remq 'project-try-vc project-find-functions)))
   (setq project-vc-extra-root-markers
         '("mix.exs" "build.zig" "compile_commands.json" ".project")))
+(setopt xterm-update-cursor t)
 
 (provide 'init-defaults)
 ;;; init-defaults.el ends here
