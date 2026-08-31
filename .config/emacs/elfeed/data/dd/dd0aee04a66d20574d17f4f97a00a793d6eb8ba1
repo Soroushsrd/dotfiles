@@ -1,0 +1,14 @@
+<p>
+Jonas Bernoulli (tarsius) has a long post <a href="https://emacsair.me/2026/07/03/melpa-channels/">announcing new channels and versioning on MELPA</a>. Why a long post? And, really, why should we care? It turns out that the process is much more complicated than you&rsquo;d think it would be and will, eventually, require nontrivial action on the part of MELPA users.
+</p>
+<p>
+The first question is, Why is MELPA introducing new channels and why are they changing the versioning? The new (experimental) channels are a vehicle for testing the new versioning. The two new channels are Snapshots—that corresponds to the current Regular releases—and Releases—that corresponds to the current Stable releases. The plan is for these new channels to replace the Regular and Stable channels.
+</p>
+<p>
+The reasons for changing the versioning are technical and you can read about them in Tarsius&rsquo; post but the reason we care is that when the official switchover happens, MELPA users are going to have to take certain actions to ensure their ELPA distributions are consistent with the new versioning. Otherwise, the new versioning could make a new version of a package look older than previous versions. Doubtless, when the time comes the MELPA team will provide a script to automate the changeover.
+</p>
+<p>
+As I said at the beginning, there&rsquo;s a lot of complicated details involved so you should definitely read Tarsius&rsquo; post. He recommends that you get in front of things by changing to the new channels now. His post explains everything you have to do. The official changeover probably won&rsquo;t be for another year so you have time to prepare.
+</p>
+<p>
+<b>Update</b> <span class="timestamp-wrapper"><span class="timestamp">[2026-07-04 Sat 13:33]</span></span>: Fixed title typo.</p>

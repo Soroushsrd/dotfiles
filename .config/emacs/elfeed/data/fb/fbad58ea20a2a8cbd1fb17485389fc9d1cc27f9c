@@ -1,0 +1,19 @@
+<p>These keybindings are good to know when working with a mouse in Emacs.</p>
+<p><code>F10</code> (<code>menu-bar-open</code>) :: Start key navigation of the menu bar in FRAME.</p>
+<p><code>S-F10</code> (<code>context-menu-open</code>) :: Start key navigation of the context menu. This needs <code>context-menu-mode</code> enabled.</p>
+<p><code>C-M-mouse-1</code> :: Activate a rectangular region around the text selected by dragging. Useful for <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Rectangles.html">rectangle</a> operations.</p>
+<p><code>M-Drag-mouse-1</code> ::  Set the secondary selection, with one end at the place where you press down the button, and the other end at the place where you release it. See <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Secondary-Selection.html">Secondary Selection</a> for more info.</p>
+<p><code>C-mouse-3</code>:: Raise menu populated with the menu mode map of the current mode and if Imenu is enabled, <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Imenu.html">an index menu for that buffer</a>.</p>
+<p><code>C-u</code> <em>n (optional)</em>  :: A <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Prefix-Command-Arguments.html">prefix argument</a> can be passed to a menu item.</p>
+<p><em>Keyboard Macro</em> :: Commands issued via menu can be used when recording a <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Keyboard-Macros.html">keyboard macro</a>.  (🤯 Who knew?)</p>
+<p><code>C-x z</code> (<code>repeat</code>) :: Repeat most recently executed command. Yes, <code>repeat</code> works also for commands issued via mouse too!</p>
+<p>Knowing that <code>repeat</code> works with menu commands (both main and context) is particularly useful with the additions to the main menu made by the latest <a href="https://github.com/kickingvegas/anju/discussions/63">Anju v1.2.0 update</a>. Shown below is a demo of using “Duplicate” (<code>duplicate-dwim</code>) from the Edit menu, then using <code>C-x z</code> and then <code>z</code> successively to repeat the duplication.</p>
+<p><br/></p>
+<video controls  muted=true poster="http://yummymelon.com/devnull/images/mouse-keybindings/anju-duplicate-demo-thumb.png" width="75%">
+<source src="http://yummymelon.com/devnull/images/videos/anju-duplicate-demo-720.mov" type="video/mp4" />
+<p>
+Your browser does not support HTML video. <a href="http://yummymelon.com/devnull/images/videos/anju-duplicate-demo-720.mov" download="{static}images/videos/anju-duplicate-demo-720.mov">Link to video</a>.
+</p>
+</video>
+<p><br/></p>
+<p><em>Amended 2026-04-25</em>:  Added <code>C-M-mouse-1</code>, <code>M-Drag-mouse-1</code>, <code>C-mouse-3</code>, <code>C-u n</code>, <em>Keyboard Macro</em> items.</p>

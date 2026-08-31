@@ -1,0 +1,102 @@
+
+<p class="wp-block-paragraph">A few minutes ago, the ISO C++ committee completed its second-to-last meeting of C++23 in Kona, HI, USA. Our host, the Standard C++ Foundation, arranged for high-quality facilities for our six-day meeting from Monday through Saturday. We currently have 26 active subgroups, nine of which met in six parallel tracks throughout the week; some groups ran all week, and others ran for a few days or a part of a day, depending on their workloads. We had over 160 attendees, approximately two-thirds in-person and one-third remote via Zoom.</p>
+
+
+
+<p class="wp-block-paragraph">This was our first in-person meeting since Prague in February 2020 just a few weeks before the lockdowns began. It was also our first-ever hybrid meeting with remote Zoom participation for all subgroups that met.</p>
+
+
+
+<p class="wp-block-paragraph">You can find a brief summary of ISO procedures <a href="https://isocpp.org/std/iso-iec-jtc1-procedures">here</a>.</p>
+
+
+
+<h2 class="wp-block-heading">From Prague, through the pandemic, to Kona</h2>
+
+
+
+<p class="wp-block-paragraph">During the pandemic, the committee’s subgroups began regularly meeting virtually, and over the past nearly three years there have been hundreds of virtual subgroup meetings and thrice-a-year virtual plenary sessions to continue approving features for C++23.</p>
+
+
+
+<p class="wp-block-paragraph">This week, we resumed in-person meetings with remote Zoom support. In the months before Kona, a group of volunteers did a lot of planning and testing: We did a trial run of a hybrid meeting with the subgroup SG14 at CppCon in September, using some of the equipment we planned to use in Kona. That initial September test was a pretty rough experience for many of the remote attendees, but it led to valuable learnings , and though we entered Kona with some trepidation, the hybrid meetings went amazingly smoothly with very few hiccups, and we got a lot of good work done in the second-to-last meeting to finalize C++23 including with remote presentations and comments.</p>
+
+
+
+<p class="wp-block-paragraph">This was only possible because of a huge amount of work by many volunteers, and I want to especially thank Jens Maurer and Dietmar Kühl for leading that group. But it was a true team effort, and so many people helped with the planning, with bringing equipment, and with running the meetings. Thank you very much to all those volunteers and helpers! We received many such appreciative comments of thanks on the committee mailing lists, and from national bodies on Saturday, from experts participating remotely who wanted to thank the volunteers for how smoothly they were able to participate.</p>
+
+
+
+<p class="wp-block-paragraph">Now that we have resumed in-person meetings, the current intent is that:</p>
+
+
+
+<h2 class="wp-block-heading">This week’s meeting</h2>
+
+
+
+<p class="wp-block-paragraph">Per our <a href="http://wg21.link/p1000r4">published C++23 schedule</a>, this was our second-to-last meeting to finish technical work on C++23. No features were added or removed, we just handled fit-and-finish issues and primarily focused on addressing the 137 national body comments we received in the summer’s international comment ballot (Committee Draft, or CD).</p>
+
+
+
+<p class="wp-block-paragraph">Today, the committee approved final resolutions for 92 (67%) of the 137 national comments. That leaves 45 comments, some of which have already been partly worked on, still to be completed between now and early February at our last meeting for completing C++23.</p>
+
+
+
+<p class="wp-block-paragraph">An example of a comment we just approved is adopting the proposal from Nicolai Josuttis et al. to <a href="https://wg21.link/p2644">extend the lifetime all temporaries (not just the last one) for the for-range-initializer of the range-for loop</a> (see also the <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2012r2.pdf">more detailed earlier paper</a>). This closes a lifetime safety hole in C++. Here’s one of the many examples that will now work correctly:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; title: ; notranslate">
+std::vector&lt;std::string&gt; createStrings();
+
+...
+
+for (std::string s : createStrings()) ... // OK
+
+for (char c : createStrings().at(0)) ...
+    // use-after-free in C++20
+    // OK, safe in C++23
+</pre></div>
+
+
+<p class="wp-block-paragraph">In addition to C++23 work, we also had time to make progress on a number of post-C++23 proposals, including continued work on contracts, <a href="https://wg21.link/p2300">executors (std::execution</a>), pattern matching, and more. We also decided to ship the third Library Fundamentals TS, which includes support for a number of additional experimental library features such as propagate_const, scope_exit and related scope guards, observer_ptr, resource_adapter, a helper to make getting a random numbers easier, and more. These can then be considered for C++26.</p>
+
+
+
+<p class="wp-block-paragraph">The contracts subgroup adopted a roadmap and timeline to try to get contracts into C++26. The group also had initial discussion of Gabriel Dos Reis’ proposal to control side effects in contracts, with the plan to follow up with a telecon between now and the next in-person meeting in February.</p>
+
+
+
+<p class="wp-block-paragraph">The concurrency and parallelism subgroup agreed to move forward with std::execution and SIMD parallelism for C++26, which in the words of the subgroup chair will make C++26 a huge release for the concurrency and parallelism group… and recall that C++26 is not just something distant that&#8217;s three years away, but we will start approving features for C++26 starting this June, and when specific features are early and stable in the working draft the vendors often don’t wait for the final standard to start shipping implementations.</p>
+
+
+
+<p class="wp-block-paragraph">The language evolution group considered national body comments and C++26 proposals, and approved nine papers for C++26 including to progress <a href="https://wg21.link/p1967">Jean-Heyd Meneide’s proposal for #embed</a> for C++26.</p>
+
+
+
+<p class="wp-block-paragraph">The language evolution group also held a well-attended evening session (so that experts from all subgroups could participate) to start discussion of the long-term future of C++, with over 100 experts attending (75% on-site, 25% on-line). Nearly all of the discussion was focused on improving safety (mostly) and simplicity (secondarily), including discussion about going beyond our business-as-usual evolution to help C++ programmers with these issues. We expect this discussion to continue and lead to further concrete papers for C++ evolution.</p>
+
+
+
+<p class="wp-block-paragraph">The library evolution group addressed all its national body comments and papers, forwarded several papers for C++26 <a href="https://wg21.link/p2300">including std::execution</a>, and for the first time in a while does not have a backlog to catch up with which was happy news for LEWG.</p>
+
+
+
+<p class="wp-block-paragraph">Thank you to all the experts who worked all week in all the subgroups to achieve so much this week!</p>
+
+
+
+<h2 class="wp-block-heading">What’s next</h2>
+
+
+
+<p class="wp-block-paragraph">Our next meeting will be in <a href="https://isocpp.org/files/papers/N4925.pdf">Issaquah, WA, USA in February</a>. At that meeting we will finish C++23 by resolving the remaining national body comments on the C++23 draft, and producing the final document to be sent out for its international approval ballot (Draft International Standard, or DIS) and be published later in 2023.</p>
+
+
+
+<h2 class="wp-block-heading">Wrapping up</h2>
+
+
+
+<p class="wp-block-paragraph">But we’re not slowing down… we’ll continue to have subgroup Zoom meetings, and then in less than three months from now we’ll be meeting again in Issaquah, WA, USA for the final meeting of C++23 to finish and ship the C++23 international standard. I look forward to seeing many of you there. Thank you again to the over 160 experts who attended on-site and on-line at this week’s meeting, and the many more who participate in standardization through their national bodies! And thank you also to everyone reading this for your interest and support for C++ and its standardization.</p>

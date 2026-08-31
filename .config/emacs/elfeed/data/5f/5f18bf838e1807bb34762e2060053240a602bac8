@@ -1,0 +1,397 @@
+<p>C++ dependency setup and maintenance still slows down many teams. In my Pure Virtual C++ 2026 session, I show a terminal-first workflow that ends with a working CLI app that formats and prints programming quotes, built with CMake and Microsoft C++ (MSVC) Build Tools. All of this is powered by GitHub Copilot CLI, which does the work of generating the code and project files, identifying appropriate open-source library dependencies, installing the vcpkg package manager, and integrating the libraries into the project.</p>
+<h2>What is GitHub Copilot CLI?</h2>
+<p><a href="https://github.com/features/copilot/cli/">GitHub Copilot CLI</a> is the command-line implementation for GitHub Copilot, allowing you to run agents in a terminal window. You can use it as an AI chat interface, give it work to do semi- or fully autonomously, optionally across multiple parallel subagents. For C++ developers, Copilot CLI is a valuable tool for work you would be comfortable doing in the command line yourself, from generating code to compiling projects and debugging issues. You can persist and manage Copilot sessions, customize your environment with plugins, custom agents, MCP servers, skills, hooks, and models, and seamlessly switch from working in the command line to using Copilot in another environment like Visual Studio Code (VS Code). Once you get into the groove, using it feels as natural as a web browser or an IDE.</p>
+<h2>Check out the Pure Virtual C++ video</h2>
+<p><iframe title="C++ Dependencies Without the Headache: vcpkg + Copilot CLI" width="500" height="281" src="https://www.youtube.com/embed/VKXVsOIt7aw?feature=oembed" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></p>
+<h2>What this demo covers</h2>
+<p>This walkthrough will show you the following:</p>
+<ol>
+<li>You can use Copilot to help you install the tools you need, including the vcpkg package manager. Copilot can also help you identify appropriate library dependencies, describe what each one does, and integrate them into your project.</li>
+<li>vcpkg removes manual dependency wiring. You declare dependencies once in <code>vcpkg.json</code>, and restore is part of your normal configure/build flow.</li>
+<li>Copilot helps you complete multi-step setup work without context-switching between docs and terminal commands.</li>
+<li>You can work with Copilot on additional instructions, like setting an appropriate <code>builtin-baseline</code> to pin dependencies for reproducible builds while retaining the flexibility to upgrade later without introducing ABI-breaking changes in your dependency graph.</li>
+</ol>
+<p>This walkthrough starts from the first prompt and ends with a successful build: start in an empty folder, stay in the terminal, and avoid hand-managed include and link paths.</p>
+<h2>Read-along Walkthrough</h2>
+<p>This section is written so you can follow along with the video demo.</p>
+<h3>Step 0: Configure Copilot CLI environment</h3>
+<p>Before you get started, make sure your environment is set up and ready to go:</p>
+<ol>
+<li><a href="https://github.com/features/copilot/cli/">Install GitHub Copilot CLI</a> with your preferred package manager or a script.</li>
+<li>Make sure you have CMake and a compiler installed on your system. In this video I used CMake with MSVC Build Tools on Windows.</li>
+<li>Choose your preferred terminal application. On Windows, I recommend Windows Terminal, which supports multiple color-coded, custom-named tabs as I show in the video.</li>
+<li>Create and navigate to a directory to work in (e.g. <code>mkdir quotecli</code>). Add a subfolder called <code>data</code> with a <code>quotes.json</code> file that looks something like this:
+<pre>{<code class="language-json">
+    "quotes": [
+        { "text": "Any sufficiently advanced technology is indistinguishable from magic.", "author": "Arthur C. Clarke" },
+        { "text": "Simplicity is prerequisite for reliability.", "author": "Edsger W. Dijkstra" },
+        { "text": "Controlling complexity is the essence of computer programming.", "author": "Brian Kernighan" },
+        { "text": "That brain of mine is something more than merely mortal, as time will show.", "author": "Ada Lovelace" },
+        { "text": "First, solve the problem. Then, write the code.", "author": "John Johnson" },
+        { "text": "The most important property of a program is whether it accomplishes the intention of its user.", "author": "C.A.R. Hoare" },
+        { "text": "Programs must be written for people to read, and only incidentally for machines to execute.", "author": "Harold Abelson" },
+        { "text": "Premature optimization is the root of all evil.", "author": "Donald Knuth" }
+    ]
+}</code></pre>
+</li>
+<li>Run Copilot in your terminal from your working directory root by typing <code>copilot</code>. <img decoding="async" src="https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/Copilot-welcome-screen.webp" alt="Copilot welcome screen" /></li>
+<li>Install the C++ language server protocol plugin, described in <a href="https://devblogs.microsoft.com/cppblog/streamline-c-code-intelligence-setup-in-copilot-cli/">Streamline C++ code intelligence setup in Copilot CLI</a>. This is recommended for any C++ work with Copilot CLI, as it enables the semantic intelligence you&#8217;re used to in Visual Studio and VS Code in the CLI environment. In Copilot CLI, run <code>/plugin install cpp-language-server@copilot-plugins</code>.</li>
+<li>Select your preferred model by running <code>/model</code>. I recommend starting with &#8220;Auto&#8221;, which lets Copilot select an appropriate model per task (optimizing between token cost and correctness). You can also manually select a specific model.</li>
+<li>Optional: Install a <a href="https://github.com/github/awesome-copilot/tree/main/skills/vcpkg">vcpkg custom skill</a> I wrote that gives Copilot additional guidance when working with vcpkg. Copilot does a pretty good job on its own, but this lets you handle more advanced scenarios in a more prescriptive way. Plus you can always edit the skill later to further control Copilot&#8217;s behavior. To install, <a href="https://github.com/AugP/awesome-copilot/tree/vcpkg-skill/skills/vcpkg">download it</a> to your machine, and run <code>/skill add local-path-to-skill</code>. Note: This skill isn&#8217;t officially maintained by Microsoft; it&#8217;s there to get you started with a customizable workflow, should you want it.</li>
+</ol>
+<h3>Step 1: Set the context and ask Copilot CLI to build a plan</h3>
+<p>Begin by typing <code>Shift+Tab</code> until you transition Copilot into <strong>Plan Mode</strong>. This mode causes Copilot to discuss an implementation plan with you before it begins working, and is useful if you want to use Copilot on something complex, such as a multi-step workflow. This allows you to check what Copilot wants to do before doing it, so you can intervene and correct it if necessary.</p>
+<p>Next, type a prompt similar to the following:</p>
+<pre><code class="language-text">I want to write a C++ console application that prints a random software development quote with pretty formatting from a list specified in data/quotes.json. I want to build with CMake and MSVC with some open-source libraries from vcpkg. I already have both CMake and MSVC installed, but don't have vcpkg. Install vcpkg and include it in this directory for use. I don't know what C++ libraries to use, help me work that out too.</code></pre>
+<p>Expected result: Copilot produces a plan describing what it wants to build, how the project will be structured, the expected behavior of the app, and docs (README file).</p>
+<h3>Step 2: Accept plan and build</h3>
+<p>Once Copilot has prepared the plan, if you are satisfied with it, you can select <em>Accept plan and build on default permissions</em>. This allows Copilot to begin working, while continuing to ask your permission to run commands and modify files. You could instead choose <em>Accept plan and build on autopilot</em> if you want Copilot to work autonomously and notify you when it finishes. You can also suggest changes if you&#8217;re not happy with the plan, and iterate until you&#8217;re ready to proceed.</p>
+<p>Expected result: Copilot CLI proposes library choices, sets up a CMake project, installs and initializes vcpkg in the repo, creates a <code>vcpkg.json</code> manifest, and builds the project to test that there are no errors. It may iterate on its work several times as it identifies new issues that need to be addressed (e.g. selecting the appropriate CMake generator for what you have installed on your system).</p>
+<h3>Step 3: Ask clarifying questions</h3>
+<p>You can ask Copilot to explain its decisions or to give you a better understanding of the resulting project. Here are some example prompts:</p>
+<pre><code class="language-text">Explain each library you chose, what problem it solves in this app, and where we use it.</code></pre>
+<pre><code class="language-text">Can you give me some boilerplate code for using &lt;library&gt; in a similar context?</code></pre>
+<pre><code class="language-text">How do I build and run this project?</code></pre>
+<p><strong>Expected result:</strong> you get a short technical explanation for the topic(s) you want explained. Based on the answers, you can decide whether to instruct Copilot to make further changes.</p>
+<h3>Step 4: Test the application</h3>
+<p>In a separate terminal window/tab, configure CMake, build, and run:</p>
+<pre><code class="language-powershell">cmake --preset msvc-debug
+cmake --build --preset build-debug
+.\build\msvc-debug\bin\Debug\quotecli.exe</code></pre>
+<p><img decoding="async" src="https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/quotes-app-output.webp" alt="Running Quotes App" /></p>
+<p><strong>Expected result:</strong> Program runs successfully, generating a random quote each time it is run from the list of available quotes.</p>
+<h3>Step 5: Make a change: set a versioning baseline</h3>
+<p>Now suppose you want to set and pin your library versions to achieve reproducible builds. Once again, Copilot can guide you once you instruct it with a simple prompt:</p>
+<pre><code class="language-text">I want to pin my dependencies to the latest official vcpkg release so I can achieve reproducible builds. How can I do that in vcpkg?</code></pre>
+<p><strong>Expected result:</strong> Copilot is able to add a builtin-baseline field to vcpkg.json, choosing a reasonable baseline based on the latest official vcpkg release, and provide you with guidance on what it all means and how to maintain it going further. You can ask Copilot to clarify specific topics along the way.</p>
+<h3>Step 6: Inspect the generated project shape</h3>
+<p>At the end of all this, your project should have a layout similar to this:</p>
+<ol>
+<li><code>vcpkg.json</code> with your dependency list and <code>builtin-baseline</code>.</li>
+<li><code>CMakeLists.txt</code> with <code>find_package(...)</code> entries and linked targets.</li>
+<li><code>CMakePresets.json</code></li>
+<li>App source code, particularly <code>src/main.cpp</code>.</li>
+<li>The quotes data file: <code>data/quotes.json</code>.</li>
+</ol>
+<p><strong>Directory layout:</strong></p>
+<pre><code class="language-text">quotecli
+├── build
+├── data
+│   └── quotes.json
+├── src
+│   └── main.cpp
+├── vcpkg
+│   └── &lt;vcpkg files&gt;
+├── CMakeLists.txt
+├── CMakePresets.json
+├── README.md
+└── vcpkg.json</code></pre>
+<p>This is what each of the major files looks like in my demo:</p>
+<p><strong>quotes.json</strong></p>
+<pre><code class="language-json">{
+  "quotes": [
+    { "text": "Any sufficiently advanced technology is indistinguishable from magic.", "author": "Arthur C. Clarke" },
+    { "text": "Simplicity is prerequisite for reliability.", "author": "Edsger W. Dijkstra" },
+    { "text": "Controlling complexity is the essence of computer programming.", "author": "Brian Kernighan" },
+    { "text": "That brain of mine is something more than merely mortal, as time will show.", "author": "Ada Lovelace" },
+    { "text": "First, solve the problem. Then, write the code.", "author": "John Johnson" },
+    { "text": "The most important property of a program is whether it accomplishes the intention of its user.", "author": "C.A.R. Hoare" },
+    { "text": "Programs must be written for people to read, and only incidentally for machines to execute.", "author": "Harold Abelson" },
+    { "text": "Premature optimization is the root of all evil.", "author": "Donald Knuth" }
+  ]
+}</code></pre>
+<p><strong>main.cpp:</strong></p>
+<pre><code class="language-cpp">#include &lt;cctype&gt;
+#include &lt;filesystem&gt;
+#include &lt;fstream&gt;
+#include &lt;iostream&gt;
+#include &lt;random&gt;
+#include &lt;stdexcept&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+
+#include &lt;fmt/core.h&gt;
+#include &lt;nlohmann/json.hpp&gt;
+#include &lt;rang.hpp&gt;
+
+namespace {
+
+struct Quote {
+    std::string text;
+    std::string author;
+};
+
+std::vector&lt;std::string&gt; WrapText(const std::string&amp; text, const std::size_t maxWidth) {
+    std::vector&lt;std::string&gt; lines;
+    std::string currentLine;
+    std::string currentWord;
+
+    auto flushWord = [&amp;]() {
+        if (currentWord.empty()) {
+            return;
+        }
+        if (currentLine.empty()) {
+            currentLine = currentWord;
+        } else if (currentLine.size() + 1 + currentWord.size() &lt;= maxWidth) {
+            currentLine += " " + currentWord;
+        } else {
+            lines.push_back(currentLine);
+            currentLine = currentWord;
+        }
+        currentWord.clear();
+    };
+
+    for (const char ch : text) {
+        if (std::isspace(static_cast&lt;unsigned char&gt;(ch)) != 0) {
+            flushWord();
+        } else {
+            currentWord.push_back(ch);
+        }
+    }
+    flushWord();
+
+    if (!currentLine.empty()) {
+        lines.push_back(currentLine);
+    }
+
+    if (lines.empty()) {
+        lines.emplace_back();
+    }
+
+    return lines;
+}
+
+std::filesystem::path ResolveQuotePath(const char* argv0) {
+    namespace fs = std::filesystem;
+
+    const fs::path cwdCandidate = fs::current_path() / "data" / "quotes.json";
+    if (fs::exists(cwdCandidate)) {
+        return cwdCandidate;
+    }
+
+    const fs::path executablePath = fs::absolute(fs::path(argv0)).parent_path();
+    const std::vector&lt;fs::path&gt; candidates = {
+        executablePath / "data" / "quotes.json",
+        executablePath.parent_path() / "data" / "quotes.json",
+        executablePath.parent_path().parent_path() / "data" / "quotes.json"
+    };
+
+    for (const auto&amp; candidate : candidates) {
+        if (fs::exists(candidate)) {
+            return candidate;
+        }
+    }
+
+    throw std::runtime_error("Could not find data/quotes.json.");
+}
+
+std::vector&lt;Quote&gt; LoadQuotes(const std::filesystem::path&amp; jsonPath) {
+    std::ifstream file(jsonPath);
+    if (!file) {
+        throw std::runtime_error(fmt::format("Failed to open '{}'.", jsonPath.string()));
+    }
+
+    nlohmann::json document;
+    file &gt;&gt; document;
+
+    if (!document.is_object() || !document.contains("quotes") || !document["quotes"].is_array()) {
+        throw std::runtime_error("Invalid JSON: expected an object with a 'quotes' array.");
+    }
+
+    std::vector&lt;Quote&gt; quotes;
+    for (const auto&amp; entry : document["quotes"]) {
+        if (!entry.is_object() || !entry.contains("text") || !entry.contains("author") ||
+            !entry["text"].is_string() || !entry["author"].is_string()) {
+            throw std::runtime_error("Invalid quote entry: each quote must have string 'text' and 'author'.");
+        }
+
+        quotes.push_back({
+            entry["text"].get&lt;std::string&gt;(),
+            entry["author"].get&lt;std::string&gt;()
+        });
+    }
+
+    if (quotes.empty()) {
+        throw std::runtime_error("The quotes array is empty.");
+    }
+
+    return quotes;
+}
+
+const Quote&amp; PickRandomQuote(const std::vector&lt;Quote&gt;&amp; quotes) {
+    std::random_device randomDevice;
+    std::mt19937 generator(randomDevice());
+    std::uniform_int_distribution&lt;std::size_t&gt; distribution(0, quotes.size() - 1);
+    return quotes[distribution(generator)];
+}
+
+void PrintQuoteCard(const Quote&amp; quote) {
+    constexpr std::size_t bodyWidth = 72;
+    const std::string border = "+" + std::string(bodyWidth + 2, '-') + "+";
+    const std::string title = " Random Software Dev Quote ";
+    const std::string authorLine = fmt::format("- {}", quote.author);
+    const auto wrappedQuote = WrapText(quote.text, bodyWidth);
+
+    rang::setControlMode(rang::control::Auto);
+
+    std::cout &lt;&lt; rang::fgB::blue &lt;&lt; border &lt;&lt; rang::style::reset &lt;&lt; '\n';
+    std::cout &lt;&lt; rang::fgB::blue &lt;&lt; "|"
+              &lt;&lt; rang::style::bold &lt;&lt; rang::fgB::green
+              &lt;&lt; fmt::format("{:^{}}", title, bodyWidth + 2)
+              &lt;&lt; rang::style::reset
+              &lt;&lt; rang::fgB::blue &lt;&lt; "|" &lt;&lt; rang::style::reset &lt;&lt; '\n';
+    std::cout &lt;&lt; rang::fgB::blue &lt;&lt; border &lt;&lt; rang::style::reset &lt;&lt; '\n';
+
+    for (const auto&amp; line : wrappedQuote) {
+        std::cout &lt;&lt; rang::fgB::blue &lt;&lt; "| "
+                  &lt;&lt; rang::style::italic &lt;&lt; rang::fg::gray
+                  &lt;&lt; fmt::format("{:&lt;{}}", line, bodyWidth)
+                  &lt;&lt; rang::style::reset
+                  &lt;&lt; rang::fgB::blue &lt;&lt; " |"
+                  &lt;&lt; rang::style::reset &lt;&lt; '\n';
+    }
+
+    std::cout &lt;&lt; rang::fgB::blue &lt;&lt; "| "
+              &lt;&lt; fmt::format("{:&lt;{}}", "", bodyWidth)
+              &lt;&lt; " |" &lt;&lt; rang::style::reset &lt;&lt; '\n';
+
+    std::cout &lt;&lt; rang::fgB::blue &lt;&lt; "| "
+              &lt;&lt; rang::style::bold &lt;&lt; rang::fgB::yellow
+              &lt;&lt; fmt::format("{:&gt;{}}", authorLine, bodyWidth)
+              &lt;&lt; rang::style::reset
+              &lt;&lt; rang::fgB::blue &lt;&lt; " |"
+              &lt;&lt; rang::style::reset &lt;&lt; '\n';
+    std::cout &lt;&lt; rang::fgB::blue &lt;&lt; border &lt;&lt; rang::style::reset &lt;&lt; '\n';
+}
+
+}  // namespace
+
+int main(const int argc, char* argv[]) {
+    if (argc &lt; 1 || argv == nullptr || argv[0] == nullptr) {
+        std::cerr &lt;&lt; "Unable to resolve executable path." &lt;&lt; '\n';
+        return 1;
+    }
+
+    try {
+        const auto quotePath = ResolveQuotePath(argv[0]);
+        const auto quotes = LoadQuotes(quotePath);
+        PrintQuoteCard(PickRandomQuote(quotes));
+    } catch (const std::exception&amp; ex) {
+        std::cerr &lt;&lt; fmt::format("Error: {}", ex.what()) &lt;&lt; '\n';
+        return 1;
+    }
+
+    return 0;
+}</code></pre>
+<p><strong>CMakeLists.txt:</strong></p>
+<pre><code class="language-cmake">cmake_minimum_required(VERSION 3.21)
+
+project(quotecli VERSION 0.1.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(rang CONFIG REQUIRED)
+
+add_executable(quotecli src/main.cpp)
+
+target_link_libraries(quotecli PRIVATE
+    nlohmann_json::nlohmann_json
+    fmt::fmt-header-only
+    rang::rang
+)
+
+if(MSVC)
+    target_compile_options(quotecli PRIVATE /W4 /permissive-)
+else()
+    target_compile_options(quotecli PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+set_target_properties(quotecli PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
+add_custom_command(TARGET quotecli POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_SOURCE_DIR}/data"
+            "$&lt;TARGET_FILE_DIR:quotecli&gt;/data"
+    COMMENT "Copying quote data to output directory"
+)</code></pre>
+<p><strong>CMakePresets.json:</strong></p>
+<pre><code class="language-json">{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "msvc-debug",
+      "displayName": "MSVC Debug",
+      "generator": "Visual Studio 18 2026",
+      "binaryDir": "${sourceDir}\\build\\${presetName}",
+      "architecture": {
+        "value": "x64"
+      },
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+        "VCPKG_MANIFEST_MODE": "ON"
+      }
+    },
+    {
+      "name": "msvc-release",
+      "displayName": "MSVC Release",
+      "generator": "Visual Studio 18 2026",
+      "binaryDir": "${sourceDir}\\build\\${presetName}",
+      "architecture": {
+        "value": "x64"
+      },
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+        "VCPKG_MANIFEST_MODE": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-debug",
+      "configurePreset": "msvc-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "build-release",
+      "configurePreset": "msvc-release",
+      "configuration": "Release"
+    }
+  ]
+}</code></pre>
+<p><strong>vcpkg.json:</strong></p>
+<pre><code class="language-json">{
+  "name": "quotecli",
+  "version-string": "0.1.0",
+  "builtin-baseline": "cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3",
+  "dependencies": [
+    "nlohmann-json",
+    "fmt",
+    "rang"
+  ]
+}</code></pre>
+<h2>Optional: improve prompts with a vcpkg-focused skill</h2>
+<p>You can run this walkthrough with plain GitHub Copilot CLI and no extra skill installed. But if you want to guide and control Copilot&#8217;s usage of vcpkg further, especially for more advanced work, you can try out <a href="https://github.com/github/awesome-copilot/tree/main/skills/vcpkg">this custom vcpkg skill</a> I wrote. See <a href="https://docs.github.com/copilot/concepts/agents/about-agent-skills">About agent skills</a> for more information on how to integrate a skill into your Copilot workflow. This skill provides additional guidance for Copilot when dealing with custom registries, continuous integration workflows, and vcpkg troubleshooting issues. Let us know if you have any feedback in the comments below!</p>
+<p>For more public examples of community-maintained skills and other custom Copilot workflows, see the <a href="https://github.com/github/awesome-copilot">awesome-copilot repo</a>.</p>
+<p><strong>Note:</strong> Treat community skills as guidance accelerators, not official Microsoft product features with a formal support bar. You are also welcome to edit and customize them to your liking within your environment. Copilot CLI can help you write or modify skills on demand.</p>
+<h2>Try it out and share feedback</h2>
+<p>Resources:</p>
+<ul>
+<li><a href="https://vcpkg.io/">Get started with vcpkg</a></li>
+<li><a href="https://github.com/features/copilot/cli/">Get started with GitHub Copilot CLI</a></li>
+<li><a href="https://devblogs.microsoft.com/cppblog/streamline-c-code-intelligence-setup-in-copilot-cli/">Enable C++ code intelligence in Copilot CLI</a> with the Microsoft C++ language server</li>
+<li><a href="https://visualstudio.microsoft.com/">Download Visual Studio and MSVC Build Tools</a> (desktop development with C++ workload also includes CMake)</li>
+</ul>
+<p>I also recommend checking out Sinem Akinci&#8217;s Pure Virtual C++ session during the event, <strong>C++ semantic awareness in the CLI: From Project Load to Code Change</strong>, which goes more in-depth into Copilot CLI&#8217;s C++ capabilities with the Microsoft C++ language server.</p>
+<p>Let us know what you think about Copilot CLI and vcpkg in the comments below!<!-- /wp:post-content --></p>
+<p>The post <a href="https://devblogs.microsoft.com/cppblog/c-dependencies-without-the-headache-vcpkg-copilot-cli/">C++ Dependencies Without the Headache: vcpkg + Copilot CLI</a> appeared first on <a href="https://devblogs.microsoft.com/cppblog">C++ Team Blog</a>.</p>

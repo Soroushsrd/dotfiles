@@ -1,0 +1,109 @@
+<div class="epigraph">
+<blockquote>
+<p>The Tao gave birth to machine language. Machine language gave birth to the assembler.</p>
+<p>The assembler gave birth to the compiler. Now there are ten thousand languages.</p>
+<p>Each language has its purpose, however humble. Each language expresses the Yin and Yang of software. Each language has its place within the Tao.</p>
+<p>But do not program in COBOL if you can avoid it.</p>
+<footer>
+<p><a class="link-external" rel="external" href="https://www.mit.edu/~xela/tao.html">The Tao of Programming</a></p>
+</footer>
+</blockquote>
+</div>
+<p>I probably hate writing code in your favorite programming language, whatever it may be. This is because I get frustrated by basically all of the top 10 languages you’ll find listed anywhere for various reasons. Do I hate programming in Python? You bet I do. “But it’s <em>Python</em>! Python is the best programming language on earth!” I can hear you say. I grant that it has its place. Python wins because its ecosystem of libraries is so huge and because there are so many resources for new users. It’s also garbage collected, which means memory safety is not an issue. It the current hot thing, because there is so much support for machine learning in Python.</p>
+<div class="marginnote">
+<p>I don’t consider Python quite as <a class="link-external" rel="external" href="https://blog.plover.com/prog/Java.html">boring as Java</a>!</p>
+</div>
+<p>But <em>my</em> problem is that Python is a boring language. This isn’t a bad thing necessarily. If you’re interested in solving a problem with a known solution and you’re doing it for business, the a boring language is probably better for you than, say, Haskell.</p>
+<p>Why do I think Python is boring? In part because of its philosophy:</p>
+<blockquote>
+<p>There should be one—and preferably only one—obvious way to do it.</p>
+<p><a class="link-external" rel="external" href="https://peps.python.org/pep-0020/">The Zen of Python</a></p>
+</blockquote>
+<p>Python has a model of how it wants you to solve problems. That’s right: it wants you to solve problems with objects, classes, and explicit loops. Got a problem that’s the perfect fit for a functional paradigm? Well, I guess you can use <code>map</code> and <code>filter</code>, but you only get a single expression inside of lambdas, data structures are all mutable, and you can’t use recursion to handle lists. Ugh.</p>
+<p>I could tell similar stories for other languages that I don’t like programming in. These languages include JavaScript, Go, Java, and C++. Go and Java seem to have been made with huge teams of programmers in mind: make the language and syntax as simple as possible, and then even simpler at the expense of expressivity! This guards against programmers coming up with a clever way to express their problem in a domain-specific way—that’s probably a virtue in large companies. But that’s not how I like to program.</p>
+<h2 id="no-local-reasoning">No local reasoning</h2>
+<p>The thing I hate about <em>all</em> of the languages I listed is their emphasis on mutation. When I call a function and pass it a list or object or whatever, I have <em>no</em> guarantees about that thing’s value when the function returns. That means, to understand some code, I have to understand all of the functions that get called.</p>
+<p>In contrast, when I write in a language like Elixir or Haskell, which have <em>immutable</em> data structures, I can look at some code like this:</p>
+<div class="book-tabs" id="tabs-1"><input
+      type="radio"
+      class="toggle"
+      name="group-1"
+      id="tab-1-0"
+      checked="checked"
+    />
+    <label for="tab-1-0">Haskell</label>
+    <div class="book-tabs-content markdown-inner">
+      <pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #88C0D0;">winningTeam</span><span style="color: #81A1C1;"> :: GameLog -&gt; Team</span></span>
+<span class="giallo-l"><span>winningTeam g </span><span style="color: #81A1C1;">=</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  let</span><span style="color: #ECEFF4;"> (</span><span>team_a</span><span style="color: #ECEFF4;">,</span><span> team_b</span><span style="color: #ECEFF4;">)</span><span style="color: #81A1C1;"> =</span><span> getTeams g</span></span>
+<span class="giallo-l"><span>      points_a </span><span style="color: #81A1C1;">=</span><span> getPoints g team_a</span></span>
+<span class="giallo-l"><span>      points_b </span><span style="color: #81A1C1;">=</span><span> getPoints g team_b </span><span style="color: #81A1C1;">in</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    if</span><span> points_a </span><span style="color: #81A1C1;">&gt;</span><span> points_b </span><span style="color: #81A1C1;">then</span><span> team_a </span><span style="color: #81A1C1;">else</span><span> team_b</span></span></code></pre>
+    </div><input
+      type="radio"
+      class="toggle"
+      name="group-1"
+      id="tab-1-1"
+      
+    />
+    <label for="tab-1-1">Elixir</label>
+    <div class="book-tabs-content markdown-inner">
+      <pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="elixir"><span class="giallo-l"><span style="color: #81A1C1;font-weight: bold;">@</span><span style="font-weight: bold;">spec</span><span style="color: #88C0D0;"> winning_team</span><span style="color: #ECEFF4;">(</span><span>g </span><span style="color: #81A1C1;">::</span><span style="color: #8FBCBB;"> GameLog</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">t</span><span style="color: #ECEFF4;">())</span><span style="color: #81A1C1;"> ::</span><span style="color: #8FBCBB;"> Team</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">t</span><span style="color: #ECEFF4;">()</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> winning_team</span><span style="color: #ECEFF4;">(</span><span>g</span><span style="color: #ECEFF4;">)</span><span style="color: #81A1C1;"> do</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  {</span><span>team_a</span><span style="color: #ECEFF4;">,</span><span> team_b</span><span style="color: #ECEFF4;">}</span><span style="color: #81A1C1;"> =</span><span style="color: #88C0D0;"> get_teams</span><span style="color: #ECEFF4;">(</span><span>g</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span>  points_a </span><span style="color: #81A1C1;">=</span><span style="color: #88C0D0;"> get_points</span><span style="color: #ECEFF4;">(</span><span>g</span><span style="color: #ECEFF4;">,</span><span> team_a</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span>  points_b </span><span style="color: #81A1C1;">=</span><span style="color: #88C0D0;"> get_points</span><span style="color: #ECEFF4;">(</span><span>g</span><span style="color: #ECEFF4;">,</span><span> team_b</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  if</span><span> points_a </span><span style="color: #81A1C1;">&gt;</span><span> points_b </span><span style="color: #81A1C1;">do</span></span>
+<span class="giallo-l"><span>    team_a</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  else</span></span>
+<span class="giallo-l"><span>    team_b</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  end</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span></code></pre>
+    </div></div>
+
+<p>and I don’t have to know what <code>getTeams</code> or <code>getPoints</code> do to their arguments; I just know they return a value of some kind; I’m free to continue using <code>g</code>, <code>team_a</code>, and <code>team_b</code> as much as I like because their value has not changed.</p>
+<p>It might not seem like much in this example, but it is a big deal when you’re neck-deep in a debugging session. I once worked on a codebase that was half in Elixir and half in Ruby. I spent most of my time on the Elixir side. One time when I had to do some debugging in Ruby, I found it so difficult to trace the execution of the program because data was being changed in method calls. If this doesn’t make much sense to you, you might have to experience it first: once you’ve worked in a large functional codebase, you will find yourself bewildered by all the spooky-action-at-a-distance that goes on inside a large OO codebase.</p>
+<h2 id="other-gripes">Other gripes</h2>
+<p>Other things that frustrate me in programming languages include:</p>
+<ul>
+<li>Automatic type conversion (looking at you JavaScript).</li>
+<li>No type inference (if you’re gonna be statically typed, don’t make me write out the type every time Java).</li>
+<li>No structural typing (type is determined by the shape, not the class name).</li>
+<li>No good functional data structures.</li>
+<li>No metaprogramming.</li>
+<li>No TCO/limits on stack depth.</li>
+</ul>
+<p>That last one is something that <em>really</em> bothers me about Python: stack frames in Racket cost 2 words.<sup class="footnote-reference" id="fr-1-1"><a href="#fn-1">1</a></sup> Either do proper tail-call elimination <em>or</em>, if you <em>really absolutely must</em> have <em>all</em> of your precious stack frames <em>performance and elegance be darned</em>, then <em>allocate your stack frames on the heap and stop worrying about it already!</em> (I seem to recall a conversation where someone with knowledge of these things implied that this was in the works. I don’t know any details about it though.)</p>
+<p>Seriously though: some solutions lend themselves <em>really</em> well to a nice tail-recursive solution. But can you rely on such an implementation to be performant or even <em>run</em> in Python? Nope. Argh!!</p>
+<h2 id="my-favorite-language">My favorite language</h2>
+<p>Clearly, I like functional programming: it fits how my mind works, and I think it is in a lot of ways objectively better than other paradigms for software engineering. Immutability gives you the ability to reason <em>locally</em> about your code—not to mention not having to worry about race conditions when mutating data in concurrent environments! To parallel the first list that I wrote, here are things that I like in a language:</p>
+<ul>
+<li>Easy, explicit conversions between different types of data.</li>
+<li>Dynamic typing <em>or</em> powerful type inference <em>or</em> gradual typing!</li>
+<li>Structural typing (having nominal typing too can be nice when needed; but given one or the other I’ll take structural over nominal any day).</li>
+<li>Functional data structures like cons cells, maps and sets supporting functional updates, and <a class="link-external" rel="external" href="https://github.com/OxSon/rrb.rhm/discussions/1">RRB trees</a>!</li>
+<li>Powerful macros that let me extend the language.</li>
+<li>Proper TCO.</li>
+</ul>
+<p>Macros can be a two-edged sword. That said, a lot of the <a class="link-external" rel="external" href="https://lambdaland.org/posts/2023-10-17_fearless_macros/">danger around macros</a> has largely been ameliorated. Elixir is a great example of this: Elixir has a small core and uses macros a <em>lot</em> to define basic things like <code>if</code> in terms of simpler constructs.</p>
+<p>What languages do I <em>enjoy</em> programming in? Racket is my favorite: it’s designed to be flexible and give the programmer maximum ability to express their intent to the computer. Racket is a <em>programmable programming language</em>.</p>
+<p>Other languages I enjoy include Haskell, Elixir, and Rust. Haskell is the ur-functional language, and it’s really fun to use the type system to describe your domain. Pretty soon the compiler starts keeping you from making all sorts of mistakes that would be hard to catch with basic testing. In Elixir, you get lots of nice functional data structures, proper TCO, pattern matching, and soon gradual typing! Rust is great because it has a phenomenal type system with good type inference; its metaprogramming story could be improved though.</p>
+<h2 id="not-a-flame-war">Not a flame war</h2>
+<p>I want to make it clear that I am <em>not</em> attempting to start a flame-war or saying that Python, Java, et al. are useless: they have their place and are very respectable works of engineering. All I am saying is that, given a choice of language for a hobby project, I will pick something else because I don’t want to be frustrated by the language when I work.</p>
+<p>Anyway, that’s the end of my griping about languages. (For today, at least.)</p>
+<div class="epigraph">
+<blockquote>
+<p>There will always be things we wish to say in our programs that in all known languages can only be said poorly.</p>
+<p>A language that doesn’t affect the way you think about programming, is not worth knowing.</p>
+<footer>
+<p>Alan Perlis</p>
+</footer>
+</blockquote>
+</div>
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn-1">
+<p>Source: I asked Matthew Flatt about Racket’s stack frame size once. <a href="#fr-1-1">↩</a></p>
+</li>
+</ol>
+</section>

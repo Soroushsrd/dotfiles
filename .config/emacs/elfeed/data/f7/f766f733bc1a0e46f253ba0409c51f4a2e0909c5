@@ -1,0 +1,17 @@
+<p>
+Protesilaos (Prot) has an <a href="https://protesilaos.com/codelog/2026-05-04-emacs-keyboard-ergonomics/">excellent post on keyboard ergonomics for Emacs users</a>. He considers various strategies for making Emacs commands easier to use and less likely to cause RSI damage. He considers everything from split keyboards to evil-mode.
+</p>
+<p>
+He says he has both a split keyboard and a keyboard with a normal form factor. He says that the split keyboard is not a magic solution and that what works best for him is to configure &ldquo;one shot modifiers&rdquo; where the modifier is simply pressed—but not held down—before the key it modifies. So, to use his example, <kbd>Ctrl</kbd>+<kbd>x</kbd> is typed by tapping the <kbd>Ctrl</kbd> key and then the <kbd>x</kbd> key.
+</p>
+<p>
+Along with that he suggests ordering the modifier keys in a way you find comfortable. The most important thing, he says, is to keep the <kbd>Ctrl</kbd> key close to the space bar so that you can use your thumb to press it. It&rsquo;s also important to have the modifier keys located symmetrically so that, for example, you can use either hand for the <kbd>Ctrl</kbd> key.
+</p>
+<p>
+As for the common advice to map <kbd>Caps Lock</kbd>  to <kbd>Ctrl</kbd>, Prot says that&rsquo;s okay but that it encourages the bad habit of always using your left pinky for <kbd>Ctrl</kbd>.
+</p>
+<p>
+There&rsquo;s a lot more information in Prot&rsquo;s post—including how to configure one shot modifiers—so be sure to take a look at it.
+</p>
+<p>
+I&rsquo;ve been incredibly lucky. I use a standard keyboard, map <kbd>Caps Lock</kbd> to <kbd>Ctrl</kbd> and don&rsquo;t have any symmetric modifier keys. Nonetheless, I haven&rsquo;t suffered any RSI problems despite spending the majority of my day at the keyboard. But, as I say, I&rsquo;m lucky. The smart thing to do is to read and head Prot&rsquo;s advice.</p>

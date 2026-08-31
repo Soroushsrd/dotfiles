@@ -1,0 +1,14 @@
+<p>
+Protesilaos Stavrou (Prot) has another excellent video. This time it&rsquo;s on it&rsquo;s on <a href="https://protesilaos.com/codelog/2026-08-05-emacs-speedbar-file-explorer/">the Emacs speedbar and its Emacs 31 upgrade</a>. The TL;DR is that as of Emacs 31, you can configure the speedbar to be displayed in a separate window instead of a separate frame. The video is 15 minutes, 39 seconds so it should be easy to find time for it.
+</p>
+<p>
+The placement of the speedbar matters a lot to Prot. He found the speedbar to be unusable when it was displayed in a separate frame because it was difficult to deal with the two related frames. It&rsquo;s absolutely impossible for me to deal with because I run Emacs as a full screen app so the speedbar is in another workspace and I have to switch to that workspace to see it.
+</p>
+<p>
+Now that the speedbar can be displayed in the same frame, Prot finds that it can be useful when dealing with large projects with many files. His video is mostly concerned with showing how the speedbar works and what you can do with it.
+</p>
+<p>
+Lots of people love speedbar-like applications and swear by them. I, however, have never been able to warm up to them. These days, I don&rsquo;t work with large projects and perhaps I&rsquo;d feel differently if I did but mostly they just seem like noise to me. Even Prot says he doesn&rsquo;t use speedbar for his smaller personal projects but that it can be useful for larger, multi-file projects.
+</p>
+<p>
+My recommendation is that if you don&rsquo;t already strong opinions on the matter, give the speedbar a try when Emacs 31 comes out and see if it works for you. There are plenty of informed opinions on both sides of the issue so there&rsquo;s no right answer, just what works for you. As always, Emacs will let you have it your way.</p>

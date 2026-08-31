@@ -1,0 +1,4 @@
+<p>Wrote a thing to handle the annoying window flood in Emacs:</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/E-xUNlZi3rI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<p>Popper-mode was brewing for years as part of my config, I decided to bind it into reasonable shape and submit to MELPA.</p>
+<p><a href="https://github.com/karthink/popper">Code</a>, <a href="https://melpa.org/#/popper">MELPA</a>, <a href="https://www.youtube.com/watch?v=E-xUNlZi3rI">Extended demo</a>, <a href="https://old.reddit.com/r/emacs/comments/m5ibyh/popperel%5Fsummon%5Fand%5Fdismiss%5Fbuffers%5Fas%5Fpopups/">Reddit thread</a></p>

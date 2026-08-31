@@ -1,0 +1,46 @@
+<h1>Boosting Adobe Photoshop’s Performance with MSVC and SPGO</h1>
+<p>Adobe and Microsoft worked together to improve Photoshop performance and responsiveness on Windows by combining MSVC’s peak-performance build settings with Sample-based Profile-Guided Optimization (<a href="https://aka.ms/spgo/tutorial">SPGO</a>). The collaboration focused on real customer scenarios where latency matters most, including brush and stroke responsiveness, file open times, and other CPU-intensive operations that directly affect creative flow. Adobe’s combined benchmarking showed <strong>improvements of 20% on x64 and 13% on ARM64</strong>, demonstrating how modern compiler technology can translate into a better experience for creatives using Photoshop on Windows.</p>
+<h2>Customer Background</h2>
+<p>Adobe Photoshop is a large native C++ desktop application built with MSVC on Windows and used by creatives around the world. While many image processing workflows rely heavily on the GPU, some of the most user-visible and latency-sensitive experiences still depend on CPU performance. Drawing, painting, file open, and other interactive operations need to feel immediate because even small delays can interrupt the creative process.</p>
+<p>That made Photoshop a strong candidate for deeper collaboration with Microsoft on compiler-driven optimization.</p>
+<h2>A Path to Better Runtime Performance</h2>
+<p>Adobe and Microsoft began by looking at the practical path to better runtime performance in Photoshop’s Windows builds. A key part of that work was ensuring Photoshop was using MSVC’s peak-performance compilation model, including whole program optimization and link-time code generation (LTCG) with <a href="https://learn.microsoft.com/en-us/cpp/build/reference/gl-whole-program-optimization?view=msvc-170">/GL</a>, so that the compiler could optimize across translation unit boundaries. That foundation was important because it established the baseline for meaningful runtime gains.</p>
+<p>The teams also revisited traditional instrumentation-based Profile-Guided Optimization (<a href="https://learn.microsoft.com/en-us/cpp/build/profile-guided-optimizations">PGO</a>), which had been explored in an earlier collaboration. In practice, that model did not fit Photoshop’s engineering environment well. The instrumented build introduced a non-standard build configuration, increased engineering complexity, and ran slowly enough to trigger operational timeouts, which made the resulting training data unrepresentative of real-world usage.</p>
+<h2>From Peak-Performance Builds to SPGO</h2>
+<p>That experience pointed both teams toward Sample-based Profile Guided Optimizations (<a href="https://aka.ms/spgo/tutorial">SPGO</a>) as a practical alternative. Rather than depending on a separate instrumented build, SPGO uses profile data gathered from standard release binaries running representative workloads. This made it a much better fit for Photoshop’s development and release workflow while still enabling the MSVC optimizer to make profile-driven decisions for critical code paths.</p>
+<p>This approach gave Adobe a scalable optimization path without requiring broad source rewrites. Instead of depending on ongoing manual tuning, the team could use compiler feedback from real workloads to improve generated code.</p>
+<p>The integration work was still meaningful. Photoshop’s engineering system needed to accommodate the build and data-collection flow required for SPGO, as the use of peak-performance build settings may increase build-system demands. But compared with traditional instrumentation-based PGO, the combined LTCG plus SPGO model was much more compatible with Adobe’s production workflow and more sustainable over time.</p>
+<h2>Results</h2>
+<p>By combining MSVC’s peak-performance switches with SPGO, Adobe and Microsoft were able to improve performance in Photoshop scenarios through a scalable engineering approach. These gains reflect SPGO on top of fully optimized Windows release binaries.</p>
+<table>
+<tbody>
+<tr>
+<td><strong>Platform</strong></td>
+<td><strong>Improvement</strong></td>
+</tr>
+<tr>
+<td>x64</td>
+<td>20%</td>
+</tr>
+<tr>
+<td>ARM64</td>
+<td>13%</td>
+</tr>
+</tbody>
+</table>
+<p><em>&#8220;User drawing and stroking operations become more responsive, file open times are reduced, and affected filters complete faster. These are among the most frequently used and latency-sensitive interactions in a professional creative workflow, where responsiveness directly affects a user&#8217;s ability to work fluidly and iteratively.&#8221; &#8211; John Fitzgerald, Senior Software Developer, Adobe</em></p>
+<h2>Looking Ahead</h2>
+<p>The collaboration between Adobe and Microsoft created a foundation for continued performance work on Windows. As Photoshop expands the quality and coverage of its profile data, the teams expect additional opportunities to improve optimization quality over time. That matters as creative experiences grow more complex, and expectations for responsiveness keep rising.</p>
+<p><em>&#8220;Performance is consistently ranked among the top drivers of customer satisfaction in Photoshop surveys. Following SPGO rollout, we expect these improvements to contribute positively to user satisfaction. Delivering the most responsive, fluid experience possible for Windows users remains a core product priority.&#8221; &#8211; Markus Mielke, Director of Product Management Adobe</em></p>
+<p>More broadly, this work shows how advanced compiler and optimization technology can help large native applications deliver better real-world performance without forcing teams into unsustainable engineering tradeoffs. For Adobe, Photoshop served as an important proving ground. For Microsoft, the collaboration demonstrated how MSVC and SPGO can help partners translate compiler innovation into visible customer benefit.</p>
+<h2>Try It Out</h2>
+<p>Download Visual Studio 2026 and acquire the SPGO tools today! These tools work with the compilers in Visual Studio 2022 and Visual Studio 2026.</p>
+<p>More information:</p>
+<ul>
+<li><a href="https://aka.ms/spgo/tutorial">SPGO Tutorial | Microsoft Learn</a></li>
+<li><a href="https://aka.ms/spgo/blog">SPGO Blog | CppBlog</a></li>
+<li><a href="https://build.microsoft.com/en-US/sessions/BRK261">SPGO Talk at Microsoft Build 2026</a> (demo starts at 21:00)</li>
+<li><a href="https://learn.microsoft.com/en-us/visualstudio/releases/2026/release-notes">Visual Studio 2026 release notes | Microsoft Learn</a></li>
+</ul>
+<p>We want to hear from you. Report issues and share suggestions through <strong>Help &gt; Send Feedback</strong> in Visual Studio, visit <a href="https://developercommunity.visualstudio.com/">Developer Community</a>, or leave a comment below.</p>
+<p>The post <a href="https://devblogs.microsoft.com/cppblog/boosting-adobe-photoshops-performance-with-msvc-and-spgo/">Boosting Adobe Photoshop’s Performance with MSVC and SPGO</a> appeared first on <a href="https://devblogs.microsoft.com/cppblog">C++ Team Blog</a>.</p>

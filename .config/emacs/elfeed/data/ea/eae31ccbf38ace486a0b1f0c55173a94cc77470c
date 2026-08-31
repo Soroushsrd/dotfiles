@@ -1,0 +1,8 @@
+<p>My girlfriend works for BYU SA—it’s the division of BYU that’s responsible for planning and running events. As part of her job, she has to review song lyrics and make sure that the song is okay to play at BYU functions.</p>
+<p>This can get rather irksome. Imagine reading text <em>looking</em> for vulgar words or phrases. Yuck. I took some time this evening to write a little website that checks <a class="link-external" rel="external" href="http://metrolyrics.com">MetroLyrics</a> for any vulgar words or phrases. I have an extensible blacklist which gets initialized at server start by some phrases from <a class="link-external" rel="external" href="https://www.frontgatemedia.com/a-list-of-723-bad-words-to-blacklist-and-how-to-use-facebooks-moderation-tool/">FrontGate</a>.</p>
+<p>I coded this up with <a class="link-external" rel="external" href="http://mojolicious.org">Mojolicious</a> and <a class="link-external" rel="external" href="https://www.polymer-project.org">Polymer Web Components</a>. Polymer might have been a little overkill, but it saved me from writing lots of boring jQuery to set variable.</p>
+<p>Here’s what the site looks like:</p>
+<p><img src="/content/images/2017/11/Screen-Shot-2017-11-08-at-11.12.02-PM.png" alt="Sing Clearly" /></p>
+<p>You can look at the code for the repository <a class="link-external" rel="external" href="https://github.com/ashton314/sing_clearly">here</a>.</p>
+<p>This all took about 3 hours, the last of which was spent mostly getting some of the finer points of the user interface to work.</p>
+<p>I’d be happy to get some contributions to my project, if anyone is feeling a little bored. ;-) Some more robust song searching would be nice, as well as better heuristics for bad phrases and whatnot.</p>

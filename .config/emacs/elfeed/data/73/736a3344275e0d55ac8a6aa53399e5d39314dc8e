@@ -1,0 +1,389 @@
+<p>I noticed this a year or two ago, but forgot to write it up back then.</p>
+
+<p>I don’t think it’s particularly serious or important, but it’s an interesting
+demonstration of how flexibility in identity can make
+monitoring in transparency schemes nontrivial, as well as conflict with
+user intuitions around which identities are equivalent.</p>
+
+<p><strong>TL;DR</strong>: Go’s sumdb log entries are unique per module version, but there
+are typically multiple valid case forms for the module <em>path</em> that point to the
+same module version <em>contents</em>. These forms are <strong>not confusable</strong> at import time,
+but they complicate the monitoring story and could form the basis of a
+typosquatting-like attack. Because the “typo” is just a case variation, it
+looks less suspicious than a normal typo.</p>
+
+<h2 id="background">Background<a href="#background" class="header-anchor" aria-label="Permalink to background">#</a></h2>
+
+<p>Go’s packaging design includes the <a href="https://proxy.golang.org">Go module proxy</a>, which is effectively
+a caching proxy for Go modules. This serves (at least) two main purposes:</p>
+
+<ol>
+  <li>
+    <p>It makes Go packaging more reliable and resilient: <code class="language-plaintext highlighter-rouge">src.example.com/some/module@v1.2.3</code>
+will continue to work even if <code class="language-plaintext highlighter-rouge">src.example.com</code> goes down, so long
+as <em>someone</em> has previously resolved that module and version through the proxy.
+This also has the knock-on effect of making Go’s module resolution fast.</p>
+  </li>
+  <li>
+    <p>It provides a degree of integrity against unreliable, malicious, or compromised<sup id="fnref:tag"><a href="#fn:tag" class="footnote" rel="footnote" role="doc-noteref">1</a></sup>
+upstreams: the proxy’s copy of the module is can’t be mutated <em>post facto</em>
+by the origin, meaning that downstreams that haven’t previously locked
+their resolution still receive a version that’s consistent.</p>
+  </li>
+</ol>
+
+<p>This second property is really useful, but still requires a degree of trust:
+if the proxy <em>itself</em> were compromised, it could serve malicious modules
+to not-yet-locked downstreams. This would be easy for an attacker
+to do in a precise manner (i.e. target specific victims) as well as difficult
+to detect, since independent downstrams have no easy way of gossiping
+amongst themselves about the proxy’s claimed responses.</p>
+
+<h2 id="transparency">Transparency<a href="#transparency" class="header-anchor" aria-label="Permalink to transparency">#</a></h2>
+
+<p>In most ecosystems, the situation above (where the index is <em>de jure</em>
+immutable, but not easily <em>verifiably</em> so) is the norm.</p>
+
+<p>However, Go went a step further and introduced the Go <a href="https://go.googlesource.com/proposal/+/master/design/25530-sumdb.md">checksum database</a>,
+or “sumdb.” Go’s sumdb is a transparency log: an immutable, append-only
+datastructure that yields <em>cryptographic proofs of inclusion</em> for data entered
+into it. Russ Cox has a nice <a href="https://research.swtch.com/tlog">explainer on Merkle Trees and transparency log design</a>;
+it’s also the same basic technology behind <a href="https://certificate.transparency.dev/">Certificate Transparency</a> and
+<a href="https://www.sigstore.dev">Sigstore</a>, albeit with different properties in each case<sup id="fnref:claimantmodel"><a href="#fn:claimantmodel" class="footnote" rel="footnote" role="doc-noteref">2</a></sup>.</p>
+
+<p>With this database, Go’s module proxy becomes <em>verifiably monitorable and
+auditable</em>: the proxy is responsible for obtaining a <em>log entry</em> prior to
+serving a new module version, and clients can efficiently verify that the entry:</p>
+
+<ul>
+  <li>Exists in the log (i.e., the entry is not serving content that it hasn’t
+committed to).</li>
+  <li>Matches the claimed module content (i.e., the entry is not a
+<em>valid but unrelated</em> log entry).</li>
+</ul>
+
+<p>In effect, this forces our would-be attacker into the open: they’re still
+able to upload whatever malicious code they please<sup id="fnref:design"><a href="#fn:design" class="footnote" rel="footnote" role="doc-noteref">3</a></sup>, but they must <em>commit</em>
+to doing so in a globally visible manner.</p>
+
+<h2 id="monitoring">Monitoring<a href="#monitoring" class="header-anchor" aria-label="Permalink to monitoring">#</a></h2>
+
+<p>Transparency <em>itself</em> is a useful technique for the game-theoretic reason
+mentioned above: many attackers want to operate surreptitously and without
+public evidence, and transparency logs prevent that.</p>
+
+<p>However, the mere presence of a transparency log does not foreclose on all
+possible risks: the log itself needs to be <em>monitored</em> (and <em>audited</em><sup id="fnref:auditors"><a href="#fn:auditors" class="footnote" rel="footnote" role="doc-noteref">4</a></sup>).</p>
+
+<p>For example, maintainers want to know if an unexpected release occurs
+(indicating compromise) or if a release’s contents vary unexpectedly
+(indicating host/proxy tampering). Similarly, downstreams may wish to monitor
+their dependencies for unexpected activity.</p>
+
+<p>The transparency log operator controls submission to the log, and Go’s sumdb
+is no exception. This allows the operator to decide what goes into the log:</p>
+
+<ul>
+  <li>
+    <p>Every module version exists exactly once in the log. In other words:
+<code class="language-plaintext highlighter-rouge">src.example.com/foo/bar@v1.2.3</code> <em>should</em> have at most exactly one log entry.
+Uniqueness<sup id="fnref:uniqueness"><a href="#fn:uniqueness" class="footnote" rel="footnote" role="doc-noteref">5</a></sup> is not a native property of Merkle tree-based logs; it’s checked
+by log auditors.</p>
+  </li>
+  <li>
+    <p>Only the Go proxy itself can submit entries to the log. External users
+can <em>induce</em> log entry creation by requesting module versions from the proxy,
+but the proxy is responsible for constructing and submitting the entry
+in accordance with the log’s policies.</p>
+  </li>
+</ul>
+
+<h2 id="flexibility">Flexibility<a href="#flexibility" class="header-anchor" aria-label="Permalink to flexibility">#</a></h2>
+
+<p>So, where does that leave us?</p>
+
+<p>Recall that a module version is a pair of (module path, version).
+<a href="https://pkg.go.dev/golang.org/x/mod/module">Per <code class="language-plaintext highlighter-rouge">x/mod/module</code></a>, the module path is the substring of a filesystem path
+in the context of the download cache. However, in the context of the proxy
+protocol, it’s a URL<sup id="fnref:https"><a href="#fn:https" class="footnote" rel="footnote" role="doc-noteref">6</a></sup>.</p>
+
+<p>In both of these contexts, Go correctly observes that case-sensitivity can’t
+be assumed: <code class="language-plaintext highlighter-rouge">src.example.com/Foo/Bar</code> and <code class="language-plaintext highlighter-rouge">src.example.com/foo/bar</code> must
+be treated as distinct module paths, even if a given filesystem or HTTP server
+treats them as equivalent.</p>
+
+<p>To keep them distinct, Go uses a very small escaping scheme in
+potentially-insensitive contexts: every uppercase letter
+is replaced with its lowercase equivalent, prefixed by an exclamation mark (<code class="language-plaintext highlighter-rouge">!</code>).
+This is unambiguous because Go <a href="https://go.dev/ref/mod#go-mod-file-ident">otherwise forbids</a> <code class="language-plaintext highlighter-rouge">!</code> in module paths.</p>
+
+<p>Using the example above, the module path <code class="language-plaintext highlighter-rouge">src.example.com/Foo/Bar</code> becomes
+<code class="language-plaintext highlighter-rouge">src.example.com/!foo/!bar</code> in the proxy protocol and, by extension,
+in the sumdb.</p>
+
+<p>The consequence of this is that there are <em>often</em> multiple valid URL forms
+that point to the same module version contents. That, in turn, means that
+there are multiple valid log entries that correspond to the same module
+version contents…almost.</p>
+
+<p>For example, here’s <code class="language-plaintext highlighter-rouge">github.com/google/uuid@v1.6.0</code>
+and <code class="language-plaintext highlighter-rouge">github.com/Google/uuid@v1.6.0</code> pulled from the <code class="language-plaintext highlighter-rouge">/lookup</code> API:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>% curl https://sum.golang.org/lookup/github.com/google/uuid@v1.6.0
+22152757
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0<span class="o">=</span>
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo<span class="o">=</span>
+
+go.sum database tree
+48546416
+cEcdZrD3Oio0/tZ9JP2gKMdqeMWAvwiLDx0G2r3MJGI<span class="o">=</span>
+
+— sum.golang.org Az3grl3WPuhg73ePSVE8gQId3sd0uJ7PAxsDvyUW8JsPKKTz5JQ96wQNIgsXJGB/wLrtzXoxtXKfrgWJlDsbu7R7YgA<span class="o">=</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>and:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>% curl <span class="s1">'https://sum.golang.org/lookup/github.com/!google/uuid@v1.6.0'</span>
+22198707
+github.com/Google/uuid v1.6.0 h1:2avh7oGmXo3QQBdhUzCNHa3t06F22DZJzaton5Cp5pc<span class="o">=</span>
+github.com/Google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo<span class="o">=</span>
+
+go.sum database tree
+48547430
+<span class="nv">nz45epGyfKdGJiU29VkyCZWYt8AvqzpTogcry0Ck9m0</span><span class="o">=</span>
+
+— sum.golang.org Az3grr5LY/709J21wXS58h4kPuL0EUaVLrFdpHpRQiwfY9T7lh3gg71GDs3J40Kg6GDhj3XFEPt4u+6n4npgGNTemAg<span class="o">=</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>Observe that the two have different log entry numbers (<code class="language-plaintext highlighter-rouge">22152757</code> vs <code class="language-plaintext highlighter-rouge">22198707</code>),
+despite pointing to the same logical module contents. However, they <em>also</em> have
+different content hashes (the first <code class="language-plaintext highlighter-rouge">h1:...</code>), but <strong>not</strong> different <code class="language-plaintext highlighter-rouge">go.mod</code> hashes.
+This is because the content hash includes the module path as part of its input,
+while the <code class="language-plaintext highlighter-rouge">go.mod</code> hash is the hash of the <code class="language-plaintext highlighter-rouge">go.mod</code> file itself, as
+it appears in the logical module contents.</p>
+
+<p>Moreover, we can induce a <em>third</em> log entry by requesting the module
+version from the proxy using yet another URL form, such as
+<code class="language-plaintext highlighter-rouge">https://proxy.golang.org/github.com/GOOgle/uuid/@v1.</code>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>% curl <span class="s1">'https://sum.golang.org/lookup/github.com/!g!o!ogle/uuid@v1.6.0'</span>
+48547565
+github.com/GOOgle/uuid v1.6.0 h1:pwtfSDjGACNyzYVFI0EQMg8KweQ5T+2NrQKJVXoKyj0<span class="o">=</span>
+github.com/GOOgle/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo<span class="o">=</span>
+
+go.sum database tree
+48547566
+4x18IY7uNfTK8JVpFSg93+aVFGUoS9slyyVfEn5PRWY<span class="o">=</span>
+
+— sum.golang.org Az3grgmqwzBbDjb7ojZhmPLDCyCCAreUMfcQ1b7slVrxhFAS8JpZ8wJvGqZ1FW5a8t/FxUXbnQYD2s/+V7RQICZHHgU<span class="o">=</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>This last one took a few seconds to respond<sup id="fnref:sync"><a href="#fn:sync" class="footnote" rel="footnote" role="doc-noteref">7</a></sup>, unlike the other two. As the new log entry
+number close to the signed tree head indicates, it was created on demand (since I was the first to
+request it).</p>
+
+<h2 id="implications">Implications<a href="#implications" class="header-anchor" aria-label="Permalink to implications">#</a></h2>
+
+<p>To tie things together:</p>
+
+<ol>
+  <li>Go sumdb log entries are unique per module version;</li>
+  <li>Go module paths (within the module version) are case-sensitive;</li>
+  <li>Module paths are URLs and the path component of URLs is
+<em>case-indeterminate</em><sup id="fnref:host"><a href="#fn:host" class="footnote" rel="footnote" role="doc-noteref">8</a></sup>, meaning that multiple case forms
+<em>may</em> point to the same module version contents;</li>
+  <li>(1)-(3) mean that the Go proxy can be induced into creating
+multiple distinct log entries that point to the same module version contents,
+albeit with different content hashes.</li>
+</ol>
+
+<p>This has a few interesting consequences:</p>
+
+<ol>
+  <li>
+    <p>In practice, monitoring a module via the sumdb is not as trivial as
+monitoring a single representation: the monitor needs to be aware of all
+valid case forms, which in turn depends on the host. GitHub for example
+has case-insensitive paths, but other hosts may not. The simplest thing
+to do is probably to match on any case-folded variant of the module path
+being monitored, but that may yield false positives if the host is
+case-sensitive.</p>
+
+    <p>The main (public) Go module monitor that I’m aware of is <a href="https://www.gopherwatch.org">GopherWatch</a>,
+ which <a href="https://github.com/mjl-/gopherwatch/blob/26fe1de964d2b0ce14cbf0c507ca6757b38f8da6/data.go#L126-L129">intentionally only does case-sensitive comparisons</a>. This is
+ probably a reasonable default for the average user (who is likely monitoring
+ modules on GitHub or GitLab), but it does mean that a malicious
+ case-sensitive host can evade detection.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">src.example.com/Foo/bar</code> and <code class="language-plaintext highlighter-rouge">src.example.com/foo/bar</code> <em>really are</em> distinct
+modules from Go’s perspective, even though humans have been trained to treat
+them as the same (thanks to common web URL practices).
+An attacker could in principle take advantage of
+this to do something similar to <a href="https://en.wikipedia.org/wiki/Typosquatting">typosquatting</a>, where an innocent-looking
+rename of <code class="language-plaintext highlighter-rouge">src.example.com/acmecorp/widget</code> to <code class="language-plaintext highlighter-rouge">src.example.com/AcmeCorp/widget</code>
+results in completely different module contents.</p>
+
+    <p>Or in other words: ask yourself if this diff would attract your scrutiny
+ in an otherwise unobjectionable change:</p>
+
+    <div class="language-diff highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre> - import "src.example.com/acmecorp/widget"
+ + import "src.example.com/AcmeCorp/widget"
+</pre></td></tr></tbody></table></code></pre></div>    </div>
+
+    <p>What makes this (potentially) more pernicious than “normal” typosquatting
+ is that it looks unobjectionable in a way that normal typosquatting
+ (like <code class="language-plaintext highlighter-rouge">src.example.com/acmec0rp/widget</code>) wouldn’t. As evidenced by the log lookups
+ earlier, it’s <em>already</em> common enough for people to use different case
+ forms (e.g. <code class="language-plaintext highlighter-rouge">google/uuid</code> and <code class="language-plaintext highlighter-rouge">Google/uuid</code> both already having lower entries).</p>
+
+    <p>In practice, what holds this back is that the attacker would either need
+ to control the host (to ensure that different cases route differently)
+ <em>or</em> find an existing host that does that. GitHub and GitLab both appear
+ to guarantee case-insensitivity, but there may be others that don’t.</p>
+  </li>
+  <li>
+    <p>For a module path containing <code class="language-plaintext highlighter-rouge">N</code> non-domain characters in <code class="language-plaintext highlighter-rouge">[a-zA-Z]</code>, there are
+2<sup>N</sup> possible case variants. This doesn’t pose a problem for matching
+within the monitor (we can just compare case-insensitively), but it <em>does</em>
+pose fatigue and resource risks:</p>
+
+    <ul>
+      <li>
+        <p>Using <code class="language-plaintext highlighter-rouge">src.example.com/acmecorp/widget</code> as an example, there are 2<sup>14</sup> = 16,384
+possible case variants. An attacker who wants to obscure their activity against
+that module could spam the proxy with requests for those variants, causing
+alert fatigue (or dropped alerts due to volume) for the monitor.</p>
+      </li>
+      <li>
+        <p>Similarly, the attacker can force the creation of 2<sup>14</sup> distinct log entries
+for the same module version, bloating the log and wasting the proxy and log’s
+compute and network resources. Anybody can already do this by submitting
+junk modules to the proxy, but this is partcularly bad because it makes
+amplification relatively easy: the attacker doesn’t have to create any additional
+modules, and can even use pre-existing innocent module versions.</p>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<p>Of these, I think (2) is probably the most interesting:
+(1) is something that monitors can fix by comparing module paths case-insensitively,
+and (3) is just a griefing vector. The first half of (3) is also probably mitigable
+by deduplicating on the <code class="language-plaintext highlighter-rouge">go.sum</code>’s content hash, since the attacker can’t vary
+that just by varying the module path’s case.</p>
+
+<h2 id="concluding-thoughts">Concluding thoughts<a href="#concluding-thoughts" class="header-anchor" aria-label="Permalink to concluding-thoughts">#</a></h2>
+
+<p>Does this matter from a security perspective? I think no, at least not much.
+The typosquatting-style attack is interesting, but assumes things about the
+module host that aren’t typically true. Specifically, it assumes a
+case-sensitive module host where the attacker can <em>in fact</em> register/emplace
+modules with different case forms. That’s probably uncommon in practice,
+and any host that’s observed to do this intentionally would probably be
+worth excluding from the Go module proxy altogether.</p>
+
+<p>At the most, it’s a quirk and a reminder of how subtle “identity” can be
+in a transparency scheme with additional uniqueness properties. Packaging
+ecosystems that aim to adopt transparency logs in a manner similar to Go’s
+sumdb will almost certainly run into similar issues.</p>
+
+<p>It’s also a great demonstration of how <em>good and thoughtful</em> Go’s packaging
+design is: the system as a whole lacks ambiguity except where introduced by
+external interactions (host filesystems, URL paths), and those ambiguities are
+carefully constrained down to managable levels.</p>
+
+<hr />
+
+<p>p.s. Thanks to <a href="https://filippo.io">Filippo Valsorda</a> for sanity-checking some of my conclusions here,
+since I am by no means a Go expert.</p>
+
+<hr />
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:tag">
+      <p>This happens for both innocent and malicious reasons, usually because Git tags
+    are mutable and can be overwritten with a force-push. <a href="#fnref:tag" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:claimantmodel">
+      <p>The semantics of including some data in a transparency log are
+              governed by a <a href="https://transparency.dev/pdfs/claimant-model-tutorial.pdf">claimant model</a>, as well as how clients are
+              expected to interact with that log. For example, interactions
+              with CT logs are generally expected to be “total” in the sense
+              that a leaf certificate that chains up to a public CA should
+              always be logged, and the absence of an entry is a notable
+              signal. In contrast, a packaging ecosystem that adopts Sigstore
+              generally can’t (and shouldn’t) compel every single package
+              to be signed and logged, so the absence of an entry is not
+              necessarily notable absent other context. <a href="#fnref:claimantmodel" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:design">
+      <p>This being how open source packaging works by design. <a href="#fnref:design" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:auditors">
+      <p>The difference between a <em>monitor</em> and an <em>auditor</em> is subtle:
+         a <em>monitor</em> observes the log for specific behaviors (e.g.
+         new entries matching some set of claims), while an <em>auditor</em>
+         verifies the integrity/correctness of the log itself
+         (e.g. ensuring the log is actually consistent and append-only). <a href="#fnref:auditors" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:uniqueness">
+      <p>While writing this, I tried to find an resource that actually
+           documents this property as guaranteed, but I couldn’t! However,
+           it’s implied by the sumdb’s lookup API, which can only return
+           a single entry per module version. It’s also mentioned indirectly
+           in <a href="https://raphting.dev/posts/gosumdb-live-again/">this blog post on raphting.dev</a> and in Martin Hutchinson’s <a href="https://github.com/mhutchinson/sumdb-audit"><code class="language-plaintext highlighter-rouge">sumdb-audit</code></a>
+           tool. The uniqueness check is also visible in the <a href="https://cs.opensource.google/go/x/mod/+/refs/tags/v0.31.0:sumdb/test.go;l=96-101">TestServer in x/mod/sumdb</a>.
+           After discussion with Filippo, I understand why this isn’t ever described as
+           “guaranteed”: uniqueness is a property that’s enforced by auditors, the
+           log <strong>cannot</strong> itself guarantee it. <a href="#fnref:uniqueness" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:https">
+      <p>The <code class="language-plaintext highlighter-rouge">https://</code> is implied. <a href="#fnref:https" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:sync">
+      <p>Unlike Certificate Transpareny, Go’s sumdb inclusion is synchronous: the proxy
+     blocks until the log entry is actually fully included, instead of yielding
+     a promise to include it later. I suspect the proxy is additionally fully fetching
+     the module itself for hashing, which adds more synchronous delay. <a href="#fnref:sync" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:host">
+      <p>In the sense that the path component of a URL is case sensitive, but that
+     it’s up to the handling HTTP server/host to determine how it handles
+     case sensitivity. <a href="#fnref:host" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>

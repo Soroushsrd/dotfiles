@@ -1,0 +1,28 @@
+<p>
+Irreal, as you all know, is an em-dash friendly site. Irreal has always liked them and now we like them even more because it puts a thumb in the eye of those mentally challenged folks who claim, erroneously, that &ldquo;real people&rdquo; don&rsquo;t use em-dashes and their presence in a document is a sure sign of AI generated text.
+</p>
+<p>
+It turns out that JTR over at <a href="https://taonaw.com">The Art Of Not Asking Why</a> is also an em-dash aficionado and <a href="https://taonaw.com/2026/08/02/em-dashes-in-orgmode-and.html">has been struggling with how to enter them, especially when using Emacs</a>. His final solution involves <code>expand-abbrev</code> but seems to me overly complicated. He types <code>---</code> then immediately calls <code>expand-abbrev</code> by typing <kbd>Ctrl</kbd>+<kbd>x</kbd> <kbd>`</kbd>.
+</p>
+<p>
+We here at Irreal have the same problem, of course, but solved it in what seems to me a much simpler way:
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><code>(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">jcs-insert-em-dash</span> ()
+  <span style="color: #8b2252;">"Insert an em-dash at point"</span>
+  (<span style="color: #a020f0;">interactive</span>)
+  (insert 8212))
+</code></pre>
+</div>
+<p>
+and
+</p>
+<div class="org-src-container">
+<pre class="src src-elisp"><code>(global-set-key (kbd <span style="color: #8b2252;">"H--"</span>) #'jcs-insert-em-dash)
+</code></pre>
+</div>
+<p>
+I have Hyper bound to the right <kbd>⌘ Cmd</kbd> key so it&rsquo;s really easy to invoke it: thumb on <kbd>Hyper</kbd> and index finger on <kbd>-</kbd> and it inserts an em-dash directly into the source exactly as JTR wanted.
+</p>
+<p>
+I don&rsquo;t claim my solution is better than JTR&rsquo;s, only that it suits me better. It&rsquo;s just another example of Emacs letting you have it your way.</p>

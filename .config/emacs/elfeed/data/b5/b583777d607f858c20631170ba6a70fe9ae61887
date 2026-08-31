@@ -1,0 +1,18 @@
+<p>
+Elia Scotto has an excellent post on <a href="https://scotto.me/blog/2026-07-17-which-lisp/">the major Lisp dialects</a>. There are, of course, several Lisp flavors and while they share many features—including, more or less, syntax—there are nevertheless differences that make the choice of which one to use nontrivial.
+</p>
+<p>
+That&rsquo;s where Scotto&rsquo;s post comes in. He compares Common Lisp, Clojure, Racket (Scheme), and Elisp. He describes each dialect, its strengths, and its weaknesses. The TL;DR is:
+</p>
+<dl class="org-dl">
+<dt>Common Lisp</dt>
+<dd>The oldest most complete Lisp, it had libraries and functions for almost everything. It&rsquo;s premier implementation, <a href="https://www.sbcl.org/">SBCL</a>, operates on a large range of hardware and compiles to native code. Its generated code rivals that of C.</dd>
+<dt>Clojure</dt>
+<dd>A modern dialect with some syntactical oddities, this Lisp runs on the JVM, which makes it perfect for large business apps running on Java. Scotto recommends Clojure as a first choice for a beginner looking for a practical and elegant Lisp.</dd>
+<dt>Racket</dt>
+<dd>Racket is a Scheme derived Lisp that&rsquo;s particularly strong for designing and implementing new languages. Unlike the other Lisps, Racket lets you specify a syntax for your new language even if it&rsquo;s not a Lisp-like syntax.</dd>
+<dt>Emacs Lisp</dt>
+<dd>Irreal readers probably need no introduction to Elisp. Scotto describes it as an older, limited extension language for Emacs but it is, of course, much more. I—and many others—use it for building tools and one-off internal apps.</dd>
+</dl>
+<p>
+There&rsquo;s a lot more detail in Scotto&rsquo;s post so be sure to a look at it.</p>

@@ -1,0 +1,200 @@
+<p>Lately I&rsquo;ve been thinking about cyclic trait implementations. This is a problem that I&rsquo;ve been trying to understand for years and years and I <em>finally</em> feel like I&rsquo;m geting somewhere. I&rsquo;m going to try to write out a series of blog posts documenting those explorations and, hopefully, culminating in a design that could be RFC&rsquo;d. In this first post, I want to talk about one of the interesting questions, what I am going to call &ldquo;internal&rdquo; vs &ldquo;external&rdquo; proofs. I know that this material can seem abstract, so I&rsquo;m going to try and connect it to &ldquo;real Rust&rdquo; as much as possible! This particular blog post is an introduction, explaining the general problem and giving some motivation for why we care.</p>
+<h2 id="what-are-cyclic-trait-implementations">What <em>are</em> cyclic trait implementations?</h2>
+<p>Right now in Rust we require most traits to have <em>non-cyclic</em>, or <em>inductive</em>, implementations. To explain what I mean, let&rsquo;s consider this trait:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="k">trait</span><span class="w"> </span><span class="n">Dump</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">fn</span> <span class="nf">dump</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>Now imagine that we have an impl of this for <code>i32</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="c1">// Impl I
+</span></span></span><span class="line"><span class="cl"><span class="k">impl</span><span class="w"> </span><span class="n">Dump</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="kt">i32</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">fn</span> <span class="nf">dump</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="fm">println!</span><span class="p">(</span><span class="s">&#34;</span><span class="si">{self}</span><span class="s">&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>A simple impl for <code>Rc&lt;T&gt;</code> and `Option<T>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="c1">// Impl RC
+</span></span></span><span class="line"><span class="cl"><span class="k">impl</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Dump</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">Rc</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">where</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">T</span>: <span class="nc">Dump</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">fn</span> <span class="nf">dump</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">T</span>::<span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Impl Opt
+</span></span></span><span class="line"><span class="cl"><span class="k">impl</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Dump</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="nb">Option</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">where</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">T</span>: <span class="nc">Dump</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">fn</span> <span class="nf">dump</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="kd">let</span><span class="w"> </span><span class="nb">Some</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">self</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">T</span>::<span class="n">dump</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>and finally a recursive <code>List</code> type that has an impl as well:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="k">struct</span> <span class="nc">List</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">value</span>: <span class="nc">Rc</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">next</span>: <span class="nb">Option</span><span class="o">&lt;</span><span class="n">Rc</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&gt;&gt;</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Impl L
+</span></span></span><span class="line"><span class="cl"><span class="k">impl</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Dump</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">where</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">T</span>: <span class="nc">Dump</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">fn</span> <span class="nf">dump</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Dump</span>::<span class="n">dump</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">.</span><span class="n">value</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">       </span><span class="k">if</span><span class="w"> </span><span class="kd">let</span><span class="w"> </span><span class="nb">Some</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="bp">self</span><span class="p">.</span><span class="n">next</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">Dump</span>::<span class="n">dump</span><span class="p">(</span><span class="n">n</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>If I try to show that <code>List&lt;i32&gt;: Dump</code>, I do that by</p>
+<ul>
+<li>Applying &ldquo;impl L&rdquo; to show that <code>List&lt;i32&gt;: Dump</code> if <code>i32: Dump</code>
+<ul>
+<li>Then applying &ldquo;impl I&rdquo; to show that <code>i32: Dump</code></li>
+</ul>
+</li>
+</ul>
+<p>There&rsquo;s no <em>cycle</em> here &ndash; that is, I didn&rsquo;t have to use impl L to show that impl L is valid.</p>
+<h2 id="cyclic-logic-sounds-bad-but-it-can-be-exactly-what-you-want">Cyclic logic sounds bad, but it can be exactly what you want</h2>
+<p>Now, when I said that &ldquo;the impl L didn&rsquo;t have to use the impl L to show that it is valid&rdquo; that might not have sounded suspicious to you. In fact, it&rsquo;s a pretty natural idea. After all, generally when you try to establish a logical argument, you aren&rsquo;t allowed to use cyclic reasoning. That is, you can&rsquo;t say: I know that Niko likes Rust because Niko likes Rust. So, in the same sense, it seems natural that I should not be able to say &ldquo;I know that <code>List&lt;i32&gt;</code> implements <code>Dump</code> because <code>List&lt;i32&gt;</code> implements <code>Dump</code>&rdquo;.</p>
+<p>But actually, it would sometimes be really useful to say <em>exactly</em> that. One example is so-called &ldquo;perfect derive&rdquo;. In our <code>Dump</code> impl above, we had one where-clause, <code>T: Dump</code>. And if you were to create a custom derive for <code>Dump</code> and write <code>#[derive(Dump)]</code>, the impl I showed is typically exactly what you would get. But it&rsquo;s not necessarily what you <em>want</em>. Consider what you get with <code>#[derive(Clone)]</code>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="c1">// Impl LC1
+</span></span></span><span class="line"><span class="cl"><span class="k">impl</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="nb">Clone</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">where</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">T</span>: <span class="nb">Clone</span><span class="p">,</span><span class="w"> </span><span class="c1">// &lt;-- generated but not really required!
+</span></span></span><span class="line"><span class="cl"><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">fn</span> <span class="nf">dump</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">List</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">value</span>: <span class="nb">Clone</span>::<span class="n">clone</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">.</span><span class="n">value</span><span class="p">),</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">next</span>: <span class="nb">Clone</span>::<span class="n">clone</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">.</span><span class="n">next</span><span class="p">),</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>Here, the derive is going to create an impl that requires <code>T: Clone</code>. But if you look closely, you&rsquo;ll see that all the fields only use <code>Rc&lt;T&gt;</code>, so in fact, we should be able to clone a <code>List</code> even without <code>T: Clone</code>! But how is the compiler to know this?</p>
+<p>You might think that the compiler could do some super smarty-pants analysis on the fields to figure it out. And, in a way, it can: that is what cyclic trait solving is all about. The thing is, while the <em>compiler</em> can do that, the <em>derive</em> cannot &ndash; the derive doesn&rsquo;t have access to the definitions of other types and so forth, and clearly we would need to know things about <code>Option</code> and <code>Rc</code> to figure out whether <code>T: Clone</code> is required here.</p>
+<p>But what we <em>could</em> do is to generate a different impl. Instead of adding <code>T: Clone</code> for each type parameter, we could add a where-clause for each field type. This makes sense: after all, we are just going to be calling <code>Clone</code> on every field, so it&rsquo;s quite logical to say that the impl is valid if every field is cloneable:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="c1">// Impl LC2
+</span></span></span><span class="line"><span class="cl"><span class="k">impl</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="nb">Clone</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">where</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">Rc</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span>: <span class="nb">Clone</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nb">Option</span><span class="o">&lt;</span><span class="n">Rc</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&gt;&gt;</span>: <span class="nb">Clone</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// .. as above ..
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>Under <em>this</em> formulation, we can see that all we have to be able to do is to clone an <code>Rc&lt;_&gt;</code> and clone an <code>Option&lt;Rc&lt;_&gt;&gt;</code>, neither of which require that <code>T: Clone</code>.</p>
+<h2 id="this-idea-is-called-perfect-derive">This idea is called <strong>perfect derive</strong></h2>
+<p>We call this idea [perfect derive][] and it&rsquo;s been a goal for a while. The thing is, cyclic reasoning <em>is</em> tricky to get right. The <code>Clone</code> example is actually an easy one: that one doesn&rsquo;t really require cyclic reasoning:</p>
+<ul>
+<li>To show that <code>List&lt;i32&gt;: Clone</code> we have to show that&hellip;
+<ul>
+<li><code>Rc&lt;i32&gt;: Clone</code>, which is easy because <code>impl&lt;T&gt; Clone for Rc&lt;T&gt;</code> doesn&rsquo;t have any where-clauses<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup></li>
+<li><code>Option&lt;Rc&lt;List&lt;i32&gt;&gt;&gt;: Clone</code> uses the <code>impl&lt;T&gt; Clone for Option&lt;T&gt; where T: Clone</code> impl which requires&hellip;
+<ul>
+<li><code>Rc&lt;List&lt;i32&gt;&gt;: Clone</code>, which is again easy</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="but-its-not-so-easy-for-dump">But it&rsquo;s not so easy for <code>Dump</code></h2>
+<p>But if we use that same &ldquo;cyclic derive pattern&rdquo; to generate our <code>Dump</code> impl, things don&rsquo;t work out so well. Instead of just a <code>T: Dump</code> bound, our <code>Dump</code> impl now has two bounds:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="c1">// impl L1
+</span></span></span><span class="line"><span class="cl"><span class="k">impl</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Dump</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">where</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">Rc</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span>: <span class="nc">Dump</span><span class="p">,</span><span class="w"> </span><span class="c1">// &lt;-- Used to be `T: Dump`
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nb">Option</span><span class="o">&lt;</span><span class="n">Rc</span><span class="o">&lt;</span><span class="n">List</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&gt;&gt;</span><span class="p">,</span><span class="w"> </span><span class="c1">// &lt;-- This one is new!
+</span></span></span><span class="line"><span class="cl"><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">fn</span> <span class="nf">dump</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="o">..</span><span class="p">.}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>Now imagine we try to show <code>List&lt;i32&gt;: Dump</code>. We begin by applying impl L1, which requires us to show that its where clauses hold:</p>
+<ul>
+<li>To show <code>List&lt;i32&gt;: Dump</code> we use impl L1, which has two where-clauses:
+<ul>
+<li><code>Rc&lt;i32&gt;: Dump</code>, this one is easy because the <code>Rc</code> impl requires that <code>i32: Dump</code> which is true.</li>
+<li>But <code>Option&lt;Rc&lt;List&lt;i32&gt;&gt;&gt;: Dump</code> is tricky. The <code>Option</code> impl requires that&hellip;
+<ul>
+<li>We need to prove <code>Rc&lt;List&lt;i32&gt;&gt;: Dump</code>, and then the <code>Rc</code> impl requires that&hellip;
+<ul>
+<li>We need to prove <code>List&lt;i32&gt;: Dump</code>, but that is what we started with! That&rsquo;s cyclic logic!</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Ugh. Something&rsquo;s tricky here!</p>
+<h2 id="we-cant-just-accept-any-old-cycle-because-of-supertraits">We can&rsquo;t just accept any old cycle because of supertraits</h2>
+<p>Now, maybe you think we can just accept any cycles. And for these examples, it would be fine: but it&rsquo;s not correct if you consider <em>supertraits</em>. Consider this trait and impl pair:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="k">trait</span><span class="w"> </span><span class="n">Magic</span>: <span class="nb">Copy</span> <span class="p">{</span><span class="w"> </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Impl M
+</span></span></span><span class="line"><span class="cl"><span class="k">impl</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Magic</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">T</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">where</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">T</span>: <span class="nc">Magic</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">{}</span><span class="w">
+</span></span></span></code></pre></div><p>If you are naive, this weird trait-impl pair can be used to prove that <em>any</em> type is <code>Copy</code>, regardless of whether it has a <code>Copy</code> impl. For example:</p>
+<ul>
+<li>Say we want to prove that <code>String: Copy</code>. We observe that if a type implements <code>Magic</code>, it must implement <code>Copy</code>, so&hellip;
+<ul>
+<li>We begin by proving <code>String: Magic</code>. We use the impl M, which requires
+<ul>
+<li>that we show <code>String: Magic</code>, which is a cycle, so we accept it.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Uh oh, now we did something wrong. We proved that <code>String: Copy</code> even though there is no <code>Copy</code> impl. Something is fishy.</p>
+<p>Now clearly we can all see the problem here &ndash; the implementation of <code>Magic</code> didn&rsquo;t really add any information. It was just a tautology, saying that <code>T: Magic</code> if <code>T: Magic</code>. It&rsquo;s not <em>wrong</em>, but implementing <code>Magic</code> was supposed to tell us more than just the fact that there is an impl of <code>Magic</code>, it was supposed to tell us also that the supertrait <code>Copy</code> is implemented. And that&rsquo;s not true here.</p>
+<p>But if you think about it, it&rsquo;s hard to decide why we should reject impl M but accept the impl L1 of <code>Dump</code> for <code>List&lt;T&gt;</code>. They both wind up with a cyclic proof. So what&rsquo;s the difference? This is the question we&rsquo;ll be exploring over the next few blog posts.</p>
+<h2 id="soundness-for-traits">Soundness for traits</h2>
+<p>This gets at an interesting question: what does it mean for the trait system to be <em>sound</em>. This seems obvious but actually it was a question I found kind of non-obvious for a long time.</p>
+<p>We&rsquo;ve found two satisfactory answers to that question. One of them involves converting to dictionary-passing style. <a href="https://nadrieril.github.io/blog/2026/03/22/what-if-traits-carried-values.html">Nadri explained that in a blog post</a>. I think that&rsquo;s a great post to read. I&rsquo;m going to give another definition here that doesn&rsquo;t require converting to a dependently typed program<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup></p>
+<p>My rough definition is this<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>: the trait system is sound if, whenever it accepts some program P, that program cannot have a function that believes some <code>Trait</code> holds for the <code>T</code>, but there is no impl of <code>Trait</code> that can be used. So in the case of <code>Magic</code> and <code>Copy</code>, it&rsquo;s easy to write a program that shows simple cyclic trait solving is unsound:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="k">trait</span><span class="w"> </span><span class="n">Magic</span>: <span class="nb">Copy</span> <span class="p">{}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">impl</span><span class="o">&lt;</span><span class="n">T</span>: <span class="nc">Magic</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Magic</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="p">{}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">fn</span> <span class="nf">is_copy</span><span class="o">&lt;</span><span class="n">T</span>: <span class="nb">Copy</span><span class="o">&gt;</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// this function believes `T: Copy`
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">fn</span> <span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// this can be called because we believe that
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// * `String: Magic` because
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">//     * `String: Magic`, and we accept cycles.
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// And then `String: Magic` implies `String: Copy`.
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">is_copy</span>::<span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>By my definition, any sound type/trait system must reject this program because, if it were to execute, then execution would reach <code>is_copy::&lt;String&gt;</code> and yet there is no<code> Copy</code> impl that is judged to ber applicable to <code>String</code>. Uh oh!</p>
+<h2 id="coming-next">Coming next</h2>
+<p>As I promised, this post was mostly focused on &ldquo;setting the scene&rdquo;. My goal was to explain what the problem is that we are trying to solve &ndash; permitting &ldquo;good cyclic impls&rdquo; but forbidding bad ones. I didn&rsquo;t spend a lot of time on the bad ones, but it turns out that there&rsquo;s a wide variety of unsound things one can do, some of which the compiler currently gets wrong, others of which it would only get wrong if we started permitting cycles.</p>
+<p>My motivation for getting into this work is a bit complicated. I want perfect derive. But it&rsquo;s also a loose end in our trait semantics that I really want to see nailed down before we move onto other tasks. Having auto traits (e.g., <code>Send</code>) work differently from other traits is clearly a &ldquo;smell&rdquo;, and without a strong understanding of the logical underpinnings of our trait system it&rsquo;s easy to get things wrong when we build extensions.</p>
+<p>In the next few posts I&rsquo;ll go a bit deeper into the exploration I and others have been doing. I&rsquo;ll talk about some of the &ldquo;false starts&rdquo; we took along the way and why they don&rsquo;t work, and then about some of the solutions that are under consideration. Working through this stuff has really helped me to broaden my understanding of various areas of logic. By the time we&rsquo;re done, we&rsquo;ll cover<sup id="fnref:4"><a href="#fn:4" class="footnote-ref" role="doc-noteref">4</a></sup> coinduction and productivity, modal logic and the later modality, and we&rsquo;ll see how our techniques might even help us with resolving specialization<sup id="fnref:5"><a href="#fn:5" class="footnote-ref" role="doc-noteref">5</a></sup>.</p>
+<p>I cited it earlier, but if you want to read other tasks on the same subject, I definitely recommend <a href="https://nadrieril.github.io/blog/2026/03/22/what-if-traits-carried-values.html">Nadri&rsquo;s post on dictionary-passing style</a>.</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>Apart from the default <code>Sized</code> bound, I&rsquo;m ignoring that here&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>I have found that both the dictionary-passing interpretation and the logic approach I&rsquo;m using are valuable. In the end, they&rsquo;re more or less equivalent, which I guess shouldn&rsquo;t be surprising if you&rsquo;ve heard of the <a href="https://en.wikipedia.org/wiki/Curry%E2%80%93Howard_correspondence">Curry Howard Correspondence</a>, but I&rsquo;ll talk about that later perhaps.&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p>I would like to, but haven&rsquo;t, define a simplified version of Rust that includes trait solving and simple type checkoing and show that it cannot <a href="https://en.wikipedia.org/wiki/Type_safety#Definitions">&ldquo;go wrong&rdquo;</a>.&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:4">
+<p>In a shallow way, I&rsquo;m no expert!&#160;<a href="#fnref:4" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:5">
+<p>Plot twist, bet you didn&rsquo;t see that coming! I sure didn&rsquo;t.&#160;<a href="#fnref:5" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>

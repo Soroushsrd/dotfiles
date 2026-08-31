@@ -1,0 +1,18 @@
+<p>
+Emacs&rsquo; shortcuts and their role in RSI are a staple of Emacs commentary. Everyone, it seems, has their own methods for relieving stress on their hands as they use Emacs. Prot, for example, <a href="https://protesilaos.com/codelog/2026-05-04-emacs-keyboard-ergonomics/">thinks that one-shot modifiers are the answer</a>. Others recommend using a split keyboard or simply mapping <kbd>Caps Lock</kbd> to <kbd>Ctrl</kbd>.
+</p>
+<p>
+A post over at <a href="https://meanwhiling.com">meanwhiling</a> has another suggestion: <a href="https://meanwhiling.com/blog/2026-05-21-may-i-recommend-using-your-thumbs/">use your thumbs</a>. That&rsquo;s also familiar advice but the post goes into specific details. Those details, in a nutshell, are to map the two keys nearest to either side of the space bar to <kbd>Ctrl</kbd> and the two keys next to those to <kbd>Meta</kbd>.
+</p>
+<p>
+That setup has the advantages that
+</p>
+<ol class="org-ol">
+<li>Both the <kbd>Ctrl</kbd> and <kbd>Meta</kbd> keys can be pressed with a thumb</li>
+<li>There is a <kbd>Ctrl</kbd> and <kbd>Meta</kbd> key on both sides of the keyboard so you never have to press the modifier and target key with the same hand.</li>
+</ol>
+<p>
+The only remaining question is what to do about <kbd>Hyper</kbd> and <kbd>Super</kbd>. I use both of those, especially <kbd>Hyper</kbd>, all the time so I need them easily accessible. That&rsquo;s made easier for me because I don&rsquo;t mind using the same hand for the modifier and target keys. I still use <kbd>Caps Lock</kbd> for <kbd>Ctrl</kbd> and my thumbs for everything else. If my pinky ever starts complaining about <kbd>Ctrl</kbd> I&rsquo;ll probably just swap <kbd>Ctrl</kbd> and <kbd>Super</kbd>. I&rsquo;d do that anyway except for muscle memory and the fact that my hands don&rsquo;t hurt.
+</p>
+<p>
+I <i>do</i> think using your thumbs for your most used modifiers make sense and modern keyboards make that pretty easy to set up.</p>

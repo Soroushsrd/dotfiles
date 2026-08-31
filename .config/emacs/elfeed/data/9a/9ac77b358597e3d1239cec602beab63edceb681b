@@ -1,0 +1,55 @@
+<p>This is a post in my <a href="https://karthinks.com/tags/latex">Latex editing series</a>, an awkward solution to a tiny problem.</p>
+<h2 id="the-problem">The Problem</h2>
+<p>A common issue with <a href="https://karthinks.com/software/latex-input-for-impatient-scholars/#in-buffer-previews--m-x-preview-buffer">Latex previews in Emacs</a>: The preview images don&rsquo;t scale when you rescale text in <code>latex-mode</code> or <code>org-mode</code>:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/org-scale-latex-demo-pre.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/org-scale-latex-demo-pre.mp4">[VIDEO]</a>
+</video>
+<p><small><a href="https://karthinks.com/img/org-scale-latex-demo-pre.mp4">Direct link to video</a></small></p>
+<p>This makes it cumbersome to work with Latex math in Emacs when dealing with different sized monitors or when presenting from Emacs with <a href="https://github.com/takaxp/org-tree-slide">Org Tree Slide</a>, for example.</p>
+<p>A good solution would be to re-render these fragment images at a higher resolution when applying text scaling. The current version of org-mode (9.52 as of this writing) is very slow to render Latex previews and locks up Emacs for a while, this is not a workable solution.</p>
+<p>There are a couple of ways this could be improved: For Org, call an async process to render Latex fragments, or better yet, reuse AucTeX&rsquo;s <code>preview-latex</code> library for fast, near instant updates.
+<span class="sidenote-number"><small class="sidenote">
+Instant Org previews with preview-latex are now feasible, see the <a href="https://karthinks.com/software/fast-latex-previews-in-org-mode/">next post</a> in this series.
+</small></span>
+For Latex, adjust the <code>preview-scale</code> variable and regenerate the fragments at each new text scale. These are projects for another day, or for someone more proficient.</p>
+<h2 id="the-hack">The Hack</h2>
+<p>After asking around for an alternative, I settled on writing a big ol&rsquo; hack: Just zoom in on the preview images when increasing the text scale:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/org-scale-latex-demo.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/org-scale-latex-demo.mp4">[VIDEO]</a>
+</video>
+<p><small><a href="https://karthinks.com/img/org-scale-latex-demo.mp4">Direct link to video</a></small></p>
+<p>This is fast and cheap, but the downside is that the images get blurry:</p>
+<figure><img src="https://karthinks.com/img/org-scale-latex-blur.png" width="700px"/>
+</figure>
+
+<p>Using SVG fragments can mitigate this problem, at least for Org previews:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">setq</span> <span style="color:#963">org-preview-latex-default-process</span> <span style="color:#a60;background-color:#fff0f0">&#39;dvisvgm</span>) <span style="color:#888">;No blur when scaling</span>
+</span></span></code></pre></div><h2 id="the-recipe">The Recipe</h2>
+<p>Preview images are handled using <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Overlays.html">overlays</a>, so the image scaling is done by scanning for and adjusting appropriate overlay properties when changing the text scale:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">my/text-scale-adjust-latex-previews</span> ()
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Adjust the size of latex preview fragments when changing the
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">buffer&#39;s text scale.&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">pcase</span> <span style="color:#963">major-mode</span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#a60;background-color:#fff0f0">&#39;latex-mode</span>
+</span></span><span style="display:flex;"><span>     (<span style="color:#007020">dolist</span> (<span style="color:#963">ov</span> (<span style="color:#06b;font-weight:bold">overlays-in</span> (<span style="color:#06b;font-weight:bold">point-min</span>) (<span style="color:#06b;font-weight:bold">point-max</span>)))
+</span></span><span style="display:flex;"><span>       (<span style="color:#007020">if</span> (<span style="color:#06b;font-weight:bold">eq</span> (<span style="color:#06b;font-weight:bold">overlay-get</span> <span style="color:#963">ov</span> <span style="color:#a60;background-color:#fff0f0">&#39;category</span>)
+</span></span><span style="display:flex;"><span>               <span style="color:#a60;background-color:#fff0f0">&#39;preview-overlay</span>)
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">my/text-scale--resize-fragment</span> <span style="color:#963">ov</span>))))
+</span></span><span style="display:flex;"><span>    (<span style="color:#a60;background-color:#fff0f0">&#39;org-mode</span>
+</span></span><span style="display:flex;"><span>     (<span style="color:#007020">dolist</span> (<span style="color:#963">ov</span> (<span style="color:#06b;font-weight:bold">overlays-in</span> (<span style="color:#06b;font-weight:bold">point-min</span>) (<span style="color:#06b;font-weight:bold">point-max</span>)))
+</span></span><span style="display:flex;"><span>       (<span style="color:#007020">if</span> (<span style="color:#06b;font-weight:bold">eq</span> (<span style="color:#06b;font-weight:bold">overlay-get</span> <span style="color:#963">ov</span> <span style="color:#a60;background-color:#fff0f0">&#39;org-overlay-type</span>)
+</span></span><span style="display:flex;"><span>               <span style="color:#a60;background-color:#fff0f0">&#39;org-latex-overlay</span>)
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">my/text-scale--resize-fragment</span> <span style="color:#963">ov</span>))))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">my/text-scale--resize-fragment</span> (<span style="color:#963">ov</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#06b;font-weight:bold">overlay-put</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#963">ov</span> <span style="color:#a60;background-color:#fff0f0">&#39;display</span>
+</span></span><span style="display:flex;"><span>   (<span style="color:#06b;font-weight:bold">cons</span> <span style="color:#a60;background-color:#fff0f0">&#39;image</span>
+</span></span><span style="display:flex;"><span>         (<span style="color:#06b;font-weight:bold">plist-put</span>
+</span></span><span style="display:flex;"><span>          (<span style="color:#06b;font-weight:bold">cdr</span> (<span style="color:#06b;font-weight:bold">overlay-get</span> <span style="color:#963">ov</span> <span style="color:#a60;background-color:#fff0f0">&#39;display</span>))
+</span></span><span style="display:flex;"><span>          <span style="color:#007020">:scale</span> (<span style="color:#06b;font-weight:bold">+</span> <span style="color:#60e;font-weight:bold">1.0</span> (<span style="color:#06b;font-weight:bold">*</span> <span style="color:#60e;font-weight:bold">0.25</span> <span style="color:#963">text-scale-mode-amount</span>))))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#963">add-hook</span> <span style="color:#a60;background-color:#fff0f0">&#39;text-scale-mode-hook</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">my/text-scale-adjust-latex-previews</span>)
+</span></span></code></pre></div>

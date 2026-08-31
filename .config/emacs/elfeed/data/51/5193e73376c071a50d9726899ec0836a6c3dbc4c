@@ -1,0 +1,19 @@
+<p>The Rust team has published a new point release of Rust, 1.97.1. Rust is a programming language that is empowering everyone to build reliable and efficient software.</p>
+<p>If you have a previous version of Rust installed via rustup, getting Rust 1.97.1 is as easy as:</p>
+<pre class="giallo z-code"><code data-lang="plain"><span class="giallo-l"><span>rustup update stable</span></span></code></pre>
+<p>If you don't have it already, you can <a rel="external" href="https://www.rust-lang.org/install.html">get <code>rustup</code></a> from the appropriate page on our website.</p>
+<h2 id="what-s-in-1-97-1"><a class="anchor" href="#what-s-in-1-97-1" aria-hidden="true"></a>
+What's in 1.97.1</h2>
+<p>Rust 1.97.1 fixes a <a rel="external" href="https://github.com/rust-lang/rust/issues/159035">miscompilation in an LLVM optimization</a>.</p>
+<p>We have backported both an LLVM fix and a disable of the underlying change in Rust 1.97.0 of
+Rust's generated IR that increased the likelihood of this happening. However,
+note that the underlying miscompilation has been present since at least Rust
+1.87.</p>
+<p>If you'd like to help us out by testing future releases, you might consider
+running your code's CI or locally using the beta channel (<code>rustup default beta</code>) or the nightly
+channel (<code>rustup default nightly</code>). Please
+<a rel="external" href="https://github.com/rust-lang/rust/issues/new/choose">report</a> any bugs you
+might come across!</p>
+<h3 id="contributors-to-1-97-1"><a class="anchor" href="#contributors-to-1-97-1" aria-hidden="true"></a>
+Contributors to 1.97.1</h3>
+<p>Many people came together to create Rust 1.97.1. We couldn't have done it without all of you. <a rel="external" href="https://thanks.rust-lang.org/rust/1.97.1/">Thanks!</a></p>

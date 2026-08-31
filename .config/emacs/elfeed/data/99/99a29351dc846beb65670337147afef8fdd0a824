@@ -1,0 +1,8 @@
+<p>
+Yusuf Aytas has a great post <a href="https://yusufaytas.com/vibe-coder-vs-software-engineer">that explores the difference between a vibe coder and a software engineer</a>. He plays it straight and says, basically, that vibe coding may be fine for a proof of concept or for a one-off internal job but as soon as you get to the merge stage you need a system engineer. The issue, he says, is ownership. Once code is merged, someone has to own it, understand it, and maintain it. That&rsquo;s most often impossible with vibe code. Usually, no one can understand it or its implications and it&rsquo;s certainly not maintainable.
+</p>
+<p>
+That&rsquo;s the polite version. Mine is a little less politic. Every time I read about vibe coding, a story from long ago comes to mind. Back when exploits were mainly a nuisance from young people with too much time on their hands, even younger people—aspiring to be seen as &ldquo;hackers&rdquo;—would take an exploit binary that did some mischief and ended by announcing &ldquo;You&rsquo;ve been hacked by Dufus&rdquo; and do a string replace so that the announcement said, &ldquo;You&rsquo;ve been hacked by Goofus&rdquo;, Goofus being their name. Then they claimed ownership of the exploit.
+</p>
+<p>
+These people were called script kiddies and held in universal contempt. They had no knowledge of coding, let alone of engineering an exploit. People who restrict their activities to vibe coding and claim to be engineers strike me in the same way. Note that I&rsquo;m not saying using vibe coding when it&rsquo;s appropriate is a bad thing. Used properly it&rsquo;s just another tool but if your activity consists of vibe coding and only vibe coding, please don&rsquo;t call yourself a software engineer; you aren&rsquo;t.</p>

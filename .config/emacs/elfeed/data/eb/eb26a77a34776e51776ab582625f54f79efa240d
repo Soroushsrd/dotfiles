@@ -1,0 +1,11 @@
+<p>
+Raymond Zeitler has an interesting post on an aspect of using Org Mode code blocks that I didn&rsquo;t know about. Zeitler says that he prefers to write his code in separate code files rather than in Org mode code blocks and <a href="https://ray-on-emacs.blogspot.com/2026/07/comment-on-org-source-blocks.html">provides an example of why that is</a>.
+</p>
+<p>
+The TL;DR is that in certain edge cases, things like differing syntax tables can make code behave differently in Org mode than it does directly in Emacs. Take a look at his post for the details.
+</p>
+<p>
+I have to say that I&rsquo;ve never run into this problem. Perhaps that&rsquo;s because I usually use Org code blocks only for code that will be executed in the Org environment. The few times that I have run the code outside of Org, I haven&rsquo;t run into the problems that Zeitler describes.
+</p>
+<p>
+Your mileage may vary, of course, but it&rsquo;s good to be aware that there are some edge cases that can reach out and bite you if you&rsquo;re not careful. Most of you, I&rsquo;m sure, will have my experience but it pays to be aware of what can go wrong.</p>

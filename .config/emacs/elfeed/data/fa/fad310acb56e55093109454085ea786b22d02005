@@ -1,0 +1,342 @@
+<p>This is the story of how I solved a problem (ugly, cumbersome boilerplate code) that I ran into while writing a program in a functional language (Elixir). Functional programming languages often pride themselves on expressiveness and elegance; but occasionally they are not amenable to the most obvious solutions to the problems we wish to solve. In this case, the simplest solution to my problem would have been to have a global mutable variable. But no one likes those.</p>
+<p>The solution most programmers would have found obviates mutation, but the code ends up being rather clunky. This inelegance stems from two intertwined issues pulling the code in different directions. However, the two concerns are <em>so</em> intertwined that it can be difficult to see them as separate issues at all! In this blog post, I hope I can show you a new way of looking at this class of problem that will let you see what those two issues are, and how to cleanly split them apart to get nice, maintainable, functional code.</p>
+<div class="epigraph">
+<blockquote>
+<p>You take your analytic knife, put the point directly on the term Quality and just tap, not hard, gently, and the whole world splits, cleaves, right in two… and the split is clean. There’s no mess. No slop. No little items that could be one way or the other. Not just a skilled break but a very lucky break. Sometimes the best analysts, working with the most obvious lines of cleavage, can tap and get nothing but a pile of trash. And yet here was Quality; a tiny, almost unnoticeable fault line; a line of illogic in our concept of the universe; and you tapped it, and the whole universe came apart, so neatly it was almost unbelievable.</p>
+<footer>
+<p><em>Zen and the Art of Motorcycle Maintenance</em>, Robert M. Pirsig</p>
+</footer>
+</blockquote>
+</div>
+<h2 id="the-setup">The Setup</h2>
+<p>I will use a concrete example to describe my specific problem, though the issue is general enough that you likely have encountered it. After I walk through the example I’ll cover the essential elements that make my solution work, and how it generalizes to similar problems.</p>
+<p>Suppose that you are writing an application that lets people track their workout habits. Every time that they succeed in meeting a goal, they register what they accomplished. Now you have a database full of logged events like “went to the gym” or “swam 1000 m” or “ran a mile”, etc. Now you need some way to convert this set of events into reward points—preferably in a way that the user finds motivating.</p>
+<div class="table-caption">
+  <span class="table-number">Table 1:</span>
+  An example of such habit records for a user.
+</div>
+<div align="center" style="overflow-x:auto;">
+<table><thead><tr><th style="text-align: right"><code>user_id</code></th><th style="text-align: right"><code>date</code></th><th style="text-align: right"><code>event_type</code></th><th style="text-align: right"><code>event_amount</code></th></tr></thead><tbody>
+<tr><td style="text-align: right">69105</td><td style="text-align: right">2024-05-01</td><td style="text-align: right">gym</td><td style="text-align: right">1</td></tr>
+<tr><td style="text-align: right">69105</td><td style="text-align: right">2024-05-02</td><td style="text-align: right">swim</td><td style="text-align: right">1000</td></tr>
+<tr><td style="text-align: right">69105</td><td style="text-align: right">2024-05-03</td><td style="text-align: right">gym</td><td style="text-align: right">1</td></tr>
+<tr><td style="text-align: right">69105</td><td style="text-align: right">2024-05-04</td><td style="text-align: right">run</td><td style="text-align: right">1.61</td></tr>
+</tbody></table>
+</div>
+<p>But every user is different, so let’s say that you make it so that users can customize exactly how goal completions translate into reward points. Somewhere in your app you let users write a little equation that your program will then evaluate against the events that they have logged. In the end, the user gets a single point value.</p>
+<div class="book-tabs" id="tabs-1"><input
+      type="radio"
+      class="toggle"
+      name="group-1"
+      id="tab-1-0"
+      checked="checked"
+    />
+    <label for="tab-1-0">Surface syntax</label>
+    <div class="book-tabs-content markdown-inner">
+      <pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="javascript"><span class="giallo-l"><span>points</span><span style="color: #81A1C1;"> =</span><span style="color: #88C0D0;"> get</span><span>(</span><span style="color: #ECEFF4;">&quot;</span><span style="color: #A3BE8C;">gym</span><span style="color: #ECEFF4;">&quot;</span><span>)</span><span style="color: #81A1C1;"> *</span><span style="color: #B48EAD;"> 10</span><span style="color: #81A1C1;"> +</span><span style="color: #88C0D0;"> get</span><span>(</span><span style="color: #ECEFF4;">&quot;</span><span style="color: #A3BE8C;">swim</span><span style="color: #ECEFF4;">&quot;</span><span>)</span><span style="color: #81A1C1;"> *</span><span> (</span><span style="color: #88C0D0;">get</span><span>(</span><span style="color: #ECEFF4;">&quot;</span><span style="color: #A3BE8C;">run</span><span style="color: #ECEFF4;">&quot;</span><span>)</span><span style="color: #81A1C1;"> +</span><span style="color: #88C0D0;"> get</span><span>(</span><span style="color: #ECEFF4;">&quot;</span><span style="color: #A3BE8C;">gym</span><span style="color: #ECEFF4;">&quot;</span><span>))</span></span></code></pre>
+    </div><input
+      type="radio"
+      class="toggle"
+      name="group-1"
+      id="tab-1-1"
+      
+    />
+    <label for="tab-1-1">Parsed AST</label>
+    <div class="book-tabs-content markdown-inner">
+      <pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="json"><span class="giallo-l"><span style="color: #ECEFF4;">{ &quot;</span><span style="color: #8FBCBB;">op</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">+</span><span style="color: #ECEFF4;">&quot;,</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  &quot;</span><span style="color: #8FBCBB;">args</span><span style="color: #ECEFF4;">&quot;: [</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    { &quot;</span><span style="color: #8FBCBB;">op</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">*</span><span style="color: #ECEFF4;">&quot;,</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      &quot;</span><span style="color: #8FBCBB;">args</span><span style="color: #ECEFF4;">&quot;: [</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        { &quot;</span><span style="color: #8FBCBB;">query</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">gym</span><span style="color: #ECEFF4;">&quot; },</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        { &quot;</span><span style="color: #8FBCBB;">num</span><span style="color: #ECEFF4;">&quot;:</span><span style="color: #B48EAD;"> 10</span><span style="color: #ECEFF4;"> }</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      ] },</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    { &quot;</span><span style="color: #8FBCBB;">op</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">*</span><span style="color: #ECEFF4;">&quot;,</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      &quot;</span><span style="color: #8FBCBB;">args</span><span style="color: #ECEFF4;">&quot;: [</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        { &quot;</span><span style="color: #8FBCBB;">query</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">swim</span><span style="color: #ECEFF4;">&quot; },</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        { &quot;</span><span style="color: #8FBCBB;">op</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">+</span><span style="color: #ECEFF4;">&quot;,</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">          &quot;</span><span style="color: #8FBCBB;">args</span><span style="color: #ECEFF4;">&quot;: [</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">            { &quot;</span><span style="color: #8FBCBB;">query</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">run</span><span style="color: #ECEFF4;">&quot; },</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">            { &quot;</span><span style="color: #8FBCBB;">query</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">gym</span><span style="color: #ECEFF4;">&quot; }</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">          ] }</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      ] }</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  ] }</span></span></code></pre>
+    </div><input
+      type="radio"
+      class="toggle"
+      name="group-1"
+      id="tab-1-2"
+      
+    />
+    <label for="tab-1-2">Evaluation result</label>
+    <div class="book-tabs-content markdown-inner">
+      <pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="javascript"><span class="giallo-l"><span>points</span><span style="color: #81A1C1;"> =</span><span style="color: #88C0D0;"> get</span><span>(</span><span style="color: #ECEFF4;">&quot;</span><span style="color: #A3BE8C;">gym</span><span style="color: #ECEFF4;">&quot;</span><span>)</span><span style="color: #81A1C1;"> *</span><span style="color: #B48EAD;"> 10</span><span style="color: #81A1C1;"> +</span><span style="color: #88C0D0;"> get</span><span>(</span><span style="color: #ECEFF4;">&quot;</span><span style="color: #A3BE8C;">swim</span><span style="color: #ECEFF4;">&quot;</span><span>)</span><span style="color: #81A1C1;"> *</span><span> (</span><span style="color: #88C0D0;">get</span><span>(</span><span style="color: #ECEFF4;">&quot;</span><span style="color: #A3BE8C;">run</span><span style="color: #ECEFF4;">&quot;</span><span>)</span><span style="color: #81A1C1;"> +</span><span style="color: #88C0D0;"> get</span><span>(</span><span style="color: #ECEFF4;">&quot;</span><span style="color: #A3BE8C;">gym</span><span style="color: #ECEFF4;">&quot;</span><span>))</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">       =</span><span style="color: #B48EAD;">      2</span><span style="color: #81A1C1;">     *</span><span style="color: #B48EAD;"> 10</span><span style="color: #81A1C1;"> +</span><span style="color: #B48EAD;">     1000</span><span style="color: #81A1C1;">    *</span><span> (</span><span style="color: #B48EAD;">   1.16</span><span style="color: #81A1C1;">    +</span><span style="color: #B48EAD;">      2</span><span>    )</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">       =</span><span style="color: #B48EAD;"> 3180</span></span></code></pre>
+    </div></div>
+
+<div class="figure">
+  <pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="elixir"><span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> interpret</span><span style="color: #ECEFF4;">(</span><span>user_id</span><span style="color: #ECEFF4;">, {</span><span>op</span><span style="color: #ECEFF4;">:</span><span> op</span><span style="color: #ECEFF4;">,</span><span> args</span><span style="color: #ECEFF4;">: [</span><span>arg1</span><span style="color: #ECEFF4;">,</span><span> arg2</span><span style="color: #ECEFF4;">]})</span><span style="color: #81A1C1;"> do</span></span>
+<span class="giallo-l"><span>  arg1_eval </span><span style="color: #81A1C1;">=</span><span style="color: #88C0D0;"> interpret</span><span style="color: #ECEFF4;">(</span><span>user_id</span><span style="color: #ECEFF4;">,</span><span> arg1</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span>  arg2_eval </span><span style="color: #81A1C1;">=</span><span style="color: #88C0D0;"> interpret</span><span style="color: #ECEFF4;">(</span><span>user_id</span><span style="color: #ECEFF4;">,</span><span> arg2</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  case</span><span> op </span><span style="color: #81A1C1;">do</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    &quot;</span><span style="color: #A3BE8C;">+</span><span style="color: #ECEFF4;">&quot;</span><span style="color: #81A1C1;"> -&gt;</span><span> arg1_eval </span><span style="color: #81A1C1;">+</span><span> arg2_eval</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    &quot;</span><span style="color: #A3BE8C;">*</span><span style="color: #ECEFF4;">&quot;</span><span style="color: #81A1C1;"> -&gt;</span><span> arg1_eval </span><span style="color: #81A1C1;">*</span><span> arg2_eval</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  end</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> interpret</span><span style="color: #ECEFF4;">(</span><span style="color: #616E88;">_user_id</span><span style="color: #ECEFF4;">, {</span><span>num</span><span style="color: #ECEFF4;">:</span><span> n</span><span style="color: #ECEFF4;">}),</span><span> do: n</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> interpret</span><span style="color: #ECEFF4;">(</span><span>user_id</span><span style="color: #ECEFF4;">, {</span><span>query</span><span style="color: #ECEFF4;">:</span><span> q</span><span style="color: #ECEFF4;">}),</span><span> do:</span><span style="color: #88C0D0;"> query_db</span><span style="color: #ECEFF4;">(</span><span>user_id</span><span style="color: #ECEFF4;">,</span><span> q</span><span style="color: #ECEFF4;">)</span></span></code></pre>
+  
+  <div class="figure-caption">
+    <span class="figure-caption-text"><p>Sample interpreter for the simple language</p>
+</span>
+  </div>
+  
+</div>
+<p>This is, in essence, a little interpreter. I will not go over how to build an interpreter here, but the gist of it is that you walk down the AST of the equation and evaluate the leaves and nodes recursively until you wind up with a single number of points at the end.</p>
+<p>Now let’s say that you are processing a large number of such requests, and you would like to batch all of the database calls. In the previous example, there were four database queries, one of which (<code>"gym"</code>) was a duplicate. (Each <code>get</code> in the surface syntax or <code>query</code> node in the AST induces a database query.) To improve performance, you could batch all of these database calls—thereby also eliminating duplicate queries—and then have this data on hand as you walk the AST.</p>
+<p>So here is the new operation we would like to perform: we want to walk through AST, collect all of the database calls into a set, and replace each instance of a database query (<code>query</code> nodes) in the expression to a <em>reference</em> (<code>query_ref</code> nodes) that we can link to the batched results. We will create a fresh identifier every time we encounter a new query; duplicate queries will use the first reference.</p>
+<div class="book-tabs" id="tabs-2"><input
+      type="radio"
+      class="toggle"
+      name="group-2"
+      id="tab-2-0"
+      checked="checked"
+    />
+    <label for="tab-2-0">Before optimization</label>
+    <div class="book-tabs-content markdown-inner">
+      <pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="json"><span class="giallo-l"><span style="color: #ECEFF4;">{ &quot;</span><span style="color: #8FBCBB;">op</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">+</span><span style="color: #ECEFF4;">&quot;,</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  &quot;</span><span style="color: #8FBCBB;">args</span><span style="color: #ECEFF4;">&quot;: [</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    { &quot;</span><span style="color: #8FBCBB;">op</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">*</span><span style="color: #ECEFF4;">&quot;,</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      &quot;</span><span style="color: #8FBCBB;">args</span><span style="color: #ECEFF4;">&quot;: [</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        { &quot;</span><span style="color: #8FBCBB;">query</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">gym</span><span style="color: #ECEFF4;">&quot; },</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        { &quot;</span><span style="color: #8FBCBB;">num</span><span style="color: #ECEFF4;">&quot;:</span><span style="color: #B48EAD;"> 10</span><span style="color: #ECEFF4;"> }</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      ] },</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    { &quot;</span><span style="color: #8FBCBB;">op</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">*</span><span style="color: #ECEFF4;">&quot;,</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      &quot;</span><span style="color: #8FBCBB;">args</span><span style="color: #ECEFF4;">&quot;: [</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        { &quot;</span><span style="color: #8FBCBB;">query</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">swim</span><span style="color: #ECEFF4;">&quot; },</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        { &quot;</span><span style="color: #8FBCBB;">op</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">+</span><span style="color: #ECEFF4;">&quot;,</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">          &quot;</span><span style="color: #8FBCBB;">args</span><span style="color: #ECEFF4;">&quot;: [</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">            { &quot;</span><span style="color: #8FBCBB;">query</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">run</span><span style="color: #ECEFF4;">&quot; },</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">            { &quot;</span><span style="color: #8FBCBB;">query</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">gym</span><span style="color: #ECEFF4;">&quot; }</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">          ] }</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      ] }</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  ] }</span></span></code></pre>
+    </div><input
+      type="radio"
+      class="toggle"
+      name="group-2"
+      id="tab-2-1"
+      
+    />
+    <label for="tab-2-1">After optimization</label>
+    <div class="book-tabs-content markdown-inner">
+      <pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="json"><span class="giallo-l"><span style="color: #ECEFF4;">{ &quot;</span><span style="color: #8FBCBB;">op</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">+</span><span style="color: #ECEFF4;">&quot;,</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  &quot;</span><span style="color: #8FBCBB;">args</span><span style="color: #ECEFF4;">&quot;: [</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    { &quot;</span><span style="color: #8FBCBB;">op</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">*</span><span style="color: #ECEFF4;">&quot;,</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      &quot;</span><span style="color: #8FBCBB;">args</span><span style="color: #ECEFF4;">&quot;: [</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        { &quot;</span><span style="color: #8FBCBB;">query_ref</span><span style="color: #ECEFF4;">&quot;:</span><span style="color: #B48EAD;"> 0</span><span style="color: #ECEFF4;"> },</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        { &quot;</span><span style="color: #8FBCBB;">num</span><span style="color: #ECEFF4;">&quot;:</span><span style="color: #B48EAD;"> 10</span><span style="color: #ECEFF4;"> }</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      ] },</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    { &quot;</span><span style="color: #8FBCBB;">op</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">*</span><span style="color: #ECEFF4;">&quot;,</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      &quot;</span><span style="color: #8FBCBB;">args</span><span style="color: #ECEFF4;">&quot;: [</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        { &quot;</span><span style="color: #8FBCBB;">query_ref</span><span style="color: #ECEFF4;">&quot;:</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;"> },</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        { &quot;</span><span style="color: #8FBCBB;">op</span><span style="color: #ECEFF4;">&quot;: &quot;</span><span style="color: #A3BE8C;">+</span><span style="color: #ECEFF4;">&quot;,</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">          &quot;</span><span style="color: #8FBCBB;">args</span><span style="color: #ECEFF4;">&quot;: [</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">            { &quot;</span><span style="color: #8FBCBB;">query_ref</span><span style="color: #ECEFF4;">&quot;:</span><span style="color: #B48EAD;"> 2</span><span style="color: #ECEFF4;"> },</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">            { &quot;</span><span style="color: #8FBCBB;">query_ref</span><span style="color: #ECEFF4;">&quot;:</span><span style="color: #B48EAD;"> 0</span><span style="color: #ECEFF4;"> }</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">          ] }</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      ] }</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  ] }</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">{ &quot;</span><span style="color: #8FBCBB;">queries</span><span style="color: #ECEFF4;">&quot;: [&quot;</span><span style="color: #A3BE8C;">gym</span><span style="color: #ECEFF4;">&quot;, &quot;</span><span style="color: #A3BE8C;">swim</span><span style="color: #ECEFF4;">&quot;, &quot;</span><span style="color: #A3BE8C;">run</span><span style="color: #ECEFF4;">&quot;] }</span></span></code></pre>
+    </div></div>
+
+<p>Now we need to implement it.</p>
+<h3 id="first-attempt">First attempt</h3>
+<p>We could just create a variable that we can mutate as we walk down the tree: every time we encounter a node that looks like <code>{ "query": _ }</code>, we generate a fresh identifier (or look up an old one if it’s a duplicate query) and replace it with <code>{ "query_ref": _id }</code>. Once we’re done walking the tree, we have a new AST with <code>query_ref</code> nodes instead of <code>query</code> nodes, and a list of queries that we can execute in one go.</p>
+<p>This could work, but the fact that we are using <em>global mutable state</em> should ring alarm bells for <em>anyone</em>—not just functional programmers. Whenever we call our transform function, we would have to ensure that we clear out the old list of accumulated information. Don’t forget about all the <em>other</em> problems that global mutable state brings. There must be a better way.</p>
+<h3 id="second-attempt">Second attempt</h3>
+<p>How might our function be more pure? Instead of just returning a modified tree, we can return a tuple of the new AST node plus a list of queries. (I’ll call this specific shape an <em>AST-queries-tuple</em> throughout.) This eliminates the need for a global variable, and now every call to our optimization function is pure. It’s easier to test and reason about.</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="elixir"><span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> transform_queries</span><span style="color: #ECEFF4;">({</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">query</span><span style="color: #ECEFF4;">,</span><span> query_text</span><span style="color: #ECEFF4;">})</span><span style="color: #81A1C1;"> do</span></span>
+<span class="giallo-l"><span>  query_id </span><span style="color: #81A1C1;">=</span><span style="color: #88C0D0;"> fresh_query_id</span><span style="color: #ECEFF4;">()</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  {{</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">query_ref</span><span style="color: #ECEFF4;">,</span><span> query_id</span><span style="color: #ECEFF4;">}, [{</span><span>query_id</span><span style="color: #ECEFF4;">,</span><span> query_text</span><span style="color: #ECEFF4;">}]}</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> transform_queries</span><span style="color: #ECEFF4;">({</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">+</span><span style="color: #ECEFF4;">,</span><span> lhs</span><span style="color: #ECEFF4;">,</span><span> rhs</span><span style="color: #ECEFF4;">})</span><span style="color: #81A1C1;"> do</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  {</span><span>new_ast_l</span><span style="color: #ECEFF4;">,</span><span> queries_l</span><span style="color: #ECEFF4;">}</span><span style="color: #81A1C1;"> =</span><span style="color: #88C0D0;"> transform_queries</span><span style="color: #ECEFF4;">(</span><span>lhs</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  {</span><span>new_ast_r</span><span style="color: #ECEFF4;">,</span><span> queries_r</span><span style="color: #ECEFF4;">}</span><span style="color: #81A1C1;"> =</span><span style="color: #88C0D0;"> transform_queries</span><span style="color: #ECEFF4;">(</span><span>rhs</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  {{</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">+</span><span style="color: #ECEFF4;">,</span><span> new_ast_l</span><span style="color: #ECEFF4;">,</span><span> new_ast_r</span><span style="color: #ECEFF4;">},</span><span> queries_l </span><span style="color: #81A1C1;">++</span><span> queries_r</span><span style="color: #ECEFF4;">}</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>…</span></span></code></pre>
+<p>However, this means that we have to take care to combine this information whenever we do a recursive call. It becomes even more cumbersome when we recur over elements in a list and we need to combine all their results together. A well-crafted <code>reduce</code> makes things work OK, but I think you can agree the following code isn’t the most <em>straightforward</em> to read and understand what’s going on.</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="elixir"><span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> transform_queries</span><span style="color: #ECEFF4;">({</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">max</span><span style="color: #ECEFF4;">,</span><span> args</span><span style="color: #ECEFF4;">})</span><span style="color: #81A1C1;"> do</span><span style="color: #616E88;"> # args is a list</span></span>
+<span class="giallo-l"><span>  args</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  |&gt;</span><span style="color: #8FBCBB;"> Enum</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">map</span><span style="color: #ECEFF4;">(</span><span>&amp;transform_queries</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  |&gt;</span><span style="color: #8FBCBB;"> Enum</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">reduce</span><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;">fn</span><span style="color: #ECEFF4;"> {</span><span>x</span><span style="color: #ECEFF4;">,</span><span> qs</span><span style="color: #ECEFF4;">}, {</span><span>max_acc</span><span style="color: #ECEFF4;">,</span><span> q_acc</span><span style="color: #ECEFF4;">}</span><span style="color: #81A1C1;"> -&gt;</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">                      {</span><span style="color: #88C0D0;">max</span><span style="color: #ECEFF4;">(</span><span>x</span><span style="color: #ECEFF4;">,</span><span> max_acc</span><span style="color: #ECEFF4;">),</span><span> qs </span><span style="color: #81A1C1;">++</span><span> q_acc</span><span style="color: #ECEFF4;">}</span><span style="color: #81A1C1;"> end</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span></code></pre>
+<p>This is quite a bit of boilerplate. It’s not the <em>worst</em> code ever—it’s certainly better than our first solution with a global variable—but we seem to be saying more than we need to here.</p>
+<h2 id="finding-the-cleavage-point">Finding the cleavage point</h2>
+<p>How can we clean up this code? The code is messy because there are actually <em>two competing concerns</em> here: we have some <em>main computation</em> that we care about (transforming the tree) and some <em>side information</em> (the set of database queries) that we’d like to collect in parallel. If we can separate these concerns, our code will improve.</p>
+<p>Now that we see the two intertwined issues, how do we go about separating them? We will still carry around the AST-queries-tuple, but we are going to pull out the logic that governs how we keep track of the list of queries and keep it separate from the AST transformation logic.</p>
+<p>First, let’s define a module, a type to help us keep track of an AST-queries-tuple, and a function <code>wrap</code> that takes some AST and pairs it with an empty list of queries:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="elixir"><span class="giallo-l"><span style="color: #81A1C1;">defmodule</span><span style="color: #8FBCBB;"> AstList</span><span style="color: #81A1C1;"> do</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;font-weight: bold;">  @</span><span style="font-weight: bold;">type</span><span style="color: #88C0D0;"> t</span><span style="color: #ECEFF4;">()</span><span style="color: #81A1C1;"> ::</span><span style="color: #ECEFF4;"> {</span><span style="color: #8FBCBB;">Ast</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">t</span><span style="color: #ECEFF4;">(), [</span><span style="color: #8FBCBB;">Query</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">t</span><span style="color: #ECEFF4;">()]}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #81A1C1;font-weight: bold;">  @</span><span style="font-weight: bold;">spec</span><span style="color: #88C0D0;"> wrap</span><span style="color: #ECEFF4;">(</span><span style="color: #8FBCBB;">Ast</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">t</span><span style="color: #ECEFF4;">())</span><span style="color: #81A1C1;"> ::</span><span style="color: #88C0D0;"> t</span><span style="color: #ECEFF4;">()</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  def</span><span style="color: #88C0D0;"> wrap</span><span style="color: #ECEFF4;">(</span><span>v</span><span style="color: #ECEFF4;">),</span><span> do:</span><span style="color: #ECEFF4;"> {</span><span>v</span><span style="color: #ECEFF4;">, []}</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span></code></pre>
+<p>Second, the clever bit: we write a function that lets us manipulate the AST value inside the tuple <em>without worrying about how to combine the sets of queries</em>. We’ll call this function <code>thread</code>, and it takes an AST-queries-tuple and gives it to a function argument that expects <em>just</em> the AST bit. That function argument should return a new AST-queries-tuple. Our function <code>thread</code> will then merge the two lists of queries together without the function parameter ever having to worry about it.</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="elixir"><span class="giallo-l"><span style="color: #81A1C1;font-weight: bold;">@</span><span style="font-weight: bold;">spec</span><span style="color: #88C0D0;"> thread</span><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">t</span><span style="color: #ECEFF4;">(), (</span><span style="color: #8FBCBB;">Ast</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">t</span><span style="color: #ECEFF4;">()</span><span style="color: #81A1C1;"> -&gt;</span><span style="color: #88C0D0;"> t</span><span style="color: #ECEFF4;">()))</span><span style="color: #81A1C1;"> ::</span><span style="color: #88C0D0;"> t</span><span style="color: #ECEFF4;">()</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> thread</span><span style="color: #ECEFF4;">({</span><span>ast</span><span style="color: #ECEFF4;">,</span><span> queries</span><span style="color: #ECEFF4;">},</span><span> f</span><span style="color: #ECEFF4;">)</span><span style="color: #81A1C1;"> do</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  {</span><span>new_ast</span><span style="color: #ECEFF4;">,</span><span> new_queries</span><span style="color: #ECEFF4;">}</span><span style="color: #81A1C1;"> =</span><span style="color: #88C0D0;"> f</span><span style="color: #ECEFF4;">.(</span><span>ast</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  {</span><span>new_ast</span><span style="color: #ECEFF4;">,</span><span> new_queries </span><span style="color: #81A1C1;">++</span><span> queries</span><span style="color: #ECEFF4;">}</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span></code></pre>
+<p>Now we can use this to write our <code>transform_queries</code> function! Before we get there, remember that Elixir has a handy set of <a class="link-external" rel="external" href="https://hexdocs.pm/elixir/1.12/operators.html#custom-and-overridden-operators">customizable infix operators</a> that we can use as shorthand<sup class="footnote-reference" id="fr-1-1"><a href="#fn-1">1</a></sup>:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="elixir"><span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> m</span><span style="color: #81A1C1;"> ~&gt;&gt;</span><span> f</span><span style="color: #ECEFF4;">,</span><span> do:</span><span style="color: #88C0D0;"> thread</span><span style="color: #ECEFF4;">(</span><span>m</span><span style="color: #ECEFF4;">,</span><span> f</span><span style="color: #ECEFF4;">)</span></span></code></pre>
+<p>That means that instead of writing this:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="elixir"><span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> transform_queries</span><span style="color: #ECEFF4;">({</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">+</span><span style="color: #ECEFF4;">,</span><span> lhs</span><span style="color: #ECEFF4;">,</span><span> rhs</span><span style="color: #ECEFF4;">})</span><span style="color: #81A1C1;"> do</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  {</span><span>new_ast_l</span><span style="color: #ECEFF4;">,</span><span> queries_l</span><span style="color: #ECEFF4;">}</span><span style="color: #81A1C1;"> =</span><span style="color: #88C0D0;"> transform_queries</span><span style="color: #ECEFF4;">(</span><span>lhs</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  {</span><span>new_ast_r</span><span style="color: #ECEFF4;">,</span><span> queries_r</span><span style="color: #ECEFF4;">}</span><span style="color: #81A1C1;"> =</span><span style="color: #88C0D0;"> transform_queries</span><span style="color: #ECEFF4;">(</span><span>rhs</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  {{</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">+</span><span style="color: #ECEFF4;">,</span><span> new_ast_l</span><span style="color: #ECEFF4;">,</span><span> new_ast_r</span><span style="color: #ECEFF4;">},</span><span> queries_l </span><span style="color: #81A1C1;">++</span><span> queries_r</span><span style="color: #ECEFF4;">}</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span></code></pre>
+<p>We can just write:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="elixir"><span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> transform_queries</span><span style="color: #ECEFF4;">({</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">+</span><span style="color: #ECEFF4;">,</span><span> lhs</span><span style="color: #ECEFF4;">,</span><span> rhs</span><span style="color: #ECEFF4;">})</span><span style="color: #81A1C1;"> do</span></span>
+<span class="giallo-l"><span style="color: #88C0D0;">  transform_queries</span><span style="color: #ECEFF4;">(</span><span>lhs</span><span style="color: #ECEFF4;">)</span><span style="color: #81A1C1;"> ~&gt; fn</span><span> new_lhs </span><span style="color: #81A1C1;">-&gt;</span></span>
+<span class="giallo-l"><span style="color: #88C0D0;">    transform_queries</span><span style="color: #ECEFF4;">(</span><span>rhs</span><span style="color: #ECEFF4;">)</span><span style="color: #81A1C1;"> ~&gt; fn</span><span> new_rhs </span><span style="color: #81A1C1;">-&gt;</span></span>
+<span class="giallo-l"><span style="color: #88C0D0;">      wrap</span><span style="color: #ECEFF4;">({</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">+</span><span style="color: #ECEFF4;">,</span><span> new_lhs</span><span style="color: #ECEFF4;">,</span><span> new_rhs</span><span style="color: #ECEFF4;">})</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    end</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  end</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span></code></pre>
+<p>You might be able to see now how this would make writing this little optimization pass a lot cleaner. We can go a step further on the syntax though: with a little metaprogramming imagination, we can write some shorthand for the <code>~&gt;</code> notation that looks more like variable assignment in a <code>with</code>. It’s not that hard to do.</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="elixir"><span class="giallo-l"><span style="color: #81A1C1;">defp</span><span style="color: #88C0D0;"> transform_threading</span><span style="color: #ECEFF4;">([{</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">&lt;-</span><span style="color: #ECEFF4;">,</span><span style="color: #616E88;"> _</span><span style="color: #ECEFF4;">, [</span><span>var</span><span style="color: #ECEFF4;">,</span><span> expr</span><span style="color: #ECEFF4;">]}</span><span style="color: #81A1C1;"> |</span><span> rst</span><span style="color: #ECEFF4;">])</span><span style="color: #81A1C1;"> do</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  quote do</span></span>
+<span class="giallo-l"><span style="color: #88C0D0;">    unquote</span><span style="color: #ECEFF4;">(</span><span>expr</span><span style="color: #ECEFF4;">)</span><span style="color: #81A1C1;"> ~&gt;&gt; fn unquote</span><span style="color: #ECEFF4;">(</span><span>var</span><span style="color: #ECEFF4;">)</span><span style="color: #81A1C1;"> -&gt;</span><span style="color: #88C0D0;"> unquote</span><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">transform_threading</span><span style="color: #ECEFF4;">(</span><span>rst</span><span style="color: #ECEFF4;">))</span><span style="color: #81A1C1;"> end</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  end</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #81A1C1;">defp</span><span style="color: #88C0D0;"> transform_threading</span><span style="color: #ECEFF4;">([</span><span>expr</span><span style="color: #ECEFF4;">]),</span><span> do: expr</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #81A1C1;">defmacro</span><span style="color: #88C0D0;"> threading</span><span style="color: #ECEFF4;"> (</span><span>do:</span><span style="color: #ECEFF4;"> {</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">__block__</span><span style="color: #ECEFF4;">,</span><span style="color: #616E88;"> _</span><span style="color: #ECEFF4;">,</span><span> lines</span><span style="color: #ECEFF4;">})</span><span style="color: #81A1C1;"> do</span></span>
+<span class="giallo-l"><span style="color: #88C0D0;">  transform_threading</span><span style="color: #ECEFF4;">(</span><span>lines</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span></code></pre>
+<p>Now we can write the handler for <code>+</code> like so:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="elixir"><span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> transform_queries</span><span style="color: #ECEFF4;">({</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">+</span><span style="color: #ECEFF4;">,</span><span> lhs</span><span style="color: #ECEFF4;">,</span><span> rhs</span><span style="color: #ECEFF4;">})</span><span style="color: #81A1C1;"> do</span></span>
+<span class="giallo-l"><span>  threading </span><span style="color: #81A1C1;">do</span></span>
+<span class="giallo-l"><span>    new_lhs </span><span style="color: #81A1C1;">&lt;-</span><span style="color: #88C0D0;"> transform_queries</span><span style="color: #ECEFF4;">(</span><span>lhs</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span>    new_rhs </span><span style="color: #81A1C1;">&lt;-</span><span style="color: #88C0D0;"> transform_queries</span><span style="color: #ECEFF4;">(</span><span>rhs</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #88C0D0;">    wrap</span><span style="color: #ECEFF4;">({</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">+</span><span style="color: #ECEFF4;">,</span><span> new_lhs</span><span style="color: #ECEFF4;">,</span><span> new_rhs</span><span style="color: #ECEFF4;">})</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  end</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span></code></pre>
+<p>And that gets transformed into the nested anonymous function notation we saw previously.</p>
+<h3 id="what-do-we-get">What do we get?</h3>
+<p>Now we don’t have to think about merging the list of queries any more: the <code>~&gt;&gt;</code> operator handles all that for us. Bigger savings come if we think about making a version of <code>map</code> that works with our AST-queries-tuples. We’ll call it <code>mapM</code> since it’s like a <code>map</code> that we’re <em>mashing</em> the results together:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="elixir"><span class="giallo-l"><span style="color: #81A1C1;font-weight: bold;">@</span><span style="font-weight: bold;">spec</span><span style="color: #88C0D0;"> mapM</span><span style="color: #ECEFF4;">(</span><span>vs </span><span style="color: #81A1C1;">::</span><span style="color: #ECEFF4;"> [</span><span style="color: #8FBCBB;">Ast</span><span style="color: #ECEFF4;">.()],</span><span> f </span><span style="color: #81A1C1;">::</span><span style="color: #ECEFF4;"> (</span><span style="color: #8FBCBB;">Ast</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">t</span><span style="color: #ECEFF4;">()</span><span style="color: #81A1C1;"> -&gt;</span><span style="color: #88C0D0;"> t</span><span style="color: #ECEFF4;">()))</span><span style="color: #81A1C1;"> ::</span><span style="color: #88C0D0;"> t</span><span style="color: #ECEFF4;">()</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> mapM</span><span style="color: #ECEFF4;">(</span><span>vs</span><span style="color: #ECEFF4;">,</span><span> f</span><span style="color: #ECEFF4;">)</span><span style="color: #81A1C1;"> do</span></span>
+<span class="giallo-l"><span>  results </span><span style="color: #81A1C1;">=</span><span> vs </span><span style="color: #81A1C1;">|&gt;</span><span style="color: #8FBCBB;"> Enum</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">map</span><span style="color: #ECEFF4;">(</span><span>f</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  {</span></span>
+<span class="giallo-l"><span>    results</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    |&gt;</span><span style="color: #8FBCBB;"> Enum</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">map</span><span style="color: #ECEFF4;">(</span><span>&amp;</span><span style="color: #88C0D0;">elem</span><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;">&amp;</span><span>1</span><span style="color: #ECEFF4;">,</span><span style="color: #B48EAD;"> 0</span><span style="color: #ECEFF4;">)),</span></span>
+<span class="giallo-l"><span>    results</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    |&gt;</span><span style="color: #8FBCBB;"> Enum</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">map</span><span style="color: #ECEFF4;">(</span><span>&amp;</span><span style="color: #88C0D0;">elem</span><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;">&amp;</span><span>1</span><span style="color: #ECEFF4;">,</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">))</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    |&gt;</span><span style="color: #8FBCBB;"> Enum</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">reduce</span><span style="color: #ECEFF4;">([],</span><span> &amp;</span><span style="color: #81A1C1;">++/</span><span style="color: #B48EAD;">2</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  }</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span></code></pre>
+<p>Here we map over a list of <code>Ast</code> values, collect all the resulting sets of queries, and merge them together. This gives us a big savings when we write something like the <code>max</code> function:</p>
+<div class="book-tabs" id="tabs-3"><input
+      type="radio"
+      class="toggle"
+      name="group-3"
+      id="tab-3-0"
+      checked="checked"
+    />
+    <label for="tab-3-0">New version</label>
+    <div class="book-tabs-content markdown-inner">
+      <pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="elixir"><span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> transform_queries</span><span style="color: #ECEFF4;">({</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">max</span><span style="color: #ECEFF4;">,</span><span> args</span><span style="color: #ECEFF4;">})</span><span style="color: #81A1C1;"> do</span></span>
+<span class="giallo-l"><span>  args </span><span style="color: #81A1C1;">|&gt;</span><span style="color: #88C0D0;"> mapM</span><span style="color: #ECEFF4;">(</span><span>&amp;transform_queries</span><span style="color: #ECEFF4;">)</span><span style="color: #81A1C1;"> ~&gt;&gt;</span><span> &amp;</span><span style="color: #88C0D0;">wrap</span><span style="color: #ECEFF4;">({</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">max</span><span style="color: #ECEFF4;">,</span><span style="color: #81A1C1;"> &amp;</span><span>1</span><span style="color: #ECEFF4;">})</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span></code></pre>
+    </div><input
+      type="radio"
+      class="toggle"
+      name="group-3"
+      id="tab-3-1"
+      
+    />
+    <label for="tab-3-1">Old version</label>
+    <div class="book-tabs-content markdown-inner">
+      <pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="elixir"><span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> transform_queries</span><span style="color: #ECEFF4;">({</span><span style="color: #ECEFF4;font-weight: bold;">:</span><span style="font-weight: bold;">max</span><span style="color: #ECEFF4;">,</span><span> args</span><span style="color: #ECEFF4;">})</span><span style="color: #81A1C1;"> do</span><span style="color: #616E88;"> # args is a list</span></span>
+<span class="giallo-l"><span>  args</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  |&gt;</span><span style="color: #8FBCBB;"> Enum</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">map</span><span style="color: #ECEFF4;">(</span><span>&amp;transform_queries</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  |&gt;</span><span style="color: #8FBCBB;"> Enum</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">reduce</span><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;">fn</span><span style="color: #ECEFF4;"> {</span><span>x</span><span style="color: #ECEFF4;">,</span><span> qs</span><span style="color: #ECEFF4;">}, {</span><span>max_acc</span><span style="color: #ECEFF4;">,</span><span> q_acc</span><span style="color: #ECEFF4;">}</span><span style="color: #81A1C1;"> -&gt;</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">                      {</span><span style="color: #88C0D0;">max</span><span style="color: #ECEFF4;">(</span><span>x</span><span style="color: #ECEFF4;">,</span><span> max_acc</span><span style="color: #ECEFF4;">),</span><span> qs </span><span style="color: #81A1C1;">++</span><span> q_acc</span><span style="color: #ECEFF4;">}</span><span style="color: #81A1C1;"> end</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span></code></pre>
+    </div></div>
+
+<p>Notice that all the handling of the extra information has been lifted out of our code. Not only does it make it clearer what the <em>core intent</em> of the functions are, but we also get some added flexibility around how we structure that extra data. If we wanted to use a map or a set instead of a list of tuples as the second element in the AST-queries-tuple, then with this refactoring we only have to modify the <code>wrap</code>, <code>thread</code>, and <code>mapM</code> functions. The rest of the code can stay the same!</p>
+<p>So, with a little bit of work, we’ve gone from a solution using global mutable state 🤢 to passing around a AST-queries-tuple 😐 to abstracting out the tuple entirely, gaining clarity and flexibility along the way. 🤩 Our threading-related functions are actually generic enough that they don’t need to be about ASTs and lists of queries—as long as we are doing some main computation with a little extra data gathering on the side, this pattern should apply.</p>
+<p>Wouldn’t it be nice if this pattern had a name?</p>
+<h2 id="it-was-a-monad-all-along">It was a monad all along!</h2>
+<p>Surprise! This is exactly the <a class="link-external" rel="external" href="https://wiki.haskell.org/All_About_Monads#The_Writer_monad">writer monad</a>! This whole post has been a monad tutorial in disguise!</p>
+<p>If you’ve been exposed to monads before, you might recognize <code>wrap</code> as <code>return</code> and <code>thread</code> as <code>bind</code> or—as the Haskell programmers like to call it—<code>&gt;&gt;=</code>. The <code>thread do … end</code> macro is just <a class="link-external" rel="external" href="https://learnyouahaskell.com/a-fistful-of-monads#do-notation"><code>do</code> notation</a>. (I couldn’t think of a clever name for <code>mapM</code>, so I just pretended the <code>M</code> stood for <em>mash</em> instead of <em>monad</em>.)</p>
+<div><span class="marginnote"><p>There are certain properties (called the “monad laws”—don’t worry, they’re not that scary even though the name sounds ominous) that these functions need to satisfy, but they’re pretty easy to hit. If you don’t satisfy these laws, your monad won’t behave predictably in certain circumstances. If you’re getting started with monads, don’t worry about it right now.</p>
+</span></div>
+<p>“Monad” is just an interface.<sup class="footnote-reference" id="fr-2-1"><a href="#fn-2">2</a></sup> That’s all there is to it. To make your data structure (like our AST-queries-tuple) conform to the Monad interface, you need functions like <code>wrap</code> and <code>thread</code>. Once you have those, you have a monad.
+That’s pretty much all there is to it.</p>
+<h3 id="different-kinds-of-monads">Different kinds of monads</h3>
+<p>There isn’t a fixed number of monads; there are however a set of more-or-less “standard” monads which have been discovered to be generally useful; the Haskell Wiki has a nice list <a class="link-external" rel="external" href="https://wiki.haskell.org/All_About_Monads#A_Catalog_of_Standard_Monads">here</a>. Among these is the “maybe” monad, which lets you focus on the happy-path of computation and abstracts away the failure path. In Elixir, you can see this pattern with the <code>{:ok, term()} | :error</code> idiom. (The <code>with</code> notation commonly seen in this idiom closely follows Haskell’s <code>do</code> notation.) There are many other useful monads besides the writer and maybe monads. Some of these (like the <a class="link-external" rel="external" href="https://wiki.haskell.org/All_About_Monads#The_IO_monad">IO monad</a>) are pretty specific to Haskell and other pure functional languages that don’t support the same kinds of control flow or constructs; others have wider application.</p>
+<h3 id="what-monad-tutorials-get-wrong">What monad tutorials get wrong</h3>
+<p>Most of the value (I think) of monads is not having <code>return</code> and <code>bind</code>, but all the helper functions like <code>mapM</code>, <code>do</code> notation, and friends. While I was <a class="link-external" rel="external" href="https://codeberg.org/ashton314/ysue">writing some Haskell</a>, I got to know all the monad-related functions and how useful they were. These helper functions are what make programming with monads <em>natural</em> and <em>powerful</em>. The core functions <code>bind</code> and <code>return</code> are all you “need” to make a monad, but no one would actually program with just those.</p>
+<p>If you ever find something that you think would work well modeled as a monad, be sure to implement additional functions <em>beyond</em> <code>bind</code> and <code>return</code>. You can see a list of functions Haskell implements for monads <a class="link-external" rel="external" href="https://hackage.haskell.org/package/base-4.19.0.0/docs/Control-Monad.html#g:4">here</a> if you want some inspiration.</p>
+<h2 id="why-haskell-uses-monads-so-much">Why Haskell uses monads so much</h2>
+<p>You hear a lot about monads with languages like Haskell, but not so much with other functional languages like Elixir or Rust. Part of this is need, and part is because of ergonomics.</p>
+<p>Haskell needs monads to implement effectful computation. Effects include exceptions (modeled by the maybe monad) or logging information (the writer monad). Languages that have these effects natively don’t strictly <em>need</em> these monads. (Though, as we’ve seen, writing a monad can help other languages, even when they have uncontrolled side-effects, like Elixir.)</p>
+<p>Haskell makes using monads ergonomic through its <em>typeclass</em> mechanism. Other languages have more constrained method dispatching mechanisms, so you have to jump through some hoops to get monads to work as seamlessly as they do in Haskell.</p>
+<h3 id="typeclasses-vs-dot-interfaces">Typeclasses vs. interfaces</h3>
+<p>If you’re familiar with an OO language, you’ve almost certainly come across the idea of an interface: it’s just a specification of methods an object needs to implement. <em>Typeclasses</em> are similar: they specify a set of functions needed for a type to belong to a typeclass. There are a few key differences between typeclasses and interfaces however:</p>
+<ul>
+<li>
+<p>Interfaces are <em>closed</em>, meaning, if an object doesn’t implement the interface, you can’t do anything about it, unless you modify the definition of the object itself.</p>
+<p>In contrast, typeclasses are <em>open</em>, meaning that I can implement the requisite functions to turn a datatype into a monad, even if I can’t modify the definition of the datatype itself.</p>
+</li>
+<li>
+<p>Interfaces specify methods that dispatch on their object. If I call <code>thing.dance()</code>, then I will look up the <code>dance</code> method in whatever class <code>thing</code> belongs to.</p>
+<p>Typeclass functions can dispatch on the <em>return type</em> of the function. For example, the <code>wrap</code> (i.e. <code>return</code>) function needs to dispatch on whatever type it’s expected to return. If I said something like:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #88C0D0;">thing1</span><span style="color: #81A1C1;"> :: Robot =</span><span> return </span><span style="color: #ECEFF4;">&quot;</span><span style="color: #A3BE8C;">Marvin</span><span style="color: #ECEFF4;">&quot;</span></span>
+<span class="giallo-l"><span style="color: #88C0D0;">thing2</span><span style="color: #81A1C1;"> :: Person =</span><span> return </span><span style="color: #ECEFF4;">&quot;</span><span style="color: #A3BE8C;">Arthur</span><span style="color: #ECEFF4;">&quot;</span></span></code></pre>
+<p><code>return</code> would dispatch to the version specified for the <code>Robot</code> type for <code>thing1</code>, and <code>Person</code>’s implementation for <code>thing2</code>. This makes the monad functions really generic; with a <code>return</code> that can dispatch on the expected return type, you can write <code>return</code> without thinking much about which monad exactly you’re using.</p>
+</li>
+</ul>
+<h3 id="using-monads-in-non-haskell-languages">Using monads in non-Haskell languages</h3>
+<p>In languages that don’t have typeclasses, you need to take special steps to ensure that you dispatch to the proper variant of the monad. Racket has a <a class="link-external" rel="external" href="https://docs.racket-lang.org/functional/interfaces.html">monad library</a> that works via a generics interface system, plus a few tricks to teach <code>return</code> (called <code>pure</code> in this library) what type it should return. I am sure the same tricks would apply to Elixir. Indeed, Elixir has <a class="link-external" rel="external" href="https://hexdocs.pm/elixir/protocols.html">protocols</a>, which are like interfaces, but they are open. They still dispatch on the shape of the first argument passed to them, you would need to pull a trick like Racket’s <code>pure</code> function and pass an argument to ignore just to get the dispatch right.</p>
+<p>Elixir has less need for monads than Haskell because its functions are impure. (A function can do arbitrary IO, send messages, throw exceptions, etc.) but there are still cases (as we have seen) where a monad can make life easier. Consider using a monad library the next time you need to avoid ugly side-effects!</p>
+<h2 id="breaking-boilerplate-in-your-functional-projects">Breaking boilerplate in your functional projects</h2>
+<p>Functional languages are not immune to sprouting boilerplate. And while most of the design patterns in a certain OO cookbook are “invisible or simpler” in functional languages,<sup class="footnote-reference" id="fr-4-1"><a href="#fn-4">3</a></sup> some patterns crop up when similar problems arise.</p>
+<p>Monads are a powerful tool for dividing the <em>essential</em> from the <em>incidental</em> in a program. Exactly what constitutes the essential versus incidental parts—along with how to separate them—can be tricky to see at first. I think this is because separating these concerns in mainstream functional languages get less visibility, and not because of any <em>inherent</em> difficulty of the problem. Perhaps if everyone started out programming by learning Racket and got comfortable with functional idioms, monads would be as natural as the Visitor pattern<sup class="footnote-reference" id="fr-5-1"><a href="#fn-5">4</a></sup>.</p>
+<p>I was surprised and delighted when a monadic solution appeared as the most natural solution to a problem I was working on. Now, you might say that’s because I work as a programming languages researcher. <em>However</em>, the last <em>two</em> times I was working in industry, we had some sort of language interpreter, and I had to walk an AST. Knowing the writer monad would have saved me a lot of time and effort. I hope you can start seeing some monadic patterns in your code, and that you’ll be able to make a monad to make it easier to reason about and refactor your code as well.</p>
+<h2 id="further-reading">Further reading</h2>
+<ul>
+<li><a class="link-external" rel="external" href="https://wiki.haskell.org/All_About_Monads">https://wiki.haskell.org/All_About_Monads</a></li>
+<li><a class="link-external" rel="external" href="https://learnyouahaskell.com/a-fistful-of-monads">https://learnyouahaskell.com/a-fistful-of-monads</a></li>
+</ul>
+<h2 id="acknowledgements">Acknowledgements</h2>
+<p>Thanks to Scott Wiersdorf for the initial impetus to write this, as well as some thoughtful feedback on the prose and outline. Thanks also to Mark Ericksen for some additional comments.</p>
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn-1">
+<p>It would be nice if we could use <code>&gt;&gt;=</code> for this shorthand… but I’m getting ahead of myself. <a href="#fr-1-1">↩</a></p>
+</li>
+<li id="fn-2">
+<p>There’s a subtle difference between interfaces and typeclasses, and I’ll get to that shortly. This is meant to build intuition. <a href="#fr-2-1">↩</a></p>
+</li>
+<li id="fn-4">
+<p>Quote from Peter Norvig. See: <a class="link-external" rel="external" href="https://norvig.com/design-patterns/design-patterns.pdf">https://norvig.com/design-patterns/design-patterns.pdf</a> <a href="#fr-4-1">↩</a></p>
+</li>
+<li id="fn-5">
+<p>Certainly it would be more comfortable than the <code>AbstractSingletonProxyFactoryBean</code>! <a href="#fr-5-1">↩</a></p>
+</li>
+</ol>
+</section>

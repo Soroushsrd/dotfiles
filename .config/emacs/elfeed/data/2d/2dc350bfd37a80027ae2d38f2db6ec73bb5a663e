@@ -1,0 +1,32 @@
+
+<p class="wp-block-paragraph">I generally give one or two courses a year on C++ and related technologies. This year, on April 22-25, I&#8217;ll be giving a live online public course for four half-days, on the topic of high-performance low-latency coding in C++ — and the <strong>early registration discount </strong>is available for a few more days until this Thursday:</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<h2 class="wp-block-heading"><a href="https://alfasoft.com/alfasoft/effective-concurrency-course-with-herb-sutter/">Effective Concurrency with Herb Sutter</a></h2>
+
+
+
+<h3 class="wp-block-heading">High performance and low latency code, via concurrency and parallelism</h3>
+
+
+
+<h3 class="wp-block-heading">22-25th April 2024, from 14:00 – 18:00 CEST daily</h3>
+
+
+
+<p class="wp-block-paragraph">Participants in this intensive course will acquire the knowledge and skills required to write high-performance and low-latency code on today’s modern systems using modern C++. Presented by <a href="https://alfasoft.com/contact-us/">Alfasoft</a>.</p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph">See the course link for details and a syllabus of topics that will be covered.</p>
+
+
+
+<p class="wp-block-paragraph">The times are intended to be friendly to the home time zones of attendees anywhere in EMEA and also to early risers in the Americas. If you live in a part of the world where these times can&#8217;t work for you, and you&#8217;d like another offering of the course that is friendlier to your home time zone, please <a href="info@alfasoft.com"><strong>email Alfasoft</strong></a> to let them know!</p>
+
+
+
+<p class="wp-block-paragraph">Because &#8220;high-performance low-latency&#8221; is kind of C++&#8217;s bailiwick, and because it&#8217;s my course, you&#8217;ll be unsurprised to learn that the topics and code focus on C++ and include coverage of modern C++17/20/23 features. But we are polyglots, after all&#8230; so don&#8217;t be overly shocked that I may sometimes show a few code examples in other popular languages, if only for comparison and to show how the other half lives.</p>

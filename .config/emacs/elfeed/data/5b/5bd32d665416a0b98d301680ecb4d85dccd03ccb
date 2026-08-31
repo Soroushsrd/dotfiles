@@ -1,0 +1,19 @@
+<p>I believe computer science plays as integral of a part to a well-rounded liberal arts education as does mathematics and linguistics. Why? A liberal arts education is designed to help you think in new and better ways. Computer science teaches novel ways of thinking, reasoning, and approaching problems that are hard to get anywhere else.</p>
+<p>I took a class on pedagogy when I encountered this puzzle. I answered the question easily, and I caught myself using reasoning patterns from work in programming coming to the forefront.</p>
+<p>Consider the following problem: suppose you have four cards, each of which has a letter on one side, and a number on the other. The cards are arranged like so:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>+-------+  +-------+  +-------+  +-------+</span></span>
+<span class="giallo-l"><span>|       |  |       |  |       |  |       |</span></span>
+<span class="giallo-l"><span>|   A   |  |   2   |  |   B   |  |   3   |</span></span>
+<span class="giallo-l"><span>|       |  |       |  |       |  |       |</span></span>
+<span class="giallo-l"><span>+-------+  +-------+  +-------+  +-------+</span></span></code></pre>
+<p>Suppose the cards follow the rule that, if a card has a vowel on one side, the other side <em>must</em> be an even number. What is the smallest number of cards you need to turn over to verify that the rule holds for these cards? Which cards?</p>
+<p>Give yourself a second to think about it, and try and figure it out.</p>
+<details><summary>Answer</summary>
+The answer is 2, and the cards are A and 3
+</details>
+<p>Did you get that? I translated the rule into the logical implication <em>if vowel → then even number</em>. It says nothing about the opposite side of a card if the number is even. Thus, we only need to check cards <code>A</code> and <code>3</code>.</p>
+<p>The point of the exercise that we were doing was to showcase how difficult reasoning with abstract symbols is. After showing this example with the cards, our instructor gave us another equivalent problem, but this time using familiar terms around conditions on the legal drinking age. The point was that familiar analogies reduce cognitive load, thereby freeing the students’ minds for grasping bigger and more important ideas.</p>
+<p>Yet <em>I</em> found it easy to answer the first and more abstract problem. I’m not a genius or anything—I’ve just practiced this kind of reasoning with computer science. Anyone can do that.</p>
+<p>Computer science teaches abstract reasoning in a way that nothing else can. I suppose once you get far enough into mathematics you get to experience a lot of the same sorts of ideas—but only math majors ever make it that far. Programming forces you to confront abstract reasoning about conditions and rules and how they combine from the outset.</p>
+<p>Moreover, teaching programming can be fun! You don’t have to go all out into gamification to elicit delight in seeing a computer follow your instructions. The feedback loop between writing code and getting a response is so tight; I think students have an easier time in computer science pushing themselves to reason through problems because they can get fast immediate and real feedback from the computer.</p>
+<p>I think more people should learn programming to learn how to think like a programmer. We also need to do a better job designing our CS courses in high school and university to focus on this kind of transferable skill, and we need to de-emphasize whatever <code>$hot_new_framework</code> is being pushed by industry in the classroom.</p>

@@ -1,0 +1,17 @@
+<p>
+Those of us who have been around long enough remember Sacha Chua&rsquo;s Emacs Chat videos. The last one was a decade ago but now that Chua&rsquo;s daughter is a bit older, she&rsquo;s decided to resurrect them. <a href="https://kelar.org/~bandali/gnu/emacs/emacs-chat-202605.html">The first new episode, Emacs Chat 21, is with Amin Bandali</a> with whom she&rsquo;s worked on <a href="https://emacsconf.org/">EmacsConf</a> for the last 7 years.
+</p>
+<p>
+The format is always the same. Chua and her guest discuss the guest&rsquo;s Emacs configuration and how they&rsquo;ve solved various problems. There&rsquo;s way too much material for a quick recapitulation—the video is an hour and 12 minutes long—but there&rsquo;s a transcript at the link so you can go through it at your leisure if you find the video&rsquo;s pace too rapid.
+</p>
+<p>
+There were a couple of things that I found particularly interesting. The first is the upcoming user-lisp-directory. It allows you to specify a directory for your Lisp files and Emacs will automatically compile them and add them to the load-path for you. Bandali uses it as a replacement for the package system because he prefers to configure things manually.
+</p>
+<p>
+The second interesting thing for me was his use of EXWM (Emacs X Window Manager), which goes a long way towards the dream of bringing <i>everything</i> into Emacs. I&rsquo;ve long wanted to try it out but as its name suggests, it works with the X-Windows system only. The Irreal bunker has famously standardized on Macs so EXWM is unavailable to us. I&rsquo;d still love to try it though.
+</p>
+<p>
+There&rsquo;s a <i>lot</i> of material in the chat so you&rsquo;ll have to watch it—or at least skim the transcript—to get the whole picture. There are links to his configuration so you can steal anything that seems useful to you.
+</p>
+<p>
+I&rsquo;m really happy to see Chua resurrecting her Emacs Chats. I really enjoyed the previous ones and learned a lot from them and I&rsquo;m sure that will be true of the new ones too.</p>

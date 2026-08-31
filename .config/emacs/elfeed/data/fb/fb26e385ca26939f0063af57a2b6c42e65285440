@@ -1,0 +1,11 @@
+<p>
+It turns out that if you call Dired from Elisp, you can pass it a list of files to display. Protesilaos Stavrou (Prot) leveraged that fact to <a href="https://protesilaos.com/codelog/2026-06-13-emacs-flat-dired-for-regexp-since-days/">write a bit of Elisp that provides him with a flat list of files matching a regular expression in a specified directory structure</a>. His post has the code so you can see how he did it but it&rsquo;s mostly what you&rsquo;d expect: after some setup, he calls <code>directory-file-recursively</code> to gather the list of files that he then passes on to Dired.
+</p>
+<p>
+It&rsquo;s a pretty nice system but after using it for a while, Prot realized that when he was dealing with large directories a bit of initial filtering of the most recently modified files would be useful. He solved that by adapting his previous code to do the filtering. He does it by taking the list of files from his first function and running them through <code>seq-filter</code> to get the files he&rsquo;s interested in. Again, all the code is in his post but Prot says he won&rsquo;t be updating the post so you should check out his <a href="https://protesilaos.com/emacs/dotemacs">configuration</a> for the latest version.
+</p>
+<p>
+If you frequently generate Dired listings and would prefer to deal with a flat list of the files without worrying about what directory they&rsquo;re in, take a look at Prot&rsquo;s post for an excellent solution.
+</p>
+<p>
+<b>Update</b> <span class="timestamp-wrapper"><span class="timestamp">[2026-06-15 Mon 10:06]</span></span>: Fixed link to Prot&rsquo;s post.</p>

@@ -1,0 +1,14 @@
+<p>
+My pal Watts Martin has a <a href="https://coyotetracks.org/blog/emacs-overwrite/">post that explores an artifact from the past: the insert key</a>. Martin, who&rsquo;s been a Mac head much longer than I have, remembers when Mac keyboards still had an <kbd>Insert</kbd>. They no longer do, of course, but my <a href="http://xahlee.info/kbd/keyboard_IBM_model_m_Unicomp.html">Unicomp Model M clone</a> does as do several other PC keyboards. The key was used to toggle between inserting text and overwriting it. Emacs calls the latter  <code>overwrite-mode</code>.
+</p>
+<p>
+The idea of insert mode is that text in front of the cursor is pushed ahead as new text is added behind it. When insert mode is off—that is, when <code>overwrite-mode</code> is active—the text in front of cursor is overwritten. Overwriting text used to be more common but these days everyone uses insert mode and you rarely see it.
+</p>
+<p>
+Still, as Martin says, overwriting can sometimes be useful and if you have an <kbd>Insert</kbd> key there&rsquo;s no reason not to use it in Emacs. That&rsquo;s a one liner and easy do in your <code>init.el</code>. On the Mac, the <kbd>Insert</kbd> key is usually mapped to Help but on other systems it probably has a different mapping so you may have to experiment to discover what it is.
+</p>
+<p>
+Finally, Martin wanted a visual clue as to which mode he was in so he changed the shape of the cursor to reflect the mode. Again, that&rsquo;s easy to do. He uses <code>overwrite-mode-hook</code> to toggle the cursor shape.
+</p>
+<p>
+While I agree that <code>overwrite-mode</code> can occasionally be useful I don&rsquo;t—and have never—used it enough to dedicate an actual key to it. I&rsquo;m perfectly happy to simply call <code>overwrite-mode</code> to turn it on and off.</p>

@@ -1,0 +1,143 @@
+<p>Emacs 29 is getting native Tree-Sitter support, and the buzz is hard to miss.</p>
+<p>Tree-Sitter maintains and provides a concrete parse tree of the buffer that you can query, but that&rsquo;s as far as it goes.  Acting on this information to provide context-aware navigation and editing tools is left to package authors, who have picked up this baton and started running with it!  In the last few months we&rsquo;ve had structural editing packages popping up all over the place.</p>
+<p>Lisp modes in Emacs already have pretty good support for structural editing as the syntax is particularly simple: the code is its own parse tree
+<span class="sidenote-number"><small class="sidenote">
+Notwithstanding some Lisp reader shenanigans
+</small></span>
+.  But for every other language this is just the beginning.  It&rsquo;s going to take some work, but tree-sitter information is rich enough that over the next year or two of collective experimentation, I expect we&rsquo;re going to see new editing paradigms emerge that could be to <a href="http://paredit.org/">paredit</a> what paredit is to naïve Lisp editing.</p>
+<p>Considering my penchant for <a href="https://karthinks.com/software/avy-can-do-anything/">fussing over composability</a>, I thought this might be a good time to make a short note about the UIs of structural editing packages.</p>
+<p>Comparing structural editing packages usually comes down to a question of keybindings: Are they accessible?  Mnemonic?  Tedious?  Modal?  Chainable?  Indeed, this is the subject of an extended example below.  But I&rsquo;m more interested in how composable structural editing packages are at a more fundamental level: Is it a megalithic suite with a rigid user-facing interface, or a bag of tools you can pick from and combine with other Emacs features?<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>
+Of course, every piece of elisp has a bag-of-tools nature if you&rsquo;re not averse to some monkey patching, but brittle fixes crumble over time in unpleasant ways.  Moreover, it&rsquo;s not always clear which approach is better.<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup></p>
+<p>Here&rsquo;s an incomplete and evolving picture of structural editing in Emacs:</p>
+<figure><img src="https://karthinks.com/img/simple-structural-0001.svg"/>
+</figure>
+
+<details>
+<summary>An incomplete picture:</summary>
+<div class="details">
+<p>Dashed lines: Support is being worked on or can be added with some configuration.</p>
+<p>It follows from the thesis of this write-up that this chart is out of date as you peruse it now. But it also elides many details for reasons of readability:</p>
+<ul>
+<li>Most packages offer the obvious, modeless editing interface of calling individual commands directly, for instance with a keybinding or with <code>M-x</code>.</li>
+<li>Every structural editing package in the above list that is not made for <code>evil-mode</code> has an adapter that allows it to be used with <code>evil-mode</code>. (<code>evil-paredit</code>, <code>evil-smartparens</code>, &hellip;) I included <a href="https://github.com/noctuid/lispyville">lispyville</a> as an exmaple.</li>
+<li>Also not on the list: single-purpose structure editing commands like <code>expand-region</code> or <code>embrace</code>.</li>
+<li>Emacs&rsquo; <code>ppss</code> (parse partial s-expression) parser as used here is a catchall for parsing the old way, through a combination of regexp searching and using <code>syntax-ppss</code>.</li>
+</ul>
+</div>
+</details>
+<h2 id="parsers-editing-suites-and-user-interfaces">Parsers, Editing Suites and User Interfaces</h2>
+<p>The <span class="Green">Parser</span>: Emacs&rsquo; homegrown <code>ppss</code> (parse partial s-expression) parser and its regexp-scan based cousins are workhorses that are available across many major modes.  But if you&rsquo;ve ever tried the <code>mark-defun</code> or <code>forward-sexp</code> commands in a non-Lisp buffer you&rsquo;ll have noticed how inconsistent it can be.  Until now, structural editing in non-Lisp modes has had to rely on this mix of <code>ppss</code> and bespoke regexp scans of the buffer.  The addition of tree-sitter-based parsing is going to be a massive upgrade in consistency.</p>
+<p><span class="Purple">Structural Editing</span> packages: Along with old favorites like <a href="http://paredit.org/">paredit</a> and <a href="https://github.com/abo-abo/lispy">lispy</a>, we now have the fledgling entries I included in the chart: <a href="https://github.com/AmaiKinono/puni">puni</a>, <a href="https://github.com/mickeynp/combobulate">combobulate</a>, <a href="https://github.com/haritkapadia/ts-movement">ts-movement</a> and so on.  Not all of these are tree-sitter based, although I expect they will all eventually support it, or be supplanted in usage by packages that do.</p>
+<p>The <span class="Orange">Editing Interface</span>: As provided or supported by the structural editing package.  A distinction that most packages don&rsquo;t (and often shouldn&rsquo;t) make, but is the focus of my attention here:</p>
+<p>Packages like lispy and <a href="https://github.com/drym-org/symex.el">symex</a> are end-to-end solutions, with a defined vision of the best way for users to interact with them.  This is expressed through both the kinds of verbs they afford, with editing actions like <code>convolute</code>, <code>flow</code> and <code>stringify</code>, and how these are made available and invoked &ndash; contextually based on the cursor position with lispy, and through a special editing mode with symex.  These are customizable in the sense that you can move the keybindings around, but not change the editing paradigm or interface itself. It&rsquo;s our way, the highway, or defadvice away.  The advantage is that these are plug and play solutions
+<span class="sidenote-number"><small class="sidenote">
+Or plug, practice, practice, practice and play.
+</small></span>
+, and very capable out of the box.  You must adapt to it, but it&rsquo;s fast and intuitive afterwards.</p>
+<p>Packages like smartparens and paredit are more restrained in their preferences: They offer a set of verbs that you can bind to keys as you please, with more levers to tweak their behavior.<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>   These packages also tend to be more singular in their focus: they don&rsquo;t ship with commands to view docstrings inline or interact with the elisp debugger, like lispy does.  They&rsquo;re not all-encompassing editing &ldquo;suites&rdquo;, just participants in your editing experience.  The advantage is malleability: they can adapt to you, and you pick only what you need.  There are no nasty surprises along the way.  They can change as your editing needs do.</p>
+<p>To make my point about this difference in their design philosophies, the rest of this write-up is an extended example of the malleability gap. We try to create a uniform and consistent interface for structural editing irrespective of the package being used.</p>
+<h2 id="example-a-lispy-lite-without-lispy">Example: A lispy-lite without lispy</h2>
+<p>One of the advantages of a specialized mode for structural edits is that the keybindings become much simpler &ndash; no chords needed &ndash; and editing is smoother and faster.  Indeed, this is touted as the main feature of lispy:</p>
+<blockquote>
+<p>This package reimagines Paredit - a popular method to navigate and edit LISP code in Emacs.
+The killer-feature are the short bindings [&hellip;]
+Most of more than 100 interactive commands that lispy provides are bound to a-z and A-Z in lispy-mode.</p>
+</blockquote>
+<p>100 interactive commands!  In my experience you only need ten or fifteen interactive commands for most structural edits.  The others commands will be needed so rarely that you&rsquo;re likely to have forgotten they exist, and the corresponding keybindings will get in the way when you mean to do something else.</p>
+<p>With Emacs&rsquo; <a href="https://karthinks.com/software/it-bears-repeating/">repeat-mode</a> and a smattering of helpers from a basic structural editing package like smartparens, we can setup up a lispy-lite no-chords keymap that is tailored to our needs.</p>
+<p>Here&rsquo;s an example of using a (mostly) one-key interface that uses smartparens and <a href="https://karthinks.com/software/it-bears-repeating/">repeat-mode</a>:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/lispy-lite-demo.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/lispy-lite-demo.mp4">Lispy-lite with repeat-mode demo</a></video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<p>The command-log window on the right shows the keys that are pressed and the commands they activate.  Notice that once a structural editing command in the <code>structural-edit-map</code> (see below) is called with its full keybinding &ndash; typically <code>C-M-key</code> &ndash; we can continue to use single keys to move around and edit code syntactically.</p>
+<p>Regular Emacs commands like <code>isearch</code> or character-based navigation are available at all times, and I use a few above, including <code>upcase-dwim</code>.  Calling such a command deactivates <code>structural-edit-map</code>, however, and I have to use a &ldquo;full keybinding&rdquo; again to activate it again.</p>
+</div>
+</details>
+<p>All structural editing commands of relevance are bound to single keys (like <code>n</code> and <code>p</code>) in a single keymap, and using any of these commands activates this transient keymap.  Until we use a non-structural editing command again, we can continue to navigate and edit structurally with the single keys.</p>
+<p>If necessary, this can be augmented with a prompter like <a href="https://github.com/karthink/repeat-help">repeat-help</a>, giving us optional (or on-demand) <a href="https://github.com/abo-abo/hydra">hydra</a>-like hints:
+<img src="https://karthinks.com/img/lispy-lite-prompter.png" alt=""></p>
+<h3 id="defining-a-structural-editing-keymap">Defining a structural editing keymap</h3>
+<p>Here&rsquo;s <code>structural-edit-map</code> and the instruction to use this with <code>repeat-mode</code>.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">repeat-mode</span> <span style="color:#00d;font-weight:bold">1</span>)
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defvar</span> <span style="color:#963">structural-edit-map</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">map</span> (<span style="color:#06b;font-weight:bold">make-sparse-keymap</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">pcase-dolist</span> (<span style="color:#333">`</span>(<span style="color:#333">,</span><span style="color:#963">k</span> <span style="color:#333">.</span> <span style="color:#333">,</span><span style="color:#963">f</span>)
+</span></span><span style="display:flex;"><span>                   <span style="color:#333">&#39;</span>((<span style="background-color:#fff0f0">&#34;u&#34;</span> <span style="color:#333">.</span> <span style="color:#963">backward-up-list</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;f&#34;</span> <span style="color:#333">.</span> <span style="color:#963">forward-sexp</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;b&#34;</span> <span style="color:#333">.</span> <span style="color:#963">backward-sexp</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;d&#34;</span> <span style="color:#333">.</span> <span style="color:#963">down-list</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;k&#34;</span> <span style="color:#333">.</span> <span style="color:#963">kill-sexp</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;n&#34;</span> <span style="color:#333">.</span> <span style="color:#963">sp-next-sexp</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;p&#34;</span> <span style="color:#333">.</span> <span style="color:#963">sp-previous-sexp</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;K&#34;</span> <span style="color:#333">.</span> <span style="color:#963">sp-kill-hybrid-sexp</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;]&#34;</span> <span style="color:#333">.</span> <span style="color:#963">sp-forward-slurp-sexp</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;[&#34;</span> <span style="color:#333">.</span> <span style="color:#963">sp-backward-slurp-sexp</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;}&#34;</span> <span style="color:#333">.</span> <span style="color:#963">sp-forward-barf-sexp</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;{&#34;</span> <span style="color:#333">.</span> <span style="color:#963">sp-backward-barf-sexp</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;C&#34;</span> <span style="color:#333">.</span> <span style="color:#963">sp-convolute-sexp</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;J&#34;</span> <span style="color:#333">.</span> <span style="color:#963">sp-join-sexp</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;S&#34;</span> <span style="color:#333">.</span> <span style="color:#963">sp-split-sexp</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;R&#34;</span> <span style="color:#333">.</span> <span style="color:#963">sp-raise-sexp</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;\\&#34;</span> <span style="color:#333">.</span> <span style="color:#963">indent-region</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;/&#34;</span> <span style="color:#333">.</span> <span style="color:#963">undo</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;t&#34;</span> <span style="color:#333">.</span> <span style="color:#963">transpose-sexps</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="background-color:#fff0f0">&#34;x&#34;</span> <span style="color:#333">.</span> <span style="color:#963">eval-defun</span>)))
+</span></span><span style="display:flex;"><span>      (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="color:#963">k</span>) <span style="color:#963">f</span>))
+</span></span><span style="display:flex;"><span>    <span style="color:#963">map</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">map-keymap</span>
+</span></span><span style="display:flex;"><span> (<span style="color:#007020">lambda</span> (<span style="color:#963">_</span> <span style="color:#963">cmd</span>)
+</span></span><span style="display:flex;"><span>   (<span style="color:#06b;font-weight:bold">put</span> <span style="color:#963">cmd</span> <span style="color:#a60;background-color:#fff0f0">&#39;repeat-map</span> <span style="color:#a60;background-color:#fff0f0">&#39;structural-edit-map</span>))
+</span></span><span style="display:flex;"><span> <span style="color:#963">structural-edit-map</span>)
+</span></span></code></pre></div><p>To understand how this works, check out the <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Repeating.html">repeating commands</a> section of the Emacs manual, or my write-up on <a href="https://karthinks.com/software/it-bears-repeating/">repeat-mode</a>.</p>
+<h3 id="seamless-activation">Seamless activation</h3>
+<p>The other advantage of the repeat-map bindings is that the activation and deactivation of the transient keymap (<code>structural-edit-map</code> above) requires no action on our part.  As in the demo, we can seamlessly mix regular editing commands (standard cursor navigation, inserting text, isearch) with single-key structural navigation editing commands (up/down-list, convolute-sexp, slurp/barf and so on).  You don&rsquo;t have to explicitly switch modes &ndash; typing any key not in this map will deactivate the transient keymap and let you get on with regular editing.</p>
+<h3 id="only-what-we-need">Only what we need</h3>
+<p>We can start small and add to <code>lisp-navigation-map</code> incrementally.  For example, suppose we find ourselves needing a command to duplicate s-expressions.  We write a <code>duplicate-sexp</code> command (or just find <code>sp-clone-sexp</code> in the smartparens library) and add it to your one-key repeat-map repertoire.  Each command we add has a multiplicative effect because of&hellip;</p>
+<h3 id="composable-features">Composable features</h3>
+<p>Every command you add composes with everything already in our toolbelt.  Here&rsquo;s an example of moving a value into a variable where the newly added <code>duplicate-sexp</code> feeds into an <a href="https://karthinks.com/software/avy-can-do-anything/">Avy action</a> that exchanges expressions:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/lispy-lite-refactor.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/lispy-lite-refactor.mp4">Refactor with repeat-mode and Avy.</a></video>
+<h3 id="the-cost">The cost</h3>
+<p>There is, of course, a cost to pay for this convenience, and it&rsquo;s the cost of all modal interaction: <strong>it&rsquo;s the user&rsquo;s responsibility to remember if the repeat-map is active</strong>.  There are the usual band-aids, like an indicator in the mode-line.  But realistically it comes down to two options:</p>
+<ol>
+<li>Parsimony: Populate <code>structural-edit-map</code> with as few commands as you can get away with, thus minimizing the chance that a regular editing command (such as typing in some text) will cause a distressing series of structural edits that you didn&rsquo;t intend.</li>
+<li>Maximalism: Populate <code>structural-edit-map</code> with everything you think you might use, and explicitly deactivate the keymap with <code>C-g</code> (<code>keyboard-quit</code>) when you&rsquo;re done with a round of structural edits.  This effectively makes the method completely modal like <code>evil-mode</code> or symex.</li>
+</ol>
+<p>Personally I prefer the first option, but the second is just as viable.</p>
+<h2 id="minimum-viable-consistency">Minimum Viable Consistency</h2>
+<p>I used smartparens features in the <code>structural-edit-map</code> example above, but there isn&rsquo;t anything special about smartparens here.  <code>repeat-mode</code> is a generic Emacs feature.</p>
+<p>As tree-sitter support matures, more packages are created and structural editing is available across many (non-Lisp) major-modes in Emacs, we won&rsquo;t have to contend with selecting one and learning and unlearning the plethora of editing interfaces that will accompany them
+<span class="sidenote-number"><small class="sidenote">
+Compare for instance the <a href="https://github.com/drym-org/symex.el/#key-bindings">symex</a> and <a href="http://oremacs.com/lispy/">lispy keybindings</a>.  <em>Phew!</em>
+</small></span>
+.</p>
+<figure><img src="https://karthinks.com/img/structural-editing-packages-0001.svg"/>
+</figure>
+
+<p>Assuming that</p>
+<ul>
+<li>they are written as simple packages and not editing &ldquo;suites&rdquo;, and</li>
+<li>structural editing has a reasonably consistent set of universal verbs (<code>up-</code> / <code>down-tree</code>, <code>transpose-nodes</code> etc),</li>
+</ul>
+<p>they can be conveniently folded into <code>structural-edit-map</code>, and our interface will remain consistent across modes, structural editing packages and time!</p>
+<p>Even though lispy and symex are not intended to be used this way, there&rsquo;s nothing stopping us from applying some elbow grease and appropriating the fancy verbs they provide into <code>structural-edit-map</code>.  But the hackier the solution, the more edge cases and frustration we&rsquo;ll need to contend with.</p>
+<p>More broadly, there&rsquo;s room in the emerging structural editing space for both end-to-end solutions and composable pieces.  The former kind is flashier and more usable out of the box, but the latter is invaluable to users who move slower and try to minimize changes to their editing environment.  This is a plea to package authors: when you begin designing a structural editing library for Emacs, please consider which kind suits you better!</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>The <a href="https://github.com/minad/consult">Consult</a>/<a href="https://github.com/minad/vertico">Vertico</a>/<a href="https://github.com/oantolin/embark">Embark</a> ecosystem is a great example of the latter.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>The package that handles everything in a rigid way is also going to be more stable, an aspect for which my appreciation grows exponentially as deadlines begin to loom.&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p><code>smartparens</code> lets you define custom syntactic pairs, for instance.&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>

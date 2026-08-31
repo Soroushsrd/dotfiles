@@ -1,0 +1,30 @@
+<p>The recent post “<a href="https://meanwhiling.com/you-dont-not-need-the-mouse.html">You don’t not need the mouse</a>” by noa ks speaks to a sentiment that I’ve had for some time. Using the mouse in Emacs can be a good, daresay <em>delightful</em>, experience. Unfortunately though, Emacs has antiquated default settings that presume we’re all still using a <a href="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Sun_optical_mouse.jpg/960px-Sun_optical_mouse.jpg">90’s style 3-button workstation mouse</a>. In addition, the overreliance on reusing menu keymaps for both the main <em>and</em> context menus results in poor user experience. I feel strongly that context menus populated this way feel more like an inventory than a thoughtful selection of commands relevant to <em>context</em>.</p>
+<p>Thankfully, Emacs offers the mechanisms to sculpt mouse interactions to contemporary (circa 2026) expectations. Over the past three years, I’ve taken advantage of them to implement the following features:</p>
+<ul>
+<li>
+<p>Mode Line</p>
+<ul>
+<li>Right mouse click on blank space to pop-up a window management menu</li>
+<li>Left mouse click on buffer name to pop-up a customizable list of buffers</li>
+<li>Double click on blank space to toggle current window to maximize or return to prior window configuration</li>
+</ul>
+</li>
+<li>
+<p>Context Menu</p>
+<ul>
+<li>Context-aware commands for selected text (<code>use-region-p</code>)</li>
+<li>Context-aware commands for Org and Dired mode</li>
+</ul>
+</li>
+<li>
+<p>Main Menu</p>
+<ul>
+<li>Add Bookmarks menu</li>
+<li>Reorganize Help menu</li>
+</ul>
+</li>
+</ul>
+<p>Several months ago, I decided these mouse interaction changes should be generalized into a package that others could use. So began the <em>Anju</em> project.</p>
+<p>Today I’m happy to announce that <a href="https://github.com/kickingvegas/anju">Anju v1.0</a> is now available on <a href="https://melpa.org/#/anju">MELPA</a>.</p>
+<p>Learn more details about Anju in its <a href="https://kickingvegas.github.io/anju/">User Guide</a>.</p>
+<p>As Anju is new, I’m always open to constructive feedback on it. Let me know <a href="https://github.com/kickingvegas/anju/discussions/33">what you think</a>. Work on Anju is ongoing with the plan to keep adding improvements to it over time, in particular with supporting more context menus for different modes.</p>

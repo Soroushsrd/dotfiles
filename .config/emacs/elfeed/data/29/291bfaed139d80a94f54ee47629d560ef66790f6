@@ -1,0 +1,81 @@
+<div ( . )='http://www.w3.org/1999/xhtml'><div><p>Over on his excellent blog, <a href='https://www.mattkeeter.com/blog/2026-04-05-tailcall/'>Matt Keeter posts some
+results</a> from
+having ported a bytecode virtual machine to <a href='https://blog.reverberate.org/2025/02/10/tail-call-updates.html'>tail-calling
+style</a>.
+He finds that his tail-calling interpreter written in Rust beats his
+switch-based interpreter, and even beats hand-coded assembly on some
+platforms.</p><p>He also compares tail-calling versus switch-based
+interpreters on WebAssembly, and concludes that performance of tail-calling
+interpreters in Wasm is terrible:</p><blockquote> 1.2× slower on Firefox, 3.7× slower on Chrome, and 4.6×
+slower in wasmtime. I guess patterns which generate good assembly don&apos;t
+map well to the WASM stack machine, and the JITs aren&apos;t smart enough to
+lower it to optimal machine code.</blockquote><p>In this article, I would like to argue the opposite: patterns that
+generate good assembly map just fine to the Wasm stack machine, and the
+underperformance of V8, SpiderMonkey, and Wasmtime is an accident.</p><h3>some numbers</h3><p>I re-ran Matt’s experiment locally on my x86-64 machine (AMD Ryzen
+Threadripper PRO 5955WX).  I tested three toolchains:</p><ul><li><p>Compiled natively via <tt>cargo</tt> / <tt>rustc</tt></p></li><li><p>Compiled to WebAssembly, then run with <a href='https://wasmtime.dev/'>Wasmtime</a></p></li><li><p>Compiled to WebAssembly, then run with <a href='https://codeberg.org/andywingo/wastrel'>Wastrel</a></p></li></ul><p>For each of these toolchains, I tested Raven as implemented in Rust in
+both “switch-based” and “tail-calling” modes.  Additionally, Matt has a
+Raven implementation written directly in assembly; I test this as well,
+for the native toolchain.  All results use nightly/git toolchains from 7
+April 2026.</p><p>My results confirm Matt’s for the native and wasmtime toolchains, but
+wastrel puts them in context:</p><img alt='Bar charts showing native, wasmtime, and wastrel scenarios testing tail-calling versus switch implementations; wasmtime slows down for tail-calling, whereas wastrel speeds up.' height='565' src='https://wingolog.org/pub/raven-interpreter-performance.png' width='646'/><p>We can read this chart from left to right: a switch-based interpreter
+written in Rust is 1.5× slower than a tail-calling interpreter, and the
+tail-calling interpreter just about reaches the speed of hand-written
+assembler.  (Testing on AArch64, Matt even sees the tail-calling
+interpreter beating his hand-written assembler.)</p><p>Then moving to WebAssembly run using Wasmtime, we see that Wasmtime
+takes 4.3× as much time to run the switch-based interpreter, compared to
+the fastest run from the hand-written assembler, and worse, actually
+shows 6.5× overhead for the tail-calling interpreter.  Hence Matt’s
+conclusions: there must be something wrong with WebAssembly.</p><p>But if we compare to <a href='https://codeberg.org/andywingo/wastrel/'>Wastrel</a>,
+we see a different story: Wastrel runs the basic interpreter with 2.4×
+overhead, and the tail-calling interpreter improves on this marginally
+with a 2.3x overhead.  Now, granted, two-point-whatever-x is not one;
+Matt’s Raven VM still runs slower in Wasm than when compiled natively.
+Still, a tail-calling interpreter is inherently a pretty good idea.</p><h3>where does the time go</h3><p>When I think about it, there’s no reason that the switch-based
+interpreter should be slower when compiled via Wastrel than when
+compiled via <tt>rustc</tt>.  Memory accesses via Wasm should actually be
+cheaper due to 32-bit pointers, and all the rest of it should be pretty
+much the same.  I looked at the assembly that Wastrel produces and I see
+most of the patterns that I would expect.</p><p>I do see, however, that Wastrel repeatedly reloads a <tt>struct memory</tt>
+value, containing the address (and size) of main memory.  I need to
+figure out a way to keep this value in registers.  I don’t know what’s
+up with the other Wasm implementations here; for Wastrel, I get 98% of
+time spent in the single interpreter function, and surely this is
+bread-and-butter for an optimizing compiler such as Cranelift.  I tried
+pre-compilation in Wasmtime but it didn’t help.  It could be that there is a
+different Wasmtime configuration that allows for higher performance.</p><p>Things are more nuanced for the tail-calling VM.  When compiling
+natively, Matt is careful to use a <tt>preserve_none</tt> calling convention
+for the opcode-implementing functions, which allows LLVM to allocate
+more registers to function parameters; this is just as well, as it seems
+that his opcodes have around 9 parameters.  Wastrel currently uses GCC’s
+default calling convention, which only has 6 registers for
+non-floating-point arguments on x86-64, leaving three values to be
+passed via global variables (described
+<a href='https://wingolog.org/archives/2026/02/09/six-thoughts-on-generating-c#:~:text=for%20ABI%20and%20tail%20calls%2C%20perform%20manual%20register%20allocation'>here</a>);
+this obviously will be slower than the native build.  Perhaps Wastrel
+should add the equivalent annotation to tail-calling functions.</p><p>On the one hand, Cranelift (and V8) are a bit more constrained than
+Wastrel by their function-at-a-time compilation model that privileges
+latency over throughput; and as they allow Wasm modules to be
+instantiated at run-time, functions are effectively closures, in which
+the “instance” is an additional hidden dynamic parameter.  On the other hand, these
+compilers get to choose an ABI; last I looked into it, SpiderMonkey used
+the equivalent of <tt>preserve_none</tt>, which would allow it to allocate more
+registers to function parameters.  But it doesn’t: you only get 6
+register arguments on x86-64, and only 8 on AArch64.  Something to fix,
+perhaps, in the Wasm engines, but also something to keep in mind when
+making tail-calling virtual machines: there are only so many registers
+available for VM state.</p><h3>the value of time</h3><p>Well friends, you know us compiler types: we walk a line between
+collegial and catty.  In that regard, I won’t deny that I was delighted when I saw the
+Wastrel numbers coming in better than Wasmtime!  Of course, most of the
+credit goes to GCC; Wastrel is a relatively small wrapper on top.</p><p>But my message is not about the relative worth of different Wasm implementations.
+Rather, it is that <i>performance oracles are a public good</i>: a fast implementation of a particular algorithm is of use to everyone who uses that algorithm, whether they use that implementation or not.</p><p>This happens in two
+ways.  Firstly, faster implementations advance the state of the art, and
+through competition-driven convergence will in time result in better
+performance for all implementations.  Someone in Google will see these
+benchmarks, turn them into an OKR, and golf their way to a faster web
+and also hopefully a bonus.</p><p>Secondly, there is a dialectic between the
+state of the art and our collective imagination of what is possible, and advancing one will
+eventually ratchet the other forward.  We can forgive the conclusion
+that “patterns which generate good assembly don’t map well to the WASM
+stack machine” as long as Wasm implementations fall short; but having
+shown that good performance is possible, our toolkit of applicable
+patterns in source languages also expands to new horizons.</p><p>Well, that is all for today.  Until next time, happy hacking!</p></div></div>

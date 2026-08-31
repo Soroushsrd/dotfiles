@@ -1,0 +1,1 @@
+Records are one of those things that look almost identical across ML-family languages, so I didn’t expect many surprises when I started using them in OCaml. For the most part I was right – but there were a few things worth noting, especially if you’re coming from a language where records/structs are mutable by default.

@@ -1,0 +1,17 @@
+<p>Most Emacs Org users would concur that <strong>Org mode</strong> is a magnificent tool for capturing and communicating thought. That said, Org mode’s <a href="https://orgmode.org/features.html">vast set of features</a> can be daunting to master. A common guidance for new users is to take it slow: incrementally learn a subset of Org’s features as you need them.</p>
+<p>A big reason for Org mode’s steep learning curve is that it adopts Emacs’ unfortunate culture of compelling users to memorize keybindings. Learning a distinct keybinding for each Org command (remember I said <em>vast</em> feature set?) is onerous, so a different tack is made: reuse the same keybinding but have it possess different behavior based on context. This context is usually tied to the type of structure the point (aka cursor) is in. For example, if the point is in a source block, the binding <code>C-c C-c</code> would execute it, but if the point is on a checkbox item, then <code>C-c C-c</code> would toggle its checked state. Taking this approach lowers the effort to recall a keybinding at the cost of recalling what its contextual behavior would be. In practice, using such overloaded keybindings is…okay. But I’d argue that we could have a more usable interface, leading to the point of this post:</p>
+<p>Announcing support for <a href="https://kickingvegas.github.io/casual/Org.html">Org mode</a> in the <a href="https://github.com/kickingvegas/casual/discussions/397">v2.14.0 update for Casual</a>, now available on <a href="https://melpa.org/#/casual">MELPA</a>.</p>
+<p>Readers of this blog will know that <a href="https://kickingvegas.github.io/casual/">Casual</a> is my project to re-imagine the primary user interface for Emacs using keyboard-driven menus. If this is new to you, I highly recommend reading this <a href="https://github.com/kickingvegas/casual">introduction</a> to it.</p>
+<p>Primary to the design of the Casual Org menus is to be context-sensitive, only showing a subset of Org mode commands that are relevant. This set of context-sensitive commands is opinionated, but seeks to provide utility to users both new and experienced with Org.</p>
+<p>Shown below is a demo of Casual Org at work:</p>
+<video controls  muted=true poster="http://yummymelon.com/devnull/images/announcing-casual-org/casual-org-demo-poster.png" width="75%">
+<source src="http://yummymelon.com/devnull/images/videos/casual-org-demo.mp4" type="video/mp4" />
+<p>
+Your browser does not support HTML video. <a href="http://yummymelon.com/devnull/images/videos/casual-org-demo.mp4" download="{static}images/videos/casual-org-demo.mp4">Link to video</a>.
+</p>
+</video>
+<p><br/></p>
+<p>While the design of this UI has been months in the making, there is nothing like real-world use and feedback. <a href="https://github.com/kickingvegas/casual/discussions/397">Constructive input is appreciated</a>, especially if you are relatively new to using Org.</p>
+<p>A great deal of thanks goes out to the maintainers of and contributors to Org mode and to the community that uses it. If you are able, <a href="https://liberapay.com/org-mode">please support it</a>. Also, if you find Casual useful, I’d <a href="https://buymeacoffee.com/kickingvegas">appreciate a coffee</a> as well.</p>
+<p>&#x2014;</p>
+<p>Video music: <a href="https://jonreyes.bandcamp.com/track/burna-boy-last-last-jon-reyes-findaway-blend">Burna Boy - Last Last (JON REYES FINDAWAY BLEND) | Jon Reyes</a></p>

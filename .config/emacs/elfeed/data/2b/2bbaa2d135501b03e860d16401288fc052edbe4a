@@ -1,0 +1,3 @@
+<p>+++</p>
+<p>This is the story of how I managed to get FreeBSD running on a Raspberry Pi 4 with 4GB of RAM, though I think the setup story is pretty similar for those with 2GB and 8GB.</p>
+<p>I also managed to get Rust built from source, (kind of) which is nice because the default Rust installer doesn’t seem to work for FreeBSD running on a Raspberry Pi.</p>

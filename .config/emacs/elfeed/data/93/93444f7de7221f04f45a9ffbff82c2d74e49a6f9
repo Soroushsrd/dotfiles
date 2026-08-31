@@ -1,0 +1,159 @@
+<p>The MSVC Build Tools Preview is updated regularly with the latest features and fixes from the MSVC development team. This post covers updates from the past month, currently targeting the v14.52 release. This encompasses changes across the compiler frontend, backend, linker, standard library, and related tools.</p>
+<p>Although you can acquire the MSVC Build Tools Preview through either the Visual Studio 2026 <a href="https://visualstudio.microsoft.com">Stable Channel</a> or <a href="https://visualstudio.microsoft.com/insiders">Insiders Channel</a>, Insiders gets MSVC Preview updates more quickly (roughly weekly).</p>
+<p>To check if it is installed simply make sure one or both of these components are checked in the installer:</p>
+<ol>
+<li>MSVC Build Tools for x64/x86 (Preview)</li>
+<li>MSVC Build Tools for ARM64/ARM64EC (Preview)</li>
+</ol>
+<p>Follow the instructions on <a href="https://aka.ms/msvc/preview">https://aka.ms/msvc/preview</a> to configure your IDE &amp; command prompts to use the MSVC Build Tools Preview.</p>
+<p>The version number printed by cl.exe and link.exe will be at least 19.52.36520 / 14.52.36520.</p>
+<p>We appreciate any feedback that you may have. Please report any issues on <a href="https://developercommunity.visualstudio.com/index.html">Visual Studio Developer Community</a> so we can address them by the time we move out of preview.</p>
+<h3>C++ Conformance and Frontend</h3>
+<ul>
+<li>Relaxed the rules for designated initialization to accept more valid C++ code.</li>
+<li>Added support for <code>constexpr</code> <code>new[]</code> (array allocation) inside modules.</li>
+<li>Corrected comparison of non-type template arguments so that constraints (concepts) no longer cause external member function definitions to fail to compile.</li>
+<li>Fixed type deduction so the correct type is propagated through nested lambdas, including <code>decltype</code> of a captured entity inside a non-mutable lambda.</li>
+<li>Fixed an incorrect result from the <code>__is_constructible</code> type trait.</li>
+<li>Fixed a false negative from <code>std::is_layout_compatible</code> on structs containing nested structs.</li>
+<li>Improved <code>_Pragma</code> handling: better support when mixed with macros, full support under <code>/E</code>, and fixes for preprocessor crashes when a function-like macro expands at a <code>_Pragma</code>.</li>
+<li>Increased the compiler limit for deeply nested initializers and increased the maximum size of legacy preprocessor macro buffers.</li>
+<li>Reduced memory usage when caret (<code>^</code>) diagnostics are enabled.</li>
+<li>Fixed selection of an overloaded member function via <code>static_cast</code> when the member has a deduced (<code>auto</code>) return type in a class template.</li>
+<li>Fixed template-argument deduction for class templates that previously produced a spurious <code>C2641</code>.</li>
+<li>Fixed several internal compiler errors, including those involving <code>requires</code> with a default template argument before a parameter pack, coroutines with aggregate initialization, and recursive variadic template default member initializers.</li>
+<li>Improved robustness of <code>MultiByteToWideChar</code> handling on older Windows versions.</li>
+</ul>
+<h3>C++ Modules</h3>
+<ul>
+<li>Fixed a <code>fatal error C1001</code> and <code>C1116</code> regression when importing a partitioned C++23 module (built with <code>import std;</code>) after including third-party headers.</li>
+<li>Fixed an internal compiler error when exporting an overload set from a module.</li>
+<li>Improved header-unit resolution so a quoted include correctly falls back to an angle-bracket lookup when the resolved entry was already consumed.</li>
+<li>Added a new <code>LNK4321</code> warning that diagnoses duplicate C++ module exports in an import library.</li>
+</ul>
+<h3>Code Generation and Optimization</h3>
+<p><strong>ARM64 improvements:</strong></p>
+<ul>
+<li>Added vectorization support for <code>floor</code>, <code>ceil</code>, <code>trunc</code>, and <code>round</code>.</li>
+<li>Improved NEON code generation: folded redundant duplicate sequences, eliminated redundant compare-against-zero on mask inputs, and tracked live bits across NEON vector arithmetic to remove dead instructions.</li>
+<li>Enabled load-pair/store-pair fusion for adjacent global table lookups accessed through a computed index.</li>
+<li>Improved register spill and rematerialization cost modeling for high-use values.</li>
+<li>Fixed a signedness mismatch in paired integer-to-floating-point SIMD conversions.</li>
+</ul>
+<p><strong>x64 improvements:</strong></p>
+<ul>
+<li>Extended code generation for the newest x64 instruction set (APX), including new destination-form lowering and a conditional-move optimization pattern, and fixed keeping caller-saved registers unnecessarily live across calls under LTCG.</li>
+<li>Fixed generation of an invalid AVX-512 gather instruction that used a high vector index register.</li>
+<li>Improved code generation for population-count (<code>popcount</code>) patterns.</li>
+<li>Preserved the sign of negative zero in the 32-bit x86 <code>floor</code> expansion.</li>
+<li>Fixed a miscompilation of descending bit-search loops that use trailing-zero counting.</li>
+<li>Addressed a performance regression in a speech-recognition workload involving fused multiply-add.</li>
+</ul>
+<p><strong>Optimizer:</strong></p>
+<ul>
+<li>Enabled strength reduction for induction variables that can overflow, and expanded the set of overflow cases the optimizer can handle safely.</li>
+<li>Enabled earlier loop-invariant code motion.</li>
+<li>Enabled a new expression-reassociation pass.</li>
+<li>Enabled type-based devirtualization alongside PGO and improved speculative devirtualization inlining.</li>
+<li>Improved heuristics leading to more common-subexpression elimination in larger functions.</li>
+<li>Fixed several optimizer internal compiler errors and miscompilations, including a jump-threading crash, loop unswitching under LTCG, preservation of overflow semantics through the loop optimizer, a hang in string-compare simplification, and incorrect code generation for indirection through a based pointer.</li>
+<li>Fixed a fence-preservation issue under <code>/fp:strict</code>.</li>
+</ul>
+<p><strong>Other code generation:</strong></p>
+<ul>
+<li>Fixed <code>/LTCG:incremental</code> unnecessarily falling back to a full compilation on alternating links.</li>
+<li>Added a graceful bailout when profile data cannot be read for a mixed <code>/Od</code> + <code>/O2</code> LTCG build.</li>
+<li>Emit <code>C4744</code> for <code>extern</code> type mismatches under LTCG.</li>
+</ul>
+<h3>Linker</h3>
+<ul>
+<li>Fixed a linker crash during incremental pointer calculation.</li>
+<li>Fixed incremental linking when the <code>/NOEXP</code> option is used.</li>
+<li>Reduced PDB file size growth in incremental-link scenarios.</li>
+<li>Improved determinism by masking the PDB age in the PE hash computation.</li>
+</ul>
+<h3>Static Analysis</h3>
+<ul>
+<li>Added command-line options to configure environment variables for Code Analysis.</li>
+<li>Fixed several Code Analysis crashes, including one involving <code>throw</code> in a ternary operator.</li>
+</ul>
+<h3>AddressSanitizer</h3>
+<ul>
+<li>Fix in ASan interception of <code>RtlReAllocateHeap</code>, preventing crashes when re-allocating ASan-owned memory during process termination.</li>
+</ul>
+<h3>STL</h3>
+<ul>
+<li>See <a href="https://github.com/microsoft/STL/wiki/Changelog">https://github.com/microsoft/STL/wiki/Changelog</a> for details on STL improvements in the MSVC Build Tools Preview.</li>
+</ul>
+<h2>Tickets Fixed</h2>
+<p>The following tickets reported through Developer Community have been fixed in this update:</p>
+<ul>
+<li><a href="https://developercommunity.visualstudio.com/t/LTCG:incremental-falls-back-to-full-com/10648155">/LTCG:incremental falls back to full compilation every second time when nothing is changed, due to supposed IPDB IOBJ mismatch</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/APX-LTCG-codegen-keeps-caller-saved-regi/11106037">APX LTCG codegen keeps caller-saved registers live across calls</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/ARM64-codegen-is-breaks-function-scope-t/11054790">ARM64 codegen is breaks function scope try/catch when the function is marked noexcept</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/ARM64-codegen:-paired-int-double-SIMD-c/11097374">ARM64 codegen: paired int-&gt;double SIMD conversion emits USHLL+UCVTF instead of SSHLL+SCVTF; negative ints become ~4.29e9 doubles</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/ARM64-LTCG-c2-ICE-C1001-Illegal-reg-fie/11100420">ARM64 LTCG c2 ICE C1001 &#8220;Illegal reg field&#8221; causes LNK1257</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Arm64-MSVC-misses-optimization-opportuni/10792000">Arm64 MSVC misses optimization opportunity by not fusing two ldrs to ldp</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/ARM64EC-linker-emits-LNK4279-for-__imp_P/11098733">ARM64EC linker emits LNK4279 for __imp_PtInRect icall thunk mismatch</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/AVX-optimizercodegen-bug/11075288">AVX optimizer/codegen bug</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Bug:-Calling-FileSavePicker::FileTypeCho/11100799">Bug: Calling FileSavePicker::FileTypeChoices::Insert throws an exception with C++/WinRT 3.0 modules.</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/C-Code-Analysis-crashes-with-SEH-std:/11092816">C++ Code Analysis crashes with SEH, std::span and initializer_list</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/C-Modules-compiler-hits-fatal-error-C1/11095497">C++ Modules compiler hits fatal error C1001 compiling .ixx files</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/C2440:-static_cast-to-select-an-overload/11107969">C2440: static_cast to select an overloaded member function with a deduced (auto) return type fails in a class template</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/CHPE-d2hybrid:emit_guest_references-cau/11070079">CHPE /d2hybrid:emit_guest_references causes ICE</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/C-compiler-miscompiles-doctest-CHECK/11099010">cl.exe 19.51 Regression: Miscompiles Plain Code</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/clexe-fatal-error-C1001-and-exit-0xE06D/11091216">cl.exe fatal error C1001 and exit 0xE06D5034</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Compiler-crashes-with-optimization-O2-wh/11003961">Compiler crashes with optimization O2 when calling _hypot in 17.14.21</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Concepts-cause-external-member-function-/1629668">Concepts cause external member function definition to fail to compile</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/consteval-causes-C1054:-compiler-limit:-/10884139">consteval causes C1054: compiler limit: initializers nested too deeply initializing tuple</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/fatal-error-C1001:-Internal-compiler-err/11077064">fatal error C1001: Internal compiler error</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/fatal-error-LNK1000:-Internal-error-duri/11098275">fatal error LNK1000: Internal error during 14.51 MSVC toolset test</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/ICE-linking-binary-with-LTCG-when-specif/1367326">ICE linking binary with LTCG when specifying /Od for some of the objs</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/ICE-preprocessing-file------------------/1541611">ICE preprocessing file with <code>_Pragma</code>.</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Incorrect-AVX-codegen-in-MSVC-1450-und/11080313">Incorrect AVX codegen in MSVC 14.50+ under specific circumstances</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Incorrect-type-is-passed-through-nested-/10813116">Incorrect type is passed through nested lambdas</a></li>
+<li><a href="https://developercommunity.visualstudio.com/content/idea/1119421/increase-compiler-limit-for-nested-initializers-fa.html">Increase compiler limit for nested initializers (fatal error C1054)</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Incremental-linking-is-broken-when-using/1650142">Incremental linking is broken when using the -noexp flag with link.exe</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Internal-Compiler-Error-when-struct-impl/10810991">Internal Compiler Error when struct implicitly converted to bool</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/LNK4279-icall-thunk-mismatch-on-ARM64EC-/11087716">LNK4279 icall thunk mismatch on ARM64EC with std::filesystem::path and std::chrono::tzdb</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/LNK4279-warning-when-building-ARM64EC-pr/11090020">LNK4279 warning when building ARM64EC projects with VS2026 18.6.0 Compiler 19.51</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/LTCG-back-end-1451-misorders-PS_ASSERT/11096029">LTCG back end 14.51 misorders PS_ASSERT(FALSE) before call on AMD64/ARM64</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Microsoft-Analyzer-crashes-with-fatal-er/11090217">Microsoft Analyzer crashes with fatal error C1001 on throw in ternary operator</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-O2-triggers-fatal-error-C1001-with/11098746">MSVC /O2 triggers fatal error C1001 with function named gsl::details::terminate</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-1451-C7658-rejects-array-variable-/11093931">MSVC 14.51 C7658 rejects array variable as non-type template argument (&#8216;the initializer must be the address of a variable or function&#8217;)</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-1451-codegen:-ternary-picks-wrong-/11093947">MSVC 14.51 codegen: ternary picks wrong =default constructed branch for std::string class</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-AVX-512-emits-invalid-EVEX-vpgather/11097498">MSVC AVX-512 emits invalid EVEX vpgatherdd with high ZMM index register</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-C1001-compiling-C20-operator-w/11090001">MSVC C1001 compiling C++20 operator&lt;=&gt; with conditional strong_ordering (cl 19.51)</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-calculates-an-incorrect-result-of-_/10617180">MSVC calculates an incorrect result of __is_constructible</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-clexe-hangs-compiling-some-Unreal-/11100391">MSVC cl.exe hangs compiling some Unreal Engine 5 source files</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-CLexe-Release-build-hits-internal-/11089236">MSVC CL.exe Release build hits internal compiler error in plutovg-font.c</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-coroutines-ICE-C1001-on-aggregate-i/11085222">MSVC coroutines ICE C1001 on aggregate init with shared_ptr field</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-ICE-in-PackExpandercpp-with-requir/11099199">MSVC ICE in PackExpander.cpp with requires default template argument before parameter pack</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-member-template-out-of-class-defini/11104307">MSVC member template out-of-class definition rejected with C2244/C2131</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-modules:-fatal-error-C1116-importin/11091367">MSVC modules: fatal error C1116 importing a partitioned C++23 module (compiled with <code>import std;</code>) after <code>#include</code>ing asio</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-out-of-class-conversion-operator-mi/11104309">MSVC out-of-class conversion operator misbinds Transform, C2976/C7753</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-preprocessor-crashes-on-function-li/11084102">MSVC preprocessor crashes on function-like macro expanded at _Pragma</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-recursive-variadic-template-NSDMI-l/11104312">MSVC recursive variadic template NSDMI lambda misfires C3482/C2951</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-rejects-nested-lambda-decltypelamb/11096967">MSVC rejects nested lambda decltype(lambda expression)::type alias in using declaration</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-v1451-Linker-Crash-in-IncrCalcPtrs/11090307">MSVC v14.51 Linker Crash in IncrCalcPtrs</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/range-based-for-variables-can-be-shadow-/11067523">range-based for variables can be shadow by loop&#8217;s block scope</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/std::generator-fails-to-compile-for-32-b/10920618">std::generator fails to compile for 32-bit x86 with /guard:cf with error C4737</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Type-trait-std::is_layout_compatible-ret/1534506">Type trait std::is_layout_compatible returns false negative when used on struct with nested structs</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/-VS2026-182-generates-incorrect-IL-when/11045112">VS2026 18.2 generates incorrect IL when inlining template function pointer calls in C++/CLI virtual destructors</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/VS2026-VC1450-ccli-O2-Common-Langua/11005462">VS2026 VC14.50 c++/cli /O2 Common Language Runtime detected an invalid program error</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/VSInstrCodeCoverageConsole-misinstrume/11085900">VSInstr/CodeCoverage.Console misinstrument switch tables, hang or crash</a></li>
+</ul>
+<h2>Try Out the MSVC Build Tools Preview!</h2>
+<p>Please try out the MSVC Build Tools Preview and let us know what you think! Installation instructions:</p>
+<ol>
+<li><a href="https://visualstudio.microsoft.com/insiders">Download Visual Studio 2026 Insiders</a> for frequent updates, or <a href="https://visualstudio.microsoft.com">download Visual Studio 2026</a> for less frequent updates.</li>
+<li>Install the Desktop development with C++ workload and make sure one or both of these MSVC components are checked (depending on your target build architecture):
+<ul>
+<li>MSVC Build Tools for x64/x86 (Preview)</li>
+<li>MSVC Build Tools for ARM64/ARM64EC (Preview)</li>
+</ul>
+</li>
+<li>Follow the instructions on https://aka.ms/msvc/preview on configuring your IDE &amp; command prompts to use the MSVC Build Tools Preview.</li>
+<li>Share your feedback with us on <a href="https://developercommunity.visualstudio.com/index.html">Visual Studio Developer Community</a>.</li>
+</ol>
+<p>The post <a href="https://devblogs.microsoft.com/cppblog/msvc-build-tools-preview-updates-july-2026/">MSVC Build Tools Preview updates &#8211; July 2026</a> appeared first on <a href="https://devblogs.microsoft.com/cppblog">C++ Team Blog</a>.</p>

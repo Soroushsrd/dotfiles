@@ -1,0 +1,1 @@
+<p>In <a href="/posts/2024-09-27_threaded_interpreter/">my last post</a> I described how I made a very fast BF interpreter. Well, there’s a lot more speed to be had with an optimizing compiler. This post is a write-up of my assignment for a compilers class, so the post a little rougher than normal.</p>

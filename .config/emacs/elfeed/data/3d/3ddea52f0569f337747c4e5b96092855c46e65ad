@@ -1,0 +1,11 @@
+<p>
+Marcin Borkowski (mbork) really likes all the ways you can mark files in Dired but noticed that an easy way to mark recently modified files was missing. He knows quite a bit about writing Elisp so it was an easy decision to decide <a href="https://mbork.pl/2026-05-18_Marking_today%e2%80%99s_files_in_Dired">to write some code to implement the missing feature</a>.
+</p>
+<p>
+The code, which you can see at his post, is pretty simple and easy to follow. What wasn&rsquo;t so easy were some annoying design decisions. For example, what constitutes the current day? Is it 24 hours ago until now or is it the previous midnight until now? And by the way, should that be UTC or local time?
+</p>
+<p>
+The natural interface is to specify the number of previous days you want to mark as a prefix argument but that leaves open the question of how to unmark the last <i>n</i> days. The natural solution—and the one mbork chose—is to use a negative <i>n</i> to mean &ldquo;unmark the last <i>n</i> days&rdquo;. So positive <i>n</i>, mark files modified in the last <i>n</i> days; negative <i>n</i> unmark file modified in the last <i>n</i> days. What about 0? Mbork made the arbitrary decision to have that mean mark files modified in the last 60 minutes.
+</p>
+<p>
+There are a couple of other nuances that you can read about in mbork&rsquo;s post. The real takeaway for me is how tricky it can be to get the small details right. That seems especially true when you&rsquo;re dealing with time calculations. Questions like, &ldquo;What, exactly, does ‘yesterday’ mean&rdquo; turn out to be a lot harder to answer than they first seem. Take a look at mbork&rsquo;s post to see what I mean.</p>

@@ -1,0 +1,248 @@
+
+<div class="wp-block-group has-text-color has-background has-link-color wp-elements-c051a5284b6e74d63c06c1757afbf80f" style="color:#2c5a11;background-color:#eafaeb"><div class="wp-block-group__inner-container is-layout-constrained wp-block-group-is-layout-constrained">
+<h2 class="wp-block-heading"><strong><em>tl;dr</em></strong>&#8230; A few highlights</h2>
+
+
+
+<ul class="wp-block-list">
+<li><em><strong>Adopted this week in draft C++29:</strong></em> Complete catalog of all undefined behavior (UB) in C++. Contract pre/post support for virtual functions. Defaulting (=default) for postfix increment/decrement. Designated initializers for base classes. Python-style .lookup(key) for associative containers. And more…</li>
+
+
+
+<li><em><strong>Other significant progress:</strong></em> Progress on various features targeting C++29, including systematically addressing UB and adding safety profiles for C++.</li>
+
+
+
+<li><em><strong>Next six months:</strong></em> Telecon line-by-line review of a proposal to systematically address all undefined behavior in C++. Progress adding C++ memory safety subsetting profiles. Both aim for inclusion in C++29.</li>
+</ul>
+</div></div>
+
+
+<div class="wp-block-image">
+<figure class="alignright size-medium"><a href="https://herbsutter.com/wp-content/uploads/2026/06/image.png"><img width="300" height="210" data-attachment-id="6249" data-permalink="https://herbsutter.com/2026/06/13/brno-trip-report/image-25/" data-orig-file="https://herbsutter.com/wp-content/uploads/2026/06/image.png" data-orig-size="350,245" data-comments-opened="0" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;,&quot;alt&quot;:&quot;&quot;}" data-image-title="image" data-image-description="" data-image-caption="" data-large-file="https://herbsutter.com/wp-content/uploads/2026/06/image.png?w=350" src="https://herbsutter.com/wp-content/uploads/2026/06/image.png?w=300" alt="" class="wp-image-6249" srcset="https://herbsutter.com/wp-content/uploads/2026/06/image.png?w=300 300w, https://herbsutter.com/wp-content/uploads/2026/06/image.png?w=150 150w, https://herbsutter.com/wp-content/uploads/2026/06/image.png 350w" sizes="(max-width: 300px) 100vw, 300px" /></a></figure>
+</div>
+
+
+<h2 class="wp-block-heading">Overview</h2>
+
+
+
+<p class="wp-block-paragraph">A few minutes ago, the ISO C++ committee completed the first meeting of C++29 in beautiful Brno, Czechia (hybrid online via Zoom).</p>
+
+
+
+<p class="wp-block-paragraph">This meeting was hosted by <strong>Mendel University in Brno</strong>. Thank you to everyone involved, including especially<strong> Hana Dusíková </strong>who took the lead in making the arrangements! Our hosts arranged for high-quality facilities for our six-day meeting from Monday through Saturday.</p>
+
+
+
+<p class="wp-block-paragraph">We had about 200 attendees, split about 55%/45% on-site/on-line, formally representing 28 nations. At each meeting we regularly have new guest attendees who have never attended before, and this time there were 25 new guest attendees, mostly on-site, in addition to new attendees who are official national body representatives. To all of them, once again welcome!</p>
+
+
+
+<p class="wp-block-paragraph"><a href="https://isocpp.org/std/the-committee">The committee</a> currently has 22 active subgroups, 11 of which met in 6 parallel tracks throughout the week. Some groups ran all week, and others ran for a few days or a part of a day, depending on their workloads. You can find a brief summary of ISO procedures <a href="https://isocpp.org/std/iso-iec-jtc1-procedures">here</a>.</p>
+
+
+
+<h2 class="wp-block-heading">Adopted for C++29: Core language changes/features</h2>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">These links are to the most recent public version of each paper. If a paper was tweaked at the meeting before being approved, the link tracks and will automatically find the updated version as soon as it’s uploaded to the public site.</p>
+
+
+
+<p class="wp-block-paragraph">Several of the adopted language and library additions are already supported today in major C++ implementations. “Adopted for C++29” doesn’t mean “have to wait until 2029 or later to start seeing some support in real compilers / standard libraries.”</p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph">In addition to fixing a list of issues, the core language adopted 19 papers, including the following…</p>
+
+
+
+<p class="wp-block-paragraph"><strong><a href="https://wg21.link/P3596">P3596R3 “Undefined Behavior and IFNDR Annexes”</a></strong> by <strong>Joshua Berne, Timur Doumler, Jens Maurer, and Shafik Yaghmour</strong>. This paper adds to the C++ standard two Annexes that thoroughly catalog and document each case of undefined behavior (UB) in C++, including cases marked as “ill-formed, no diagnostic required” or “IF-NDR.” This catalog is intended to aid in mitigating or eliminating cases of UB including by profiles.</p>
+
+
+
+<p class="wp-block-paragraph">This was, pardon my French, a &#8220;[metric] ton&#8221; of work over the course of several years. Thanks Shafik, Joshua, Timur, Jens, and everyone who helped them compile this detailed catalog so that now we can next systematically do something about these UB cases!</p>
+
+
+
+<p class="wp-block-paragraph">The next step is a case-by-case review starting next month with the aim to systematically address them for C++29, possibly as soon as within the next year (more on this below).</p>
+
+
+
+<p class="wp-block-paragraph">Here in C++, we face reality without fear or favor. In case it needs saying again: &#8220;<em>Yes, Virginia, there is a vibrant living modern programming language named C++.</em>&#8221; (Except, unlike <a href="https://en.wikipedia.org/wiki/Yes,_Virginia,_there_is_a_Santa_Claus">the original</a>, this version is the truth for adults.)</p>
+
+
+
+<p class="wp-block-paragraph"><strong><a href="https://wg21.link/p3097">P3097R3 “Contracts for C++: Virtual functions”</a></strong> by <strong>Timur Doumler, Joshua Berne, and Gašper Ažman</strong>. Quoting from the paper:</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph"><em>“The assertions of an overriding function are independent of those in the overridden function. In a virtual function call, the precondition and postcondition assertions of both the statically chosen function and the final overrider are evaluated. This approach evolves earlier proposals by supporting a broader range of use cases found in existing code, integrating more naturally with C++26 contract-evaluation semantics and contract-violation handling, and providing a better fit for the C++ language than the more restrictive models in languages like Eiffel and D.”</em></p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph">Adding this feature addresses one of the major complaints about contracts in C++26, which was that the initial version of contracts did not include virtual function support. Now, less than three months after C++26 was technically finalized, draft standard C++(29) contracts do support virtual functions. This demonstrates that the committee is serious about building out C++26 contracts in C++29. Thanks, Timur and Joshua and Gašper!</p>
+
+
+
+<p class="wp-block-paragraph"><strong><a href="https://wg21.link/p3668">P3668R4 “Defaulting Postfix Increment and Decrement Operations”</a></strong> by <strong>Matthew Taylor and Alex</strong>. This paper adds <strong>=default</strong> support for postfix increment and decrement operators to opt into the canonical definition that defers to the prefix versions, without us having to write the boilerplate by hand (and possibly getting it wrong). Thanks, Matthew and Alex! For example, this example from the paper is now legal in draft C++29:</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">class foo{<br>&nbsp;&nbsp;&nbsp; int member;<br>public:<br>&nbsp;&nbsp;&nbsp; constexpr foo&amp; operator++(){<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ++member;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return *this;<br>&nbsp;&nbsp;&nbsp; }<br>&nbsp;&nbsp;&nbsp; constexpr foo operator++(int) <strong>= default</strong>;<br>};</p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph"><strong><a href="https://wg21.link/p2287">P2287R6 “Designated-initializers for Base Classes”</a></strong> by <strong>Barry Revzin</strong>. This does just what it says on the tin. Thanks, Barry! An example from the paper:</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">struct A { int a; };</p>
+
+
+
+<p class="wp-block-paragraph">struct B : A { int b; };</p>
+
+
+
+<p class="wp-block-paragraph">B{{1}, 2}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <em>// already valid in C++17</em><br>B{1, 2}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <em>// already valid in C++17</em></p>
+
+
+
+<p class="wp-block-paragraph">B{.a=1, .b=2}&nbsp;&nbsp;&nbsp;&nbsp; <em>// now legal in C++29</em><br>B{{.a=1}, .b=2}&nbsp;&nbsp; <em>// now legal in C++29</em><br>B{.a{1}, .b{2}}&nbsp;&nbsp; <em>// now legal in C++29</em></p>
+
+
+
+<p class="wp-block-paragraph">B{.b=2, .a=1}&nbsp;&nbsp;&nbsp;&nbsp; <em>// still ill-formed</em></p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph">We also added a bunch more language extensions and improvements.</p>
+
+
+
+<h2 class="wp-block-heading">Adopted for C++29: Standard library changes/features</h2>
+
+
+
+<p class="wp-block-paragraph">In addition to fixing a list of issues, the standard library adopted 18 papers, including the following…</p>
+
+
+
+<p class="wp-block-paragraph"><strong><a href="https://wg21.link/p3091">P3091 “Better Lookups for map , unordered_map , and flat_map”</a></strong> by <strong>Pablo Halpern</strong>. This adds Python-style <strong>.lookup(key)</strong> support for <strong>map</strong>, <strong>unordered_map</strong>, and <strong>flat_map</strong> to C++29. This function, which returns an <strong>optional</strong>, enables things we can’t do today with <strong>operator[]</strong> which always inserts if the element isn’t present and <strong>find</strong> which only finds elements that are present. Thanks, Pablo! Here’s an example from the paper:</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">constexpr double inf = std::numeric_limits&lt;double&gt;::infinity();</p>
+
+
+
+<p class="wp-block-paragraph">double largest = -inf;</p>
+
+
+
+<p class="wp-block-paragraph">for (int i = 1; i &lt;= 100; ++i) {<br>&nbsp; largest = std::max(largest, theMap.lookup(i).value_or(-inf));<br>}</p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph"><strong><a href="https://wg21.link/p3125">P3125R6 “constexpr pointer tagging”</a></strong> by <strong>Hana Dusíková</strong>, aka The Queen of Constexpr. This paper’s <strong>pointer_tag_pair&lt;Pointer, BitsRequested = /* low bits available */, Tag = unsigned&gt;</strong> tagged pointer type provides portable support for storing information in the low bits of pointers. This is a lower-level library useful for many things including memory safety and security hardening. Thanks, Hana!</p>
+
+
+
+<p class="wp-block-paragraph"><strong><a href="https://wg21.link/p3248">P3248 “Require [u]intptr_t”</a></strong> by <strong>Gonzalo Brito Gadeschi</strong>. Formally in C and C++, until now <strong>intptr_t</strong> and <strong>uintptr_t </strong>were “optional,” so a C++ implementation could choose not to support them. Because they are useful for low-level code, and already widely supported, the C++ standard will now require them. Thanks, Gonzalo!</p>
+
+
+
+<p class="wp-block-paragraph">We also added a bunch more library extensions and improvements.</p>
+
+
+
+<h2 class="wp-block-heading">Other progress, especially on memory safety work</h2>
+
+
+
+<p class="wp-block-paragraph">We also made other important progress on features not yet ready to merge into the draft standard this week.</p>
+
+
+
+<p class="wp-block-paragraph">The following is not a complete list of progress made, but I want to especially highlight progress on several efforts related to memory safety:</p>
+
+
+
+<ul class="wp-block-list">
+<li><strong>Systematically addressing UB in C++ for C++29.</strong> The language evolution subgroup (EWG) also approved spending serious time this summer and fall on a line-by-line telecon review of <a href="https://wg21.link/p3100"><strong>P3100 “A framework for systematically addressing undefined behaviour in the C++ Standard”</strong></a> by <strong>Timur Doumler and Joshua Berne </strong>targeting inclusion in C++29. See the paper’s Abstract for a great summary.</li>
+
+
+
+<li><strong>Profiles specification for C++29. </strong>The Safety &amp; Security subgroup (SG23) decided to create a specification for Profiles, which enable static and other analysis rules that subset C++ to enforce that code does not use undesirable (e.g., memory-unsafe) operations and thereby harden C++ code in specific ways. That specification would be merged into C++29 if it arrives in time as expected, and otherwise could be published as a white paper concurrently with C++29.</li>
+
+
+
+<li><strong>Initialization profile.</strong> SG23 also reviewed the current draft of <a href="https://wg21.link/p4222"><strong>P4222 “An initialization profile”</strong></a> by <strong>Bjarne Stroustrup</strong> and we expect to make further progress on it this year, including with implementation experience in at least one major compiler codebase.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">As I covered in my previous trip reports, other profiles papers previously worked on include <a href="https://wg21.link/p3984"><strong>P3984 “A type-safety profile”</strong></a>&nbsp;by <strong>Bjarne Stroustrup</strong>, and <a href="https://wg21.link/p3589"><strong>P3589R2 “C++ Profiles: The Framework”</strong></a> by <strong>Gabriel Dos Reis</strong>, and several other complementary profiles proposal papers.</p>
+
+
+
+<p class="wp-block-paragraph">It’s an understatement to say that these would be enormously important and historic achievements:</p>
+
+
+
+<ul class="wp-block-list">
+<li>providing a way to systematically address C++ UB, and</li>
+
+
+
+<li>providing a way to guarantee a C++ program has specific properties, such as being free of memory-safety bugs.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">We’re not there yet, but both are now clearly more than wishful thinking; they are serious work items the committee intends to make some significant progress toward in the immediate future. I’ll continue to cover these efforts in future trip reports as the work progresses.</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">A reminder for those who continue to express skepticism that addressing UB in C++ will ever be feasible: Remember that we&#8217;re already doing it. <a href="https://youtu.be/QWqfJtjTAdw?si=LOhv2Unh-8bHeLLj&amp;t=1964"><strong>Don&#8217;t live in the past&#8230; &#8220;it&#8217;s not 2021 anymore&#8221; [BeCPP, YouTube].</strong></a></p>
+
+
+
+<ul class="wp-block-list">
+<li>Constexpr C++ code, which now includes nearly all of the C++ language and standard library, is already guaranteed to be UB-free when executed at compile time.</li>
+
+
+
+<li>C++26 additionally eliminated two major sources of UB: using uninitialized stack variables is no longer UB, and the C++ hardened standard library added bounds safety for dozens of the most common bounds operations (already widely deployed to harden Apple and Google platforms; see <a href="https://herbsutter.com/2026/03/29/c26-is-done-trip-report-march-2026-iso-c-standards-meeting-london-croydon-uk/">my previous trip report</a> for more about this).</li>
+</ul>
+</blockquote>
+
+
+
+<h2 class="wp-block-heading">Wrapping up</h2>
+
+
+
+<p class="wp-block-paragraph">Thank you again to the about 200 experts who attended on-site and on-line at this week’s meeting, and the many more who participate in standardization through their national bodies!</p>
+
+
+
+<p class="wp-block-paragraph">But we’re not slowing down… we’ll continue to have subgroup Zoom meetings, and then our next full meeting will be in <a href="https://isocpp.org/files/papers/N5021.html">Búzios, near Rio de Janeiro, Brazil in November</a> where we’ll continue adding features to C++29. I look forward to seeing many of you there.</p>
+
+
+
+<p class="wp-block-paragraph">Thank you to everyone reading this for your interest and support for C++ and its standardization.</p>

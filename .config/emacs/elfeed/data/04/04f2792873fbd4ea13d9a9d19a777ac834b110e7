@@ -1,0 +1,11 @@
+<p>
+Daniel Mendler, who took over as maintainer of the world&rsquo;s best RSS reader, <a href="https://github.com/emacs-elfeed/elfeed">Elfeed</a>, has <a href="https://www.reddit.com/r/emacs/comments/1tyq0xz/new_elfeed_400_release/?solution=16b207f9fd9c61a116b207f9fd9c61a1&amp;js_challenge=1&amp;token=7afd7253fec22262ff1c52b1703fe9ece35831f9f1fd8ae830c5acdc446ec168&amp;jsc_orig_r=">announced the release of Elfeed 4.0.0</a>. You can read the <a href="https://github.com/emacs-elfeed/elfeed/blob/main/NEWS.org#version-400-2026-06-06">Change File</a> to see what&rsquo;s new but the most important point for me is that the maintainership of Elfeed has successfully transitioned from Chris Wellons to Mendler.
+</p>
+<p>
+When Wellons <a href="https://irreal.org/blog/?p=13775">announced his retirement from the Emacs ecosphere</a>, I, and I&rsquo;m sure others, had a moment of apprehension. We all wondered if anyone could fill Wellons&rsquo; large shoes. I&rsquo;m happy to say that Mendler has shown himself up to the task and is doing a great job moving Elfeed forward.
+</p>
+<p>
+As I&rsquo;ve said before, I consider Elfeed an almost perfect RSS reader. It&rsquo;s easy to configure it to operate the way you need it to. One of Mendler&rsquo;s changes that I <i>really</i> like is the ability to pop into EWW if you need to. I use it from the default Elfeed text buffer but also from the WebKit mediated display if there are too many ads and blinkenlights on the default page. As I&rsquo;ve <a href="https://irreal.org/blog/?p=13846">said before</a>, I have a growing appreciation of EWW and am a bit surprised to find it becoming one of my go to tools.
+</p>
+<p>
+The important point, though, is that if you&rsquo;re an Emacs user who has an RSS feed, you should definitely try out Elfeed. You won&rsquo;t, believe me, want to go back.</p>

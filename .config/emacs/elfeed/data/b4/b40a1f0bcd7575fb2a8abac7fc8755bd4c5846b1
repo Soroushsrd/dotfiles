@@ -1,0 +1,8 @@
+<p>
+Bozhidar Batsov, who&rsquo;s been writing about <a href="https://github.com/oantolin/embark">Embark</a> lately has a <a href="https://emacsredux.com/blog/2026/07/25/cider-and-projectile-meet-embark/">nice post</a> on integrating <a href="https://github.com/clojure-emacs/cider">CIDER</a> and <a href="https://github.com/bbatsov/projectile">Projectile</a> into Embark. I don&rsquo;t use either of them so you might wonder why I care. The answer is that Batsov&rsquo;s post is a good example of how to add a new application to Embark.
+</p>
+<p>
+That turns out to be pretty easy. For projectile, Batsov built it into the app so you&rsquo;ll have to check <a href="https://github.com/bbatsov/projectile/blob/master/projectile.el#L15898">the source code</a> to see the details. For CIDER, though, he adds the Embark functionality externally so you can see how it&rsquo;s done. It&rsquo;s mainly a matter of writing some straightforward wrapper functions, binding them up in a keymap for Embark, providing a target function that identifies symbols, and finally adding the keymap to Embark.
+</p>
+<p>
+For me, then, the value of Batsov&rsquo;s post is that it serves as a how to that shows you the recipe for extending Embark to include new applications.</p>

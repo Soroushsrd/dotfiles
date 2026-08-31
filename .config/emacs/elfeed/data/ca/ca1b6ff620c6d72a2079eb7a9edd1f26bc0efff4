@@ -1,0 +1,42 @@
+<p>DuckDuckGo is a search engine. Like Google Search, you just throw some keywords into a box and get a list of results. Lots of people use Google, but I don’t. DuckDuckGo works better for me, and this is why.</p>
+<h1 id="consistent-results">Consistent Results</h1>
+<p>Did you know that Google will give you different search results, based on who you are and what you have searched for in the past? This is called a <a class="link-external" rel="external" href="https://en.wikipedia.org/wiki/Filter_bubble">filter bubble</a>, and it’s <a class="link-external" rel="external" href="https://spreadprivacy.com/google-filter-bubble-study/">annoying and dangerous</a>. DuckDuckGo doesn’t put you in a filter bubble.</p>
+<h1 id="goodies-and-tools">Goodies and Tools</h1>
+<p>Oh, man do I love the tools DuckDuckGo gives software developers. Here are just a few.</p>
+<h3 id="software-development">Software Development</h3>
+<ul>
+<li>Need to find a color? Search “color picker”. A built-in color picker pops up.</li>
+<li>Want to know the HTML character entity for, say, the interrobang? (‽) Type “HTML entity ‽”</li>
+<li>Got some JSON that you need to prettify? Search “json validator” for a validator and beautifier.</li>
+<li>Searching Stack Overflow, Mozilla Developer Network, etc. with Bangs! (more later)</li>
+<li>Keybinding references for Emacs, Vim, Bash, etc.</li>
+</ul>
+<h3 id="entertainment">Entertainment</h3>
+<ul>
+<li>Need to play 2048? Yes, just search “2048” and an in-browser game pops up.</li>
+<li>Today’s XKCD (search “xkcd”)</li>
+<li>Cheat sheets for Kerbal Space Program, Minecraft, League of Legends, etc.</li>
+</ul>
+<h3 id="bangs">Bangs</h3>
+<p>Perform special operations by putting the appropriate !-sequence at the beginning of your search.</p>
+<ul>
+<li><code>!yt</code> Search YouTube (“!yt glitter bomb package”)</li>
+<li><code>!a</code> Search Amazon</li>
+<li><code>!w</code> Search Wikipedia</li>
+<li><code>!mdn</code> Search Mozilla Developer Network</li>
+<li><code>!unsplash</code> Search Unsplash photos</li>
+<li><code>!img</code> Search Google images—proxied for you so you can keep your privacy</li>
+<li><code>!ldss</code> Search LDS Scriptures (just found this one 🤯</li>
+</ul>
+<p>There are thousands. Literally.</p>
+<h3 id="misc">Misc.</h3>
+<ul>
+<li>Generate Lorem Ipsum filler text by searching “lorem ipsum”</li>
+<li>Check the weather with “weather <code>&lt;zipcode&gt;/&lt;city name&gt;</code>”</li>
+<li>Calculator with “calculator”</li>
+</ul>
+<p>For a full list of instant answers, see <a class="link-external" rel="external" href="https://duck.co/ia">here</a>.</p>
+<p>For a full list of Bang-directives, see <a class="link-external" rel="external" href="https://duckduckgo.com/bang">here</a>.</p>
+<p>It’s incredible. It’s simple. Perhaps best of all, ad-free! Well, they do display ads based on your search term for <em>just that search</em>. They don’t track you. The ads are not customized to <em>you</em>, rather they are customized to your <em>search</em>. They’re not intrusive either. I forgot they were there until I was typing this. 😄</p>
+<p>But seriously. DuckDuckGo is amazing. Give it a try.</p>
+<p>You can even enable it as your default search engine on iOS. Go to Settings &gt; Safari &gt; Search Engine and select DuckDuckGo. You can set it as well in Safari on desktop, as well as Firefox. (I don’t use Chrome or Edge, though I imagine they’d let you do the same. Comment below if you find anything out.</p>

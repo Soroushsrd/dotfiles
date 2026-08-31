@@ -1,0 +1,1 @@
+GPU acceleration is the default assumption for machine learning inference. But Intel’s AMX (Advanced Matrix Extensions) may close the gap. AMX is built into recent Xeon processors, which are available from Azure. Can they compete with similarly priced GPU-based machines for the Tessera pipeline?

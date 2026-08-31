@@ -1,0 +1,11 @@
+<p>
+James Cherti has a new version (Release 1.0.4) of his <a href="https://github.com/jamescherti/inhibit-mouse.el">inhibit-mouse</a> package available. As the name suggests, it disables the mouse while you&rsquo;re using Emacs. I&rsquo;ve <a href="https://irreal.org/blog/?p=13286">written about inhibit-mouse before</a>. As I said in my previous post my first thought was that I don&rsquo;t need this because I&rsquo;ve already trained myself not to use the mouse while I&rsquo;m in Emacs.
+</p>
+<p>
+The thing is, though, that I mainly use my laptop—a MacBook Pro—which has a trackpad for mouse operations. Since I often use my laptop on my lap while sitting on the couch, it&rsquo;s easy to inadvertently touch the trackpad with my palm and change focus from one window to another. Turning off the mouse would eliminate that from happening. Still, I <i>do</i> use my trackpad to scroll Web pages and emails that are displayed with WebKit because there&rsquo;s no other decent way of doing so. Happily, inhibit-mouse is very configurable and you can, in particular, disable it&rsquo;s use in any major modes you like. That may solve my WebKit problem.
+</p>
+<p>
+Inhibit-mouse is a reimagining of Steve Purcell&rsquo;s <a href="https://github.com/purcell/disable-mouse">disable-mouse</a> package. Cherti claims inhibit-mouse has some advantages—such as being more efficient—over disable-mouse. Take a look at the repository to see what they are.
+</p>
+<p>
+If you&rsquo;re looking for a way to banish the mouse from your Emacs experience, this seems like a good way of doing so. You can even leave a couple of escape hatches if you need to.</p>

@@ -1,0 +1,46 @@
+<p>Conventional file managers have conditioned me to expect that a single left-button mouse click (<code>&lt;mouse-1&gt;</code>) will select a file (or directory) and double-click will open it. This is not the default behavior of Dired, where a single click is an open action. I find this far too twitchy for my taste.</p>
+<p>This post shows how to make Dired mouse interaction align with a conventional file manager where:</p>
+<ul>
+<li>
+<p>Single-click on a file or directory will move the point to it, making it the implicit target for any subsequent Dired command.</p>
+</li>
+<li>
+<p>Left double-click on file or directory will open it.</p>
+</li>
+<li>
+<p>Selecting multiple files is emulated using Dired marking, in this case using the binding <code>M-&lt;mouse-1&gt;</code> to toggle marking a file.</p>
+</li>
+</ul>
+<p>The first two points above can be addressed with the global variable <code>mouse-1-click-follows-link</code>. Dired uses this variable to control its mouse behavior, but we don’t want to change it everywhere, just for Dired buffers. This can be implemented by setting <code>mouse-1-click-follows-link</code> locally as a hook to <code>dired-mode-hook</code>:</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="p">(</span><span class="nv">add-hook</span>
+<span class="w"> </span><span class="ss">&#39;dired-mode-hook</span>
+<span class="w"> </span><span class="p">(</span><span class="nb">lambda</span><span class="w"> </span><span class="p">()</span>
+<span class="w">   </span><span class="p">(</span><span class="nb">setq-local</span><span class="w"> </span><span class="nv">mouse-1-click-follows-link</span><span class="w"> </span><span class="ss">&#39;double</span><span class="p">)))</span>
+</code></pre></div></td></tr></table></div>
+
+<p>To address multiple file selection, we can define a function <code>cc/dired-mouse-toggle-mark</code> and bind it to <code>M-&lt;mouse-1&gt;</code>.</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="p">(</span><span class="nb">defun</span><span class="w"> </span><span class="nv">cc/dired-mouse-toggle-mark</span><span class="w"> </span><span class="p">()</span>
+<span class="w">  </span><span class="s">&quot;Toggle mark of a Dired item via mouse.&quot;</span>
+<span class="w">  </span><span class="p">(</span><span class="k">interactive</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">unless</span><span class="w"> </span><span class="p">(</span><span class="nv">use-region-p</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="nv">mouse-set-point</span><span class="w"> </span><span class="nv">last-input-event</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nf">char-equal</span><span class="w"> </span><span class="p">(</span><span class="nf">char-after</span><span class="w"> </span><span class="p">(</span><span class="nf">line-beginning-position</span><span class="p">))</span><span class="w"> </span><span class="nv">dired-marker-char</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">call-interactively</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">dired-unmark</span><span class="p">)</span>
+<span class="w">      </span><span class="p">(</span><span class="nf">call-interactively</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">dired-mark</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nv">keymap-set</span><span class="w"> </span><span class="nv">dired-mode-map</span><span class="w"> </span><span class="s">&quot;M-&lt;mouse-1&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">cc/dired-mouse-toggle-mark</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+
+<p>Coupled with <a href="https://melpa.org/#/anju">Anju</a> support for a <a href="https://kickingvegas.github.io/anju/Dired-Mode-Context-Menu.html">Dired specific context menu</a> and many basic file manager operations can be done in Dired via mouse with minimal fuss.</p>

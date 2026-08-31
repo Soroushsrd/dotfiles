@@ -1,0 +1,250 @@
+<p>I spend some of my hobby time doing vulnerability triage on open source projects.
+As part of that, I see (and filter through) a lot of nonsense<sup id="fnref:nonsense"><a href="#fn:nonsense" class="footnote" rel="footnote" role="doc-noteref">1</a></sup>.</p>
+
+<p>Nonsense is not unique to vulnerability triage: lawyers deal with it
+too. To cope with it in the legal world, they use <a href="https://en.wikipedia.org/wiki/Brocard_(law)">brocards</a> —
+concise aphorisms that capture the essence of a legal principle. Any given
+brocard is not <em>universally</em> true<sup id="fnref:law"><a href="#fn:law" class="footnote" rel="footnote" role="doc-noteref">2</a></sup>, but provides a standard by which a claim
+can quickly be evaluated for legitimacy.</p>
+
+<p>Vulnerability triage has its own brocards, but I couldn’t find a comprehensive
+list of them anywhere. This is my attempt to compile such a list.</p>
+
+<h2 id="no-vuln-without-threat-model">No vulnerability report without a threat model<a href="#no-vuln-without-threat-model" class="header-anchor" aria-label="Permalink to no-vuln-without-threat-model">#</a></h2>
+
+<p><a href="https://alexgaynor.net">Alex Gaynor</a> explains this one well in
+<a href="https://alexgaynor.net/2025/oct/20/motion-to-dismiss/">Motion to Dismiss for Failure to State a Vulnerability</a>: a vulnerability report
+can be safely dismissed if it lacks a threat model, or if the threat model
+presented is incoherent.</p>
+
+<p>Examples include:</p>
+
+<ul>
+  <li>
+    <p>A report for a Python API that raises an exception in some undocumented
+or surprising cases<sup id="fnref:exceptions"><a href="#fn:exceptions" class="footnote" rel="footnote" role="doc-noteref">3</a></sup>, but doesn’t explain how an attacker could exploit that
+behavior to cause harm.</p>
+  </li>
+  <li>
+    <p>A report for a hang or stall in a local developer tool. Hangs are undesirable behavior,
+but the opportunity for harm from one is negligible in a developer tooling context:
+the developer can always just kill the process.</p>
+  </li>
+</ul>
+
+<h2 id="no-exploit-from-heavens">No exploit from the heavens<a href="#no-exploit-from-heavens" class="header-anchor" aria-label="Permalink to no-exploit-from-heavens">#</a></h2>
+
+<p>Closely related are vulnerability reports that describe a severe end state,
+but only under attacker capability assumptions that are
+<em>more powerful than the vulnerability itself</em>. In effect, in order to mount
+an attack that exploits the vulnerability, the attacker would <em>already</em>
+need to have an equal or more powerful capability than the vulnerability itself
+provides.</p>
+
+<p>Examples include:</p>
+
+<ul>
+  <li>
+    <p>A report for content manipulation on a web service, where the manipulation
+can only occur if the attacker is an active <a href="https://en.wikipedia.org/wiki/Man-in-the-middle_attack">meddler in the middle</a>.
+No vulnerability exists here, because an active MiTM could send entirely
+arbitrary content, and would not have to limit themselves to manipulating
+pre-existing content.</p>
+  </li>
+  <li>
+    <p>A report for code execution via memory corruption in CPython, where the
+memory corruption occurs by directly manipulating CPython’s object internals
+at runtime (via ctypes, for example). No vulnerability exists here, because
+the attacker is <em>already</em> running arbitrary code to perform the corruption.</p>
+  </li>
+</ul>
+
+<p><a href="https://devblogs.microsoft.com/oldnewthing/20060508-22/?p=31283">Raymond Chen has 2006 post that covers the same concept</a>. Thanks to
+<a href="https://ldpreload.com">Geoffrey Thomas</a> for sharing that with me!</p>
+
+<h2 id="no-vuln-outside-usage">No vulnerability outside of usage<a href="#no-vuln-outside-usage" class="header-anchor" aria-label="Permalink to no-vuln-outside-usage">#</a></h2>
+
+<p>A vulnerability report can be safely dismissed if it describes a behavior
+that <em>could</em> occur, but does not in fact occur in actual usage of the software.</p>
+
+<p>Examples include:</p>
+
+<ul>
+  <li>
+    <p>A report for a vulnerability in a private API within a library,
+where the only (private) usage of that API is not vulnerable.</p>
+
+    <p>For example, a C codebase might have a function that takes a <code class="language-plaintext highlighter-rouge">char *</code> and
+exhibits a buffer overflow with strings longer than 100 bytes,
+but a codebase where all calls to that function are statically assertable
+to not exceed that size is not vulnerable.</p>
+  </li>
+  <li>
+    <p>Similarly, a report for a vulnerability in an API (public <em>or</em> private),
+where the vulnerability can only occur by violating an invariant that
+the programmer is responsible for maintaining.</p>
+
+    <p>For example, an API might have a precondition that an input string is valid
+UTF-8, and an input that violates this precondition may cause an uncontrolled
+program abort. However, a fuzzer that discovers this behavior has not
+found a vulnerability, because in a real program the programmer is responsible
+for ensuring that the “building blocks” of the API are composed together.</p>
+
+    <p>It’s worth noting some nuance here: because the programmer is responsible for
+maintaining the invariant, there <em>is</em> a potentially legitimate vulnerability
+when <em>usage</em> of the API violates the invariant. By analogy:
+<code class="language-plaintext highlighter-rouge">free(3)</code> is not considered vulnerable to a double free, but a program that calls <code class="language-plaintext highlighter-rouge">free(3)</code> on
+an already freed pointer is considered vulnerable to a double free.</p>
+  </li>
+  <li>
+    <p>A re-report of a upstream’s vulnerability, where the upstream’s’s vulnerable
+behavior is not reachable in the downstream.</p>
+
+    <p>For example, CPython is shipped with a build of OpenSSL, and OpenSSL
+<a href="https://www.openssl.org/news/vulnerabilities.html">regularly has security advisories</a>.
+However, CPython’s exposure to OpenSSL is mostly limited to SSL/TLS and a subset
+of the X.509 APIs, and therefore vulnerabilities outside of these surfaces
+do not constitute a reasonable re-report to CPython.</p>
+  </li>
+</ul>
+
+<h2 id="no-vuln-from-standard-behavior">No vulnerability from standard behavior<a href="#no-vuln-from-standard-behavior" class="header-anchor" aria-label="Permalink to no-vuln-from-standard-behavior">#</a></h2>
+
+<p>Perhaps my most controversial (and personal) brocard: a vulnerability report can
+be safely dismissed if the behavior described is a direct consequence of the
+software’s <em>correct</em> adherence to a standard or specification. In these instances
+the vulnerability (if one exists) is present within the standard itself,
+and not the implementation.</p>
+
+<p>Examples include:</p>
+
+<ul>
+  <li>
+    <p>Behavior stemming from “robustness” requirements in standards. Many RFCs
+and similar standards inadvisably follow the (poorly named)
+<a href="https://en.wikipedia.org/wiki/Robustness_principle">robustness principle</a>, and allow interactions that are not well-defined
+(often by allowing the implementer to make a judgement call about
+the <em>intended</em> semantics of the interaction). For example, <a href="https://datatracker.ietf.org/doc/html/rfc7230">RFC 7230</a>
+has this under “Message Parsing Robustness” (ss. 3.5):</p>
+
+    <blockquote>
+      <p>In the interest of robustness, a server that is expecting to receive
+ and parse a request-line SHOULD ignore at least one empty line (CRLF)
+ received prior to the request-line.</p>
+
+      <p>Although the line terminator for the start-line and header fields is
+ the sequence CRLF, a recipient MAY recognize a single LF as a line
+ terminator and ignore any preceding CR.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Behavior stemming from cryptographic requirements that are insecure in
+isolation but secure by construction. The “classic”
+example of this is (typically automated) reports of MD5 usage, where that
+usage is solely in constructions where MD5 is not actually broken
+(i.e. HMAC-MD5). There’s a strong argument to be made that a <em>better</em>
+hash function should be used where permitted, but the presence of MD5
+in an HMAC construction is not itself a vulnerability.</p>
+  </li>
+</ul>
+
+<p>The nuance with this is that an implementation that <em>chooses</em> to be more
+strict than the standard requires <em>should</em> be considered vulnerable if the
+intended strictness is violated.</p>
+
+<h2 id="no-vuln-from-documented-behavior">No vulnerability from documented behavior<a href="#no-vuln-from-documented-behavior" class="header-anchor" aria-label="Permalink to no-vuln-from-documented-behavior">#</a></h2>
+
+<p>(Many thanks to <a href="https://github.com/hugovk">Hugo van Kemenade</a> for this one!)</p>
+
+<p>Similar to the above: a vulnerability report can be safely dismissed if the behavior
+is documented to occur, <em>particularly</em> when the documentation explicitly
+describes the security implications of the behavior or specific
+contexts in which the software is unsafe to use.</p>
+
+<p>Examples include:</p>
+
+<ul>
+  <li>
+    <p>Python’s <a href="https://docs.python.org/3/library/http.server.html"><code class="language-plaintext highlighter-rouge">http.server</code></a> is explicitly documented as not suitable
+for production use, as it only implements <a href="https://docs.python.org/3/library/http.server.html#http-server-security">basic security checks</a>.</p>
+  </li>
+  <li>
+    <p>Python’s <a href="https://docs.python.org/3/library/pickle.html"><code class="language-plaintext highlighter-rouge">pickle</code></a> is explicitly documented as not secure, full stop.</p>
+  </li>
+</ul>
+
+<p>Like with the previous brocard, the nuance here is that a downstream <em>usage</em>
+that violates the documented guidelines for use may be considered vulnerable.
+In other words: a report against <code class="language-plaintext highlighter-rouge">pickle</code> itself (for e.g. enabling code execution)
+may be safely dismissed, but a report against a downstream usage of <code class="language-plaintext highlighter-rouge">pickle</code>
+that ignores the documented warnings may be considered valid.</p>
+
+<h2 id="no-cure-worse-than-disease">No cure worse than the disease<a href="#no-cure-worse-than-disease" class="header-anchor" aria-label="Permalink to no-cure-worse-than-disease">#</a></h2>
+
+<p>The maintainer should reject (or contest) vulnerability reports whose consequences are
+worse than the consequences of the vulnerability itself.</p>
+
+<p>The classic example of this is <a href="/2022/12/28/ReDoS-vulnerabilities-and-misaligned-incentives">ReDoS</a> “vulnerabilities,” particularly in contexts
+where the impact of the “denial of service” is negligible<sup id="fnref:negligible"><a href="#fn:negligible" class="footnote" rel="footnote" role="doc-noteref">4</a></sup>. These
+reports typically involve nontrivial amounts of maintainer time and effort to
+triage, followed by nontrivial amounts of <em>downstream</em> time and effort to
+remediate, effectively resulting in a denial of service on the community itself.</p>
+
+<p><a href="https://github.com/advisories/GHSA-5239-wwwm-4pmq">CVE-2026-4539</a> is a recent case of this: an anonymous reporter filed a CVE
+against <a href="https://github.com/pygments/pygments">pygments</a> with <a href="https://vuldb.com/">VulDB</a>, seemingly bypassing any maintainer or community review.
+This report was not accompanied by a fixed version (because it’s junk, and
+ignores <a href="https://pygments.org/docs/security/">pygments’ own security policy</a>),
+but lit up tens of thousands of downstream dependencies with a “medium”
+severity vulnerability, <a href="https://github.com/pygments/pygments/issues/3058">causing significant disruption</a>.</p>
+
+<p>The status quo in 2026 is that the CVE ecosystem unreasonably places
+the onus on maintainers to contest this kind of spam when adversarial reporters
+bypass them entirely.</p>
+
+<h2 id="report-neither-necessary-nor-sufficient">The report is neither necessary nor sufficient<a href="#report-neither-necessary-nor-sufficient" class="header-anchor" aria-label="Permalink to report-neither-necessary-nor-sufficient">#</a></h2>
+
+<p>The presence of a vulnerability report (and a CVE or other identifier for
+that report) is neither necessary nor sufficient for a vulnerability to exist.</p>
+
+<p>This cuts both ways: many (perhaps the majority of) vulnerabilities are never
+“formally” reported, and many formal reports do not actually describe
+meaningful vulnerabilities (per above). Consequently, no <em>unvalidated</em> assumption should
+ever be made about the relationship between the presence of a report and the
+presence of a vulnerability.</p>
+
+<p>This is another unfortunate status quo, one that stems from (seemingly
+intentional) <a href="/2024/03/20/More-thoughts-on-vulnerabilities-and-misaligned-incentives">strategic ambiguity</a> in the vulnerability reporting ecosystem:
+partners like MITRE benefit simultaneously from being <em>perceived</em> as a high-quality
+source of vulnerability information, while also being able to disclaim any responsibility
+for communicating anything other than a stable identifier for a <em>claim</em> of vulnerability.</p>
+
+<hr />
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:nonsense">
+      <p>Spam, “beg bounty” submissions, and increasingly zero-effort LLM submissions. <a href="#fnref:nonsense" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:law">
+      <p>Brocards are also not <em>themselves</em> law. <a href="#fnref:law" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:exceptions">
+      <p>Vulnerability reports for libraries/components that raise exceptions
+           in managed libraries are very common, and often belie a fundamental
+           misunderstanding of the language’s execution contract. In Python,
+           for example, the presumed execution contract is that an exception
+           can occur at any point, and that a system should always be prepared
+           to handle an exception. This doesn’t mean that every single block
+           of code needs a <code class="language-plaintext highlighter-rouge">try..except</code>, but that all exceptions <em>do</em>
+           get handled eventually, and therefore vulnerabilities only
+           emerge when an exception is <em>mishandled</em>. <a href="#fnref:exceptions" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:negligible">
+      <p>Two common reasons for the negligibility of ReDoS: (1) the
+           only impact is to local workflows where the “denial” is trivially
+           cancellable (such as a developer tool running in a terminal),
+           and (2) the vulnerable behavior is only exhibited on arbitrary
+           inputs that would otherwise pose a denial of service “risk”. <a href="#fnref:negligible" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>

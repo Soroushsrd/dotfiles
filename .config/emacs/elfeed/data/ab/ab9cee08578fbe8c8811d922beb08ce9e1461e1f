@@ -1,0 +1,138 @@
+<p>The MSVC Build Tools Preview is updated regularly with the latest features and fixes from the MSVC development team. This post covers the past month worth of updates, currently targeting the v14.52 release. This encompasses changes across the compiler frontend, backend, linker, standard library, and related tools.</p>
+<p>Although you can acquire the MSVC Build Tools Preview through either the <a href="https://visualstudio.microsoft.com">Visual Studio 2026 Stable Channel</a>, or <a href="https://visualstudio.microsoft.com/insiders">Visual Studio 2026 Insiders Channel</a>, Insiders gets MSVC Preview updates roughly weekly.</p>
+<p>To check if it&#8217;s installed simply make sure one or both of these components are checked in the installer:</p>
+<ol>
+<li>MSVC Build Tools for x64/x86 (Preview)</li>
+<li>MSVC Build Tools for ARM64/ARM64EC (Preview)</li>
+</ol>
+<p>The version number printed by cl.exe and link.exe will be at least 19.52.36328 / 14.52.36328.</p>
+<p>We appreciate any feedback that you may have. Please report any issues on <a href="https://developercommunity.visualstudio.com/index.html">Visual Studio Developer Community</a> so we can address them by the time we move out of preview.</p>
+<h3>C++23: Immediate Escalation (P2564R3)</h3>
+<p>We&#8217;ve completed implementation of <a href="https://wg21.link/p2564r3">P2564R3</a> consteval needs to propagate up. In some cases, this feature allows constexpr functions or lambdas to become implicitly immediate if they call immediate (consteval) functions within their body.</p>
+<h3>C++ Modules Improvements</h3>
+<p>Several fixes improve the reliability of C++ modules:</p>
+<ul>
+<li>Module partition implementation units now correctly build when importing interfaces that contain exported function declarations.</li>
+<li>Non-type template parameters in dependent alias templates no longer lose their constant-expression status.</li>
+<li>Specializations that are not exported no longer produce a spurious error C7760.</li>
+<li>Fixed an issue where <code>std::format</code> inside a lambda produced unexpected compilation errors in C++20 mode.</li>
+</ul>
+<h3>Code Generation and Optimization</h3>
+<p><strong>ARM64 improvements:</strong></p>
+<ul>
+<li>Improved code generation for loading constant Neon vectors, producing more efficient instruction sequences.</li>
+<li>Fixed a miscompilation affecting ffmpeg on ARM64.</li>
+<li>Fixed an ARM64-specific crash in the code generator.</li>
+<li>Improved loop unrolling tuning, delivering measurable performance gains across workloads.</li>
+<li>Implemented indirect tail calls for additional ARM64 performance.</li>
+<li>Improved address mode selection for ARM64 code generation.</li>
+</ul>
+<p><strong>x64 improvements:</strong></p>
+<ul>
+<li>Improved code generation for popcount intrinsics.</li>
+<li>Improved optimization of bitwise operations.</li>
+<li>Improved optimization of trivial C++ struct assignments.</li>
+<li>Improved loop codegen, particularly for patterns where an <code>if</code> condition following a loop duplicates the loop&#8217;s control expression.</li>
+</ul>
+<p><strong>Vectorization:</strong></p>
+<ul>
+<li>Enhanced SLP (Superword Level Parallelism) vectorization, including support for vectorizing PHI nodes.</li>
+<li>Fixed an AVX2 vectorizer miscompilation involving reduction loops with <code>A[i] += B[j]</code> patterns.</li>
+<li>Fixed a pathological compile-time issue in the SLP vectorizer on certain large functions.</li>
+</ul>
+<h3>Linker Improvements</h3>
+<ul>
+<li>Fixed an ARM64 debugging issue where breakpoints couldn&#8217;t be hit on Windows Server 2022.</li>
+<li>Fixed a crash in the PDB server (mspdbsrv.exe).</li>
+</ul>
+<h3>Frontend and Conformance Fixes</h3>
+<ul>
+<li>Fixed incorrect acceptance of <code>reinterpret_cast</code> of function pointers in <code>constexpr</code> contexts. Code that relied on this non-standard behavior will now correctly produce an error.</li>
+<li><code>[[nodiscard]]</code> is no longer silently ignored in certain syntactic positions. A new warning (C5240) is emitted when the attribute cannot be applied.</li>
+<li>Corrected handling of <code>std::bit_cast</code> for empty classes.</li>
+<li>Fixed several internal compiler errors (ICEs) involving nested lambdas, function type aliases with <code>auto</code> return types, and SYCL kernel compilation.</li>
+<li>Added proper rejection of rvalue references as exception catch types, conforming to the C++ standard.</li>
+<li>Fixed deduction of <code>auto</code> return types for class members so that the return type is no longer prematurely deduced before the function body is defined.</li>
+<li>Fixed <code>static constexpr</code> member initialization to properly diagnose invalid initializers when defined out-of-line, instead of silently zero-initializing.</li>
+<li>Improved <code>static_assert</code> diagnostics in dependent class templates to include the &#8220;see reference to&#8221; message identifying the function causing the instantiation.</li>
+<li>Fixed handling of abbreviated function templates.</li>
+<li>Fixed error C2228 incorrectly produced in C++20 mode.</li>
+<li>Fixed template member function definition matching when using member constants.</li>
+<li>Fixed <code>__no_init_all_default_constructor</code> errors when using <code>/d1initall</code>.</li>
+</ul>
+<h3>AddressSanitizer</h3>
+<ul>
+<li>Runtime performance improvements including heap address caching, more efficient memory-mapped heap checks, and faster allocator flag assignments, resulting in significant performance gains across multiple runtime scenarios.</li>
+</ul>
+<h3>STL</h3>
+<ul>
+<li>See https://github.com/microsoft/STL/wiki/Changelog#msvc-build-tools-1452 for details on STL improvements in MSVC Build Tools Preview.</li>
+</ul>
+<h3>Other Fixes</h3>
+<ul>
+<li>Fixed <code>#pragma warning(disable: 4668)</code> not taking effect when generating preprocessor output with <code>/E</code>.</li>
+<li>Improved C4702 (unreachable code) warning accuracy to reduce false positives.</li>
+<li>Fixed colocated locals/parameters with overlapping lifetimes.</li>
+<li>Fixed an optimizer bug with <code>/EHa</code> and nested try/catch blocks.</li>
+<li>Fixed <code>std::vector::emplace_back</code> for classes with default member initializers.</li>
+</ul>
+<h2>Tickets Fixed</h2>
+<p>The following tickets reported through Developer Community have been fixed in this update:</p>
+<ul>
+<li><a href="https://developercommunity.visualstudio.com/t/Module-Partition-Implementation-Units-/11056294">Module Partition Implementation Units (&#8220;Internal Partitions&#8221;) fail to build when importing interfaces containing exported function declarations</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Extremely-bad-code-generation-bug-report/10798089">Extremely bad code generation bug reported fixed but still not fixed</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Internal-compiler-error-ICE-on-using-f/11068723">Internal compiler error (ICE) on using function type alias with auto deduced return type</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-incorrectly-accepts-reinterpret_cas/11046953">MSVC incorrectly accepts reinterpret_cast of function pointer in constexpr</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Incorrect-processing-of-template-class-N/11062662">Incorrect processing of template class NTTP in lambda function</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-doesnt-optimize-trivial-C-struct/10469543">C/C++ compiler doesn&#8217;t optimize trivial C++ structs assignments</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/VS-1842-__no_init_all_default_construc/11065428">VS 18.4.2 __no_init_all_default_constructor errors when using /d1initall</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/colocated-localsparameters-with-overlap/10744681">Colocated locals/parameters with overlapping lifetime</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-1951362101-and-1951362232-mis/11068576">MSVC miscompiles ffmpeg for ARM64</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/An-rvalue-reference-is-allowed-as-a-catc/11070346">An rvalue reference is allowed as a catch type</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/C1001-error-when-try-to-compile-with-SYC/11069974">C1001 error when trying to compile with SYCL kernel</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/funcoverride-fixed-crashes-linker-144/10961042">/funcoverride /fixed crashes linker</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Calling-std::format-inside-of-lambda-pro/10985180">Calling std::format inside of lambda produces an unexpected compilation error</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Internal-compiler-error-v1950-around-ne/11067194">Internal compiler error around nested lambdas</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/arm64-specific-crash-in-MSVC-195035728/11072933">ARM64-specific crash in MSVC for ARM64</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-for-ARM64-emits-suboptimal-code-gen/11056805">MSVC for ARM64 emits suboptimal code generation for load of constant Neon vector (Part 1)</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-for-ARM64-emits-suboptimal-code-gen/11056812">MSVC for ARM64 emits suboptimal code generation for load of constant Neon vector (Part 2)</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Memory-reference-error-due-to-excessive-/10477735">Memory reference error due to excessive optimization in /O1, /O2, /Ox options</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Incorrect-compilation:-static-constexpr-/10417772">Incorrect compilation: static constexpr member with invalid initialisation is zero-initialised when defined out-of-line</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Poor-x64-code-generation-for-popcount-in/10532067">Poor x64 code generation for popcount intrinsics</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Class-member-with-auto-deduced-return-ty/11076206">Class member with auto deduced return type can have its return type deduced before the function is defined</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/illegal-code-leading-to-ICE-in-C20-mod/11008647">Illegal code leading to ICE in C++20 mode</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Specific-file-takes-15x-longer-to-compi/11042037">Specific file takes ~15x longer to compile with latest cl.exe</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/std::vector::emplace_back-does-not-work-/1691516">std::vector::emplace_back does not work for a class with default initializer</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/incorrect-AVX512-code-generated-when-usi/10639101">Incorrect AVX-512 code generated when using optimization</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/_mm256_cvtxps_ph-produces-incorrect-resu/10790980">_mm256_cvtxps_ph produces incorrect results</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Code-is-rejected-with-error-C2228-when-c/10985126">Code is rejected with error C2228 when compiled in C++20 mode</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/C-modules:-error-C7760-on-specializati/11077265">C++ modules: error C7760 on specialization that is not exported</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/False-Positive-C4702:-unreachable-code-w/10061207">Unclear C4702: unreachable code warning</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-Modules-Regression:-Non-type-templa/11062602">MSVC Modules Regression: Non-type template parameter loses constant-expression status inside dependent alias template</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Abbreviated-function-templates-are-treat/11070179">Abbreviated function templates are treated incorrectly</a></li>
+<li><a href="https://developercommunity2.visualstudio.com/t/Incomplete-Diagnostic-of-static_assert-i/1291658">Incomplete diagnostic of static_assert in dependent class template: omits &#8220;see reference to&#8221; function causing the instantiation</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/MSVC-180-incorrectly-handles-optimizat/11075435">MSVC incorrectly handles optimizations in the face of changes to floating point rounding mode</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/std::bit_cast-does-not-work-for-empty-cl/10628342">std::bit_cast does not work for empty classes</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Unable-to-match-function-definition-fo/10902169">&#8220;Unable to match function definition&#8221; for template member function using member constants</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/nodiscard-is-silently-ignored/10951770">nodiscard is silently ignored</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Lambda-with-empty-capture-cannot-be-used/10229322">Lambda with empty capture cannot be used as template auto parameter</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Invalid-C2102-when-passing-a-pointer-to-/10257585">Invalid C2102 when passing a pointer to function to a class template</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/Internal-Compiler-Error-compiler-file-/10586070">Internal Compiler Error (compiler file &#8216;msc1.cpp&#8217;, line 1587)</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/sub-object-points-to-memory-which-was-/10627900">Internal compiler error in cl.exe</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/error-C1001:-Internal-compiler-error/10760367">Error C1001: Internal compiler error</a></li>
+<li><a href="https://developercommunity.visualstudio.com/t/VS2022-17130-Preview-10:-Internal-Com/10789613">Internal Compiler Error using std::bit_cast with structures with bit fields (in Debug mode)</a></li>
+</ul>
+<h2>Try Out the MSVC Build Tools Preview!</h2>
+<p>Please try out the MSVC Build Tools Preview and let us know what you think! Installation instructions:</p>
+<ol>
+<li><a href="https://visualstudio.microsoft.com/insiders">Download Visual Studio 2026 Insiders</a> for frequent updates, or <a href="https://visualstudio.microsoft.com">download Visual Studio 2026</a> for less frequent updates.</li>
+<li>Install the Desktop development with C++ workload and make sure one or both of these MSVC components are checked (depending on your target build architecture):
+<ul>
+<li>MSVC Build Tools for x64/x86 (Preview)</li>
+<li>MSVC Build Tools for ARM64/ARM64EC (Preview)</li>
+</ul>
+</li>
+<li>Follow the instructions on https://aka.ms/msvc/preview on configuring your IDE &amp; command prompts to use the MSVC Build Tools Preview.</li>
+<li>Share your feedback with us on <a href="https://developercommunity.visualstudio.com/index.html">Visual Studio Developer Community</a>.</li>
+</ol>
+<p>The post <a href="https://devblogs.microsoft.com/cppblog/msvc-build-tools-preview-updates-may-2026/">MSVC Build Tools Preview updates &#8211; May 2026</a> appeared first on <a href="https://devblogs.microsoft.com/cppblog">C++ Team Blog</a>.</p>

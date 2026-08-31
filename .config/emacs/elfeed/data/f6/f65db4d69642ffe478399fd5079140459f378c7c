@@ -1,0 +1,11 @@
+<p>
+<a href="https://olddeuteronomy.github.io">The Emacs Cat</a>, of whom I&rsquo;ve written many times, has a post <a href="https://olddeuteronomy.github.io/post/emacs-dired-ubuntu26/">on a broken change in Ubuntu that affected Emacs</a>. The TL;DR is that the Cat upgraded to Ubuntu 26.4 but when he tried to use Emacs he discovered a problem with Dired. At first he thought the problem was with Emacs 30.2, which is the default Emacs with that version of Ubuntu. But the actual problem turned out to be with Ubuntu&rsquo;s implementation of <code>ls</code>. The Cat solved his problem by using the &ldquo;old&rdquo; version of <code>ls</code> from <a href="https://github.com/coreutils/coreutils">GNU coreutils</a>. Ubuntu had decided that it was a good idea to rewrite the core Unix utilities—such as <code>ls</code>​—in Rust.
+</p>
+<p>
+Maybe I&rsquo;m just old and grumpy but this seems to me to be a terrible idea. Utilities like <code>ls</code> have been around and working more or less flawlessly for close to 50 years. What, really, was the reasoning behind the decision to rewrite <code>ls</code>? Twenty six years ago, Joe Spolsky <a href="https://www.joelonsoftware.com/2000/04/06/things-you-should-never-do-part-i/">answered that question and explained why the rewriting is almost always a bad idea</a>.
+</p>
+<p>
+It may have been written a quarter of century ago but Spolsky&rsquo;s explanation remains true. There really is no reason—other than fashion—to rewrite core utilities that have been working perfectly well for longer than many of us have been alive. When you do, you can expect exactly the sort of problem that the Cat stumbled on.
+</p>
+<p>
+The problem with the new <code>ls</code> was very specific involving an obscure parameter but it reached out to disable a major Emacs functionality and probably affected other applications as well. The annoying thing is that there really wasn&rsquo;t any reason for this to happen: just someone who decided it would be a good idea to rewrite an application that was working fine.</p>

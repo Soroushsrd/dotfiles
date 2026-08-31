@@ -1,0 +1,1 @@
+In a previous post, I compared the ONNX Runtime with PyTorch on the CPU and GPU. In this post, I take this to the extreme to see if a CPU can outpace the NVIDIA L4 GPU.

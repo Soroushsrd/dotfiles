@@ -1,0 +1,1 @@
+We use OCluster to manage the build cluster for the CI services backing OCaml-CI and opam-repo-ci. However, it is a general-purpose tool and isn’t tied to being a build system; it can distribute any jobs across multiple worker machines.

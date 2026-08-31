@@ -1,0 +1,11 @@
+<p>
+If you&rsquo;re an Org user, you probably know that you can assign a priority to TODO items. By default, the priorities are A, B, and C but with <a href="https://ray-on-emacs.blogspot.com/2026/07/numeric-priorities-in-org-mode.html">a bit of trickery</a> you can extend the ranges to 0–9 and A–Z.
+</p>
+<p>
+I never use priorities but Raymond Zeitler does and after figuring out the above trickery he thought <a href="https://ray-on-emacs.blogspot.com/2026/07/one-hundred-times-highest-priority.html">it would be useful to have an ultimate priority</a> a sort of &ldquo;drop everything and do this immediately&rdquo; priority. He decided to make this priority 100 times the highest priority and to designate it with <code>!</code>.
+</p>
+<p>
+The solution wasn&rsquo;t straightforward but it wasn&rsquo;t too difficult either. The thing about Emacs is that it&rsquo;s easy to check the source code to see how things are done. It turns out that Org has a <code>org-priority-get-priority-function</code> variable that contains a function that Org calls to get the priority from the priority cookie. Zeitler wrote his own version to check for a <code>!</code> and return the high priority if it&rsquo;s found. If not, then it calls a slightly modified version of the normal function.
+</p>
+<p>
+As I say, I don&rsquo;t make use of the priority mechanism and have no idea how many people do but if you&rsquo;re one of them and are looking for a way to specify an extraordinary priority, take a look at Zeitler&rsquo;s post. You can cut and paste his code if you&rsquo;re interested.</p>

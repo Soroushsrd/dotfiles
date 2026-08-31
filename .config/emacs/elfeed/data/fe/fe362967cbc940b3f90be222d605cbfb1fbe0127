@@ -1,0 +1,142 @@
+<p>Emacs has multiple built-in libraries for folding code, as is the case for most things Emacs. The default interface it exposes for folding functions is unwieldy and cumbersome, as is the case for most things Emacs.</p>
+<p>There is some overlap between Hideshow-mode and Outline-minor-mode. The latter is mainly for folding and navigating nested Org-like headings, but can be extended with the Foldout library. (Also included in Emacs!) The former works well to hide nested blocks of code. Both libraries use regular expressions and only support a few languages out of the box, so tree-sitter based folding is going to be a welcome addition whenever it arrives. But that&rsquo;s a story for another day. Today&rsquo;s problem is the user interface, which is independent of the folding backend.</p>
+<p>Here&rsquo;s the keymap for folding-related functions in the two modes:</p>
+<table>
+<thead>
+<tr>
+<th>Key binding</th>
+<th>Hideshow mode</th>
+<th>Key binding</th>
+<th>Outline minor mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>C-c @ C-a</code></td>
+<td><code>hs-show-all</code></td>
+<td><code>C-c @ TAB</code></td>
+<td><code>outline-show-children</code></td>
+</tr>
+<tr>
+<td><code>C-c @ C-c</code></td>
+<td><code>hs-toggle-hiding</code></td>
+<td><code>C-c @ C-k</code></td>
+<td><code>outline-show-branches</code></td>
+</tr>
+<tr>
+<td><code>C-c @ C-d</code></td>
+<td><code>hs-hide-block</code></td>
+<td><code>C-c @ C-o</code></td>
+<td><code>outline-hide-other</code></td>
+</tr>
+<tr>
+<td><code>C-c @ C-e</code></td>
+<td><code>hs-toggle-hiding</code></td>
+<td><code>C-c @ C-q</code></td>
+<td><code>outline-hide-sublevels</code></td>
+</tr>
+<tr>
+<td><code>C-c @ C-h</code></td>
+<td><code>hs-hide-block</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>C-c @ C-l</code></td>
+<td><code>hs-hide-level</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>C-c @ C-s</code></td>
+<td><code>hs-show-block</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>C-c @ C-t</code></td>
+<td><code>hs-hide-all</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>C-c @ ESC</code></td>
+<td><code>Prefix Command</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>C-c @ C-M-h</code></td>
+<td><code>hs-hide-all</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>C-c @ C-M-s</code></td>
+<td><code>hs-show-all</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>This is irritating on two levels.</p>
+<ul>
+<li>The key bindings are on a difficult to use keymap.</li>
+<li>There&rsquo;s no easy entry point and there are too many commands to do simple tasks.</li>
+</ul>
+<p>The former is easily rectified by rebinding keys or defining a transient/hydra menu, but the latter takes more work. Designing a better interface to Outline mode&rsquo;s folding functions was one of the original reasons for the creation of Org mode, which did a bang-up job: There&rsquo;s no learning curve to cycling Org headings with <code>TAB</code>. It <strong>just works</strong> and there&rsquo;s nothing to look up or remember!</p>
+<p>As of Emacs 28, Outline-mode and its minor-mode variant have acquired <code>outline-cycle</code>, a convenient fold cycling function inspired by Org. If you&rsquo;re on an older Emacs, there are packages for this: <a href="https://github.com/tarsius/bicycle">bicycle</a> and <a href="https://github.com/alphapapa/outshine">outshine</a>. For Hideshow mode there&rsquo;s <a href="https://melpa.org/#/hideshow-org">hideshow-org</a>, but this bugged out for me because it makes assumptions about the behavior of my already overloaded <code>TAB</code> key.</p>
+<p>So I took a crack at making a simple Org-like one-key interface to Hideshow.</p>
+<video style="center" width="700" autoplay controls loop>
+<source src="https://karthinks.com/img/hs-cycle.mp4" type="video/mp4">
+<p><a href="https://karthinks.com/img/hs-cycle.mp4">[HIDESHOW CYCLE DEMO]</a></p>
+</video>
+<p>(<a href="https://karthinks.com/img/hs-cycle.mp4">Direct link</a> to demo if the embed fails to load.)</p>
+<p>Here&rsquo;s how it works (bind it to whatever, it&rsquo;s <code>C-TAB</code> here):</p>
+<ul>
+<li><code>C-TAB</code> to cycle between showing unfolded, folded and showing children. (Same as Org)</li>
+<li><code>C-TAB</code> with a prefix argument to show arg levels. <em>i.e.</em> <code>C-3 C-TAB</code> will show unfolded up to the third level.</li>
+<li><code>C-S-TAB</code> to fold/unfold the whole buffer.</li>
+</ul>
+<p>I find myself calling <code>hs-cycle</code> with a numeric level as the prefix arg all the time to get a top-down overview of code at different levels of detail. Here are three views of the same function, folded and unfolded to levels 2 and 4:
+<img src="https://karthinks.com/img/hs-cycle-level.png" alt=""></p>
+<p>That&rsquo;s it. This combines <code>hs-show-all</code>, <code>hs-hide-all</code>, <code>hs-show-block</code>, <code>hs-hide-block</code>, <code>hs-toggle-hiding</code> and  <code>hs-hide-level</code> into two commands with a hopefully familiar usage pattern. It&rsquo;s not much code either:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">hs-cycle</span> (<span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">level</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">interactive</span> <span style="background-color:#fff0f0">&#34;p&#34;</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> (<span style="color:#963">message-log-max</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">inhibit-message</span> <span style="color:#036;font-weight:bold">t</span>))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">if</span> (<span style="color:#06b;font-weight:bold">=</span> <span style="color:#963">level</span> <span style="color:#00d;font-weight:bold">1</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">pcase</span> <span style="color:#963">last-command</span>
+</span></span><span style="display:flex;"><span>          (<span style="color:#a60;background-color:#fff0f0">&#39;hs-cycle</span>
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">hs-hide-level</span> <span style="color:#00d;font-weight:bold">1</span>)
+</span></span><span style="display:flex;"><span>           (<span style="color:#007020">setq</span> <span style="color:#963">this-command</span> <span style="color:#a60;background-color:#fff0f0">&#39;hs-cycle-children</span>))
+</span></span><span style="display:flex;"><span>          (<span style="color:#a60;background-color:#fff0f0">&#39;hs-cycle-children</span>
+</span></span><span style="display:flex;"><span>           <span style="color:#888">;; TODO: Fix this case. `hs-show-block&#39; needs to be</span>
+</span></span><span style="display:flex;"><span>           <span style="color:#888">;; called twice to open all folds of the parent</span>
+</span></span><span style="display:flex;"><span>           <span style="color:#888">;; block.</span>
+</span></span><span style="display:flex;"><span>           (<span style="color:#007020">save-excursion</span> (<span style="color:#963">hs-show-block</span>))
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">hs-show-block</span>)
+</span></span><span style="display:flex;"><span>           (<span style="color:#007020">setq</span> <span style="color:#963">this-command</span> <span style="color:#a60;background-color:#fff0f0">&#39;hs-cycle-subtree</span>))
+</span></span><span style="display:flex;"><span>          (<span style="color:#a60;background-color:#fff0f0">&#39;hs-cycle-subtree</span>
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">hs-hide-block</span>))
+</span></span><span style="display:flex;"><span>          (<span style="color:#963">_</span>
+</span></span><span style="display:flex;"><span>           (<span style="color:#007020">if</span> (<span style="color:#963">not</span> (<span style="color:#963">hs-already-hidden-p</span>))
+</span></span><span style="display:flex;"><span>               (<span style="color:#963">hs-hide-block</span>)
+</span></span><span style="display:flex;"><span>             (<span style="color:#963">hs-hide-level</span> <span style="color:#00d;font-weight:bold">1</span>)
+</span></span><span style="display:flex;"><span>             (<span style="color:#007020">setq</span> <span style="color:#963">this-command</span> <span style="color:#a60;background-color:#fff0f0">&#39;hs-cycle-children</span>))))
+</span></span><span style="display:flex;"><span>      (<span style="color:#963">hs-hide-level</span> <span style="color:#963">level</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">setq</span> <span style="color:#963">this-command</span> <span style="color:#a60;background-color:#fff0f0">&#39;hs-hide-level</span>))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">hs-global-cycle</span> ()
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">interactive</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">pcase</span> <span style="color:#963">last-command</span>
+</span></span><span style="display:flex;"><span>      (<span style="color:#a60;background-color:#fff0f0">&#39;hs-global-cycle</span>
+</span></span><span style="display:flex;"><span>       (<span style="color:#007020">save-excursion</span> (<span style="color:#963">hs-show-all</span>))
+</span></span><span style="display:flex;"><span>       (<span style="color:#007020">setq</span> <span style="color:#963">this-command</span> <span style="color:#a60;background-color:#fff0f0">&#39;hs-global-show</span>))
+</span></span><span style="display:flex;"><span>      (<span style="color:#963">_</span> (<span style="color:#963">hs-hide-all</span>))))
+</span></span></code></pre></div><details>
+<summary>Note to future self</summary>
+<div class="details">
+<p>This code looks like it has some redundant clauses you can refactor using <code>hs-already-hidden-p</code>, and like you don&rsquo;t need to set <code>last-command</code> for all the clauses. Don&rsquo;t try this, it breaks in subtle ways.</p>
+</div>
+</details>

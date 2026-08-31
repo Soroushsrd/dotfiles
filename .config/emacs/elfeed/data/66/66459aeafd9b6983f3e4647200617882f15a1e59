@@ -1,0 +1,15 @@
+<p>
+John Gruber has a very interesting—at least for those of us who obsess about typography—post on the <a href="https://daringfireball.net/2026/05/the_fonts_of_the_us_federal_courts">fonts used by the various federal courts of appeal</a>. For those of you who don&rsquo;t know, the courts are very strict about the written format of their decisions <i>and</i> of the briefs filed with them. Not only is there a fixed and rigid format, the font used is also specified. Failure to adhere to the standard is <i>prima facie</i> reason for rejecting the filing. That said, each district has it&rsquo;s own standards and choice of font. Some of those are particularly ugly versions of Courier and others are beautiful fonts such as <a href="https://www.freefonts.io/century-schoolbook-serif-font/">Century Schoolbook</a> and <a href="https://typographyforlawyers.com/equity.html">Equity</a>.
+</p>
+<p>
+The Supreme Court—which <a href="https://irrealblog.blogspot.com/2011/04/supreme-court-briefs-before-technology.html">used to insist on hot-metal typeset documents</a>—uses Century Schoolbook. Take a look at Gruber&rsquo;s post for the interesting details.
+</p>
+<p>
+None of this would be Irreal fodder except for a <a href="https://www.tuhs.org/pipermail/tuhs/2026-May/033839.html">thread on the TUHS mailing list</a> about LaTeX versus Troff for typesetting. Some of the discussion involved the difference between the input languages but a surprising amount talked about fonts as if Troff was still being run on a C/<br />
+A/T typesetter with a single fixed font. In fact, both typesetters can use just about any font although it is true that the output from each <i>does</i> have a distinctive look.
+</p>
+<p>
+I wrote two books for a major publisher and typeset them using Troff so at the time I could probably have been considered a Troff expert. Then I started using Lisp and partly as a result I moved to Emacs. Since then, I do all my writing in Org mode, which, of course, uses LaTeX for producing typeset output.
+</p>
+<p>
+Sadly, these days I can&rsquo;t be considered an expert in either Troff or LaTeX but it doesn&rsquo;t really matter because Emacs has me covered. I simply write in Org mode and get great results for printed  content. I still know enough LaTeX to tweak my results if I need to so I have the best of both worlds: the ease of Org and the power of LaTeX.</p>

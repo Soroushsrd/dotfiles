@@ -1,0 +1,11 @@
+<p>
+Jonathan Chu is a software engineer and Emacs enthusiast who&rsquo;s been looking for a note taking app that he can actually use. He&rsquo;s tried all the usual suspects but found them too opinionated for his liking. He wanted to work in Emacs and write his notes in Org mode but none of the existing packages were quite right. So he did what Emacs users always do when things don&rsquo;t work exactly as they like: <a href="https://jonathanchu.is/posts/introducing-grove/">he wrote an Emacs package do things the way he wanted</a>. The result was <a href="https://github.com/jonathanchu/grove">grove</a>.
+</p>
+<p>
+Chu says that Grove was informed by his experience with <a href="https://obsidian.md/">Obsidian</a>. I&rsquo;ve never used Obsidian so I can&rsquo;t comment on that aspect but Chu says that Grove is Obsidian-like. The only external dependencies are <a href="https://github.com/BurntSushi/ripgrep">ripgrep</a>, <a href="https://graphviz.org/">Graphviz</a> if you want the graph view, and <a href="https://github.com/minad/consult">Consult</a> if you want the enhanced search capability. One of his goals was to have an easily installable and configurable package.
+</p>
+<p>
+It looks like a pretty nice package if you&rsquo;re looking for a note taking method with a bit of but not too much structure. I use Org mode for all my note taking across many dimensions and have never felt the need for a more organized approach. Sure, sometimes I think about using Denote or Org Roam but—for me—they never seemed worth the effort. Many others disagree, of course, but Emacs has a home for us all,
+</p>
+<p>
+Take a look at his post or the Github repository for the details and a bit more on how things work.</p>

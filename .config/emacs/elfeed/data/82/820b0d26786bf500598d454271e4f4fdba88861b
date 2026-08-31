@@ -1,0 +1,17 @@
+<p>
+Most Irreal readers interested in security and privacy are familiar with Matthew Green, a cryptographer at Johns Hopkins University. He&rsquo;s got a new post up that is terrifying to those of us who want to keep our private things private.
+</p>
+<p>
+The TL;DR is that recent gains in the AI mediated search for exploits is going to have terrible consequences. The problem is not that criminals will be able to romp through our systems; the defenders are also using those AIs to locate and patch vulnerabilities in their software. Soon, Green says, there will be virtually no usable remote exploits left. That sounds good, so what&rsquo;s the problem?
+</p>
+<p>
+The problem according to Green is that law enforcement, which this time is facing a <i>real</i> going dark danger, <a href="https://blog.cryptographyengineering.com/2026/08/14/everything-is-about-to-go-dark/">will renew their demands for a backdoor into all encrypted communications</a>. They&rsquo;ve tried that before, of course, but there was always some surveillance company that had a handy exploit that allowed them to get their information without a backdoor. That demoted their desire for a backdoor to a &ldquo;nice to have&rdquo; instead of a critical necessity.
+</p>
+<p>
+Nobody reading this needs an explanation for why a backdoor is a terrible idea that will make us less safe while hardly giving the bad guys pause. A nice, less technical, example is if the police demanded that they be given a master key that would open any of our doors so that they could come in at will and look around for evidence of wrongdoing. Sure, it would make crime fighting easier in some cases but who would agree to that? No one is who.
+</p>
+<p>
+Nonetheless, we can be certain that law enforcement will renew their demands with lots of talk about children, drugs, and terrorism as usual. We&rsquo;ve heard it all before. The only difference is that this time the FBI won&rsquo;t be <a href="https://irreal.org/blog/?p=7218">lying about going dark</a>.
+</p>
+<p>
+Be sure to take a look at Green&rsquo;s post for more details from an expert who studies these issues for a living.</p>

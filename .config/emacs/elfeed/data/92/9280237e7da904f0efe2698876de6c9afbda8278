@@ -1,0 +1,270 @@
+<p><strong>TL;DR</strong>: GitHub Actions provides a policy mechanism for limiting the kinds of
+actions and reusable workflows that can be used within a repository,
+organization, or entire enterprise. Unfortunately, this mechanism is <strong>trivial
+to bypass</strong>. GitHub has told me that they don’t consider
+this a security issue (I disagree), so I’m publishing this post as-is.</p>
+
+<p><strong>Update 2025-06-13</strong>: GitHub has <a href="https://docs.github.com/en/enterprise-cloud@latest/admin/enforcing-policies/enforcing-policies-for-your-enterprise/enforcing-policies-for-github-actions-in-your-enterprise#allow-enterprise-and-select-non-enterprise-actions-and-reusable-workflows">silently updated</a> the actions policies
+documentation to note the bypass in this post:</p>
+
+<blockquote>
+  <p>Policies never restrict access to local actions on the runner filesystem (where the <code class="language-plaintext highlighter-rouge">uses:</code> path start with <code class="language-plaintext highlighter-rouge">./</code>).</p>
+</blockquote>
+
+<p><img src="/assets/oops-all-uses.jpg" alt="" height="400px" /></p>
+
+<h2 id="background">Background<a href="#background" class="header-anchor" aria-label="Permalink to background">#</a></h2>
+
+<p>GitHub Actions is GitHub’s CI/CD offering. I’m a big fan of it, despite its
+<a href="https://www.wiz.io/blog/github-actions-security-guide">spotty</a>
+<a href="https://grafana.com/blog/2025/04/27/grafana-security-update-no-customer-impact-from-github-workflow-vulnerability/">security</a>
+<a href="https://blog.pypi.org/posts/2024-12-11-ultralytics-attack-analysis/">track</a>
+<a href="https://adnanthekhan.com/2024/12/21/cacheract-the-monster-in-your-build-cache/">record</a>.</p>
+
+<p>Because a CI/CD offering is essentially <strong>arbitrary code execution as
+a service</strong>, users are <em>expected</em> to be careful about what they allow
+to run in their workflows, <em>especially</em> privileged workflows that have access
+to secrets and/or can modify the repository itself. That, in effect, means
+that users need to be careful about what <a href="https://docs.github.com/en/actions/sharing-automations/avoiding-duplication">actions</a> and <a href="https://docs.github.com/en/actions/using-workflows/reusing-workflows">reusable workflows</a>
+they trust.</p>
+
+<p>Like with other open source ecosystems, downstream consumers (i.e., users
+of GitHub Actions) retrieve their components (i.e., action definitions)
+from an essentially open index (the <a href="https://github.com/marketplace?type=actions">“Actions Marketplace”</a>​<sup id="fnref:open"><a href="#fn:open" class="footnote" rel="footnote" role="doc-noteref">1</a></sup>).</p>
+
+<p>To establish trust in those components, downstream users perform all of the
+normal fuzzy heuristics: they look at the number of stars, the number
+of other user, recency of activity, whether the user/organization
+is a “good” one, and so forth.</p>
+
+<p>Unfortunately, this isn’t good enough along two dimensions:</p>
+
+<ol>
+  <li>
+    <p>Even actions that satisfy these heuristics can be compromised.
+They’re heuristics after all, not verifiable assertions of quality
+or trustworthiness.</p>
+
+    <p>The recent <a href="https://unit42.paloaltonetworks.com/github-actions-supply-chain-attack/">tj-actions attack</a> typifies this: even popular, widely-used
+actions are themselves software components, with their own supply chains
+(and CI/CD setups).</p>
+  </li>
+  <li>
+    <p>This kind of acceptance scheme <em>just doesn’t scale</em>, both in terms of
+human effort and system complexity: complex CI/CD setups can have dozens
+(or hundreds) of workflows, each of which can contain dozens (or hundreds)
+of jobs that in turn employ actions and reusable workflows.</p>
+
+    <p>These sorts of large setups don’t necessarily have a single owner
+(or even a single team) responsible for gating admission and preventing a
+the introduction of unvetted actions and reusable workflows.</p>
+  </li>
+</ol>
+
+<h2 id="github-actions-policies">GitHub Actions policies<a href="#github-actions-policies" class="header-anchor" aria-label="Permalink to github-actions-policies">#</a></h2>
+
+<p>The problem (as stated above) is best solved by <strong>eliminating the failure
+mode</strong> itself: rather than giving the system’s committers the ability to
+introduce new actions and reusable workflows without sufficient review,
+the system should <strong>prevent them from doing so in the first place</strong>.</p>
+
+<p>To their credit, GitHub understands this! They have a feature called
+“Actions policies<sup id="fnref:name"><a href="#fn:name" class="footnote" rel="footnote" role="doc-noteref">2</a></sup>” that does exactly this. From the
+<a href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#managing-github-actions-permissions-for-your-repository">Manage GitHub Actions settings</a> documentation:</p>
+
+<blockquote>
+  <p>You can restrict workflows to use actions and reusable workflows in specific
+organizations and repositories. Specified actions cannot be set to more than
+1000. (sic)</p>
+
+  <p>To restrict access to specific tags or commit SHAs of an action or reusable
+workflow, use the same syntax used in the workflow to select the action or
+reusable workflow.</p>
+
+  <ul>
+    <li>
+      <p>For an action, the syntax is <code class="language-plaintext highlighter-rouge">OWNER/REPOSITORY@TAG-OR-SHA</code>. For example, use
+<code class="language-plaintext highlighter-rouge">actions/javascript-action@v1.0.1</code> to select a tag or
+<code class="language-plaintext highlighter-rouge">actions/javascript-action@a824008085750b8e136effc585c3cd6082bd575f</code> to
+select a SHA. For more information, see Using pre-written building blocks
+in your workflow.</p>
+    </li>
+    <li>
+      <p>For a reusable workflow, the syntax is
+<code class="language-plaintext highlighter-rouge">OWNER/REPOSITORY/PATH/FILENAME@TAG-OR-SHA</code>. For example,
+<code class="language-plaintext highlighter-rouge">octo-org/another-repo/.github/workflows/workflow.yml@v1</code>. For more
+information, see Reusing workflows.</p>
+    </li>
+  </ul>
+
+  <p>You can use the <code class="language-plaintext highlighter-rouge">*</code> wildcard character to match patterns. For example, to allow
+all actions and reusable workflows in organizations that start with <code class="language-plaintext highlighter-rouge">space-org</code>,
+you can specify <code class="language-plaintext highlighter-rouge">space-org*/*</code>. To allow all actions and reusable workflows in
+repositories that start with <code class="language-plaintext highlighter-rouge">octocat</code>, you can use <code class="language-plaintext highlighter-rouge">*/octocat**@*</code>. For more
+information about using the <code class="language-plaintext highlighter-rouge">*</code> wildcard, see Workflow syntax for GitHub
+Actions.</p>
+
+  <p>Use <code class="language-plaintext highlighter-rouge">,</code> to separate patterns. For example, to allow <code class="language-plaintext highlighter-rouge">octocat</code> and <code class="language-plaintext highlighter-rouge">octokit</code>, you can
+specify <code class="language-plaintext highlighter-rouge">octocat/*, octokit/*</code>.</p>
+</blockquote>
+
+<p>GitHub also provides special “preset” cases for this functionality, such as
+allowing only actions and reusable workflows that belong to the same
+organization namespace as the repository itself. Here’s what that looks
+like on a dummy organization and repository of mine:</p>
+
+<p><img src="/assets/actions-policy-1.png" alt="A screen capture of the &quot;Actions permissions&quot; section" /></p>
+
+<p>…and here’s what happens when I try to violate that policy, e.g. by using
+<code class="language-plaintext highlighter-rouge">actions/checkout@v4</code> in a workflow:</p>
+
+<p><img src="/assets/actions-policy-2.png" alt="The error message from the resulting policy violation" /></p>
+
+<p>This is fantastic, except that it’s trivial to bypass. Let’s see how.</p>
+
+<h2 id="bypassing-policies">Bypassing policies<a href="#bypassing-policies" class="header-anchor" aria-label="Permalink to bypassing-policies">#</a></h2>
+
+<p>To understand how we’re going to bypass this, we need to understand a few
+of the building blocks underneath actions and reusable workflows.</p>
+
+<p>In particular:</p>
+
+<ul>
+  <li>Actions and reusable workflows share the same namespace as the rest of
+GitHub, i.e. <code class="language-plaintext highlighter-rouge">owner/repo</code><sup id="fnref:slug"><a href="#fn:slug" class="footnote" rel="footnote" role="doc-noteref">3</a></sup>;</li>
+  <li>When a user writes something like <code class="language-plaintext highlighter-rouge">uses: actions/checkout@v4</code> in a workflow,
+GitHub <em>resolves</em> that reference to mean “the <code class="language-plaintext highlighter-rouge">action.yml</code> file defined at
+tag <code class="language-plaintext highlighter-rouge">v4</code> in the <code class="language-plaintext highlighter-rouge">actions/checkout</code> repository”;</li>
+  <li><code class="language-plaintext highlighter-rouge">uses:</code> keywords can <strong>also</strong> refer to relative paths on the runner itself.
+For example, <code class="language-plaintext highlighter-rouge">uses: ./</code> runs the step with the <code class="language-plaintext highlighter-rouge">action.yml</code> in the current
+directory.</li>
+  <li>Relative paths from the runner are <strong>not</strong> inherently part of the repository
+state itself: the runner is can contain any state introduced by previous
+steps within the same job.</li>
+</ul>
+
+<p>These four aspects of GitHub Actions compose together into the <strong>world’s
+dumbest policy bypass</strong>: instead of doing <code class="language-plaintext highlighter-rouge">uses: actions/checkout@v4</code>,
+the user can <code class="language-plaintext highlighter-rouge">git clone</code> (or otherwise fetch) the <code class="language-plaintext highlighter-rouge">actions/checkout</code>
+repository into the runner’s filesystem, and then use <code class="language-plaintext highlighter-rouge">uses: ./path/to/checkout</code>
+to run the very same action.</p>
+
+<p>Here’s what that looks like in practice:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+</pre></td><td class="rouge-code"><pre><span class="na">on</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">push</span><span class="pi">,</span> <span class="nv">pull_request</span><span class="pi">]</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">test</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">mkdir -p ./tmp</span>
+          <span class="s">git clone https://github.com/actions/checkout.git ./tmp/checkout</span>
+
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">./tmp/checkout</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">repository</span><span class="pi">:</span> <span class="s">woodruffw/gha-hazmat</span>
+          <span class="na">path</span><span class="pi">:</span> <span class="s">gha-hazmat</span>
+
+      <span class="pi">-</span> <span class="na">run</span><span class="pi">:</span> <span class="s">ls &amp;&amp; pwd</span>
+
+      <span class="pi">-</span> <span class="na">run</span><span class="pi">:</span> <span class="s">ls tmp/checkout</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>(The actual <code class="language-plaintext highlighter-rouge">with:</code> block of the <code class="language-plaintext highlighter-rouge">uses: ./tmp/checkout</code> step is inconsequential
+— I just used that repository for the demo, but anything would work.)</p>
+
+<p>And naturally, it works just fine:</p>
+
+<p><img src="/assets/actions-policy-3.png" alt="A screenshot of the bypass running successfully " /></p>
+
+<h2 id="fixing-it">Fixing it?<a href="#fixing-it" class="header-anchor" aria-label="Permalink to fixing-it">#</a></h2>
+
+<p>The fix for this bypass is simple, if potentially somewhat painful:
+GitHub Actions could consider “local” <code class="language-plaintext highlighter-rouge">uses:</code> references to be another
+category for the purpose of policies, and reject them whenever the policy
+doesn’t permit them.</p>
+
+<p>This would seal off the entire problem, since <code class="language-plaintext highlighter-rouge">uses: ./foo</code> would just stop
+working. The downside is that it would potentially break existing users
+of policies who also use local actions and reusable workflows, assuming
+there are significant numbers of them<sup id="fnref:honest"><a href="#fn:honest" class="footnote" rel="footnote" role="doc-noteref">4</a></sup>.</p>
+
+<p>The other option would be to leave it the way it is, but <strong>explicitly document</strong>
+local <code class="language-plaintext highlighter-rouge">uses:</code> references as a limitation of this policy mechanism. I honestly
+think this would be perfectly fine; what matters is that users<sup id="fnref:users"><a href="#fn:users" class="footnote" rel="footnote" role="doc-noteref">5</a></sup>
+are <em>informed</em> of a feature’s limitations, not necessarily that the feature
+<em>lacks</em> limitations.</p>
+
+<h2 id="does-this-matter">Does this matter?<a href="#does-this-matter" class="header-anchor" aria-label="Permalink to does-this-matter">#</a></h2>
+
+<p>First, I’ll couch this again: this is not exactly fancy stuff. It’s a very
+dumb bypass, and I don’t think it’s critical by any means.</p>
+
+<p>At the same time, I think this <strong>matters a great deal</strong>: ineffective
+policy mechanisms are <strong>worse</strong> than missing policy mechanisms, because they provide
+all of the <em>feeling</em> of security through compliance while actually
+<strong>incentivizing malicious forms of compliance</strong>.</p>
+
+<p>In this case, the maliciously complying party is almost certainly a developer
+just trying to get their job done: like most other developers who encounter
+an inscrutable policy restriction, they will try to hack around it such that
+the policy is satisfied in name only.</p>
+
+<p>For that reason alone I think GitHub should fix this bypass, either by
+<em>actually</em> fixing it or at least documenting its limitations. Without either
+of those, projects and organizations are likely to <strong>mistakenly believe</strong> that
+these sorts of policies provide a <em>security boundary</em> where <strong>none in fact
+exists</strong>.</p>
+
+<hr />
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:open">
+      <p>Technically “publishing” an action to the Actions Marketplace
+     is not required; anybody can do <code class="language-plaintext highlighter-rouge">uses: foo/bar@v1</code> to fetch the
+     action defined in <code class="language-plaintext highlighter-rouge">github.com/foo/bar</code> even if it isn’t published.
+     All publishing does is give the action a <a href="https://github.com/marketplace/actions/zizmor-action">marketplace page</a> and
+     the potential for a little blue checkmark of unclear security
+     value. <a href="#fnref:open" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:name">
+      <p>Actually, I don’t know what this feature is called. It’s
+     titled “Policies” under the “Actions” section of the
+     repo/org/enterprise settings and is documented under
+     <a href="https://docs.github.com/en/enterprise-cloud@latest/admin/enforcing-policies/enforcing-policies-for-your-enterprise/enforcing-policies-for-github-actions-in-your-enterprise">“Github Actions policies”</a> in the Enterprise documentation,
+     but I’m not sure if that’s an umbrella term or not. I’m just going
+     to keep calling it “Actions policies” for now. <a href="#fnref:name" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:slug">
+      <p>Where “owner” is an individual owner or an organization,
+     which in turn might be controlled by an enterprise. But that last
+     bit isn’t visible in the namespace. <a href="#fnref:slug" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:honest">
+      <p>I honestly have no idea how widely used this policy feature is. <a href="#fnref:honest" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:users">
+      <p>Here, policy authors and enforcers. <a href="#fnref:users" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>

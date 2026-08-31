@@ -1,0 +1,28 @@
+<p><em>Update (2021-05-18): The inimitable Sacha Chua informs me that the functionality proposed in this post is already included in Emacs 28. If you&rsquo;re using Emacs 27.2 or older, keep reading!</em></p>
+<p><em>Update (2021-05-16): Daniel Mendler, the author of the Consult library, points out that this functionality is also built into Consult as well as Ivy+Counsel. If you&rsquo;re using these, check out <code>consult-yank-pop</code> (or equivalent) instead.</em></p>
+<p>A quick tweak to yanking in Emacs: Many completion systems provide a more fully featured version of <code>yank-pop</code> to yank text from the kill-ring. Ivy/Counsel has <code>counsel-yank</code>, Helm has <code>helm-show-kill-ring</code> (I assume) and Consult provides <code>consult-yank</code>. These show you items in the kill ring and let you select, with completion, which block of text you would like to yank (<em>i.e.</em> paste) into the buffer.</p>
+<p>Here is Consult&rsquo;s version, previewed in an Embark live-occur buffer:</p>
+<figure><img src="https://karthinks.com/img/consult-yank.png"/>
+</figure>
+
+<p>This is quite useful when you know you copied something a while ago and want it inserted in your buffer now, but it involves navigating through a menu for something that could be near-instantaneous.</p>
+<p>In comparison, Emacs&rsquo; built-in <code>yank-pop</code> command (bound to <code>M-y</code>) simply cycles through the kill ring, pasting the next item with each invocation, provided you call it after a yank. The idea is that you hit <code>C-y</code> first, and if this isn&rsquo;t what you intended to paste you can repeatedly type <code>M-y</code> (or call with a prefix argument) until you see what you want on the screen. This sounds circuitous, but in practice it takes than a second when I want something that&rsquo;s within the top three or four positions in the kill-ring, <em>i.e.</em> something I copied moments ago.</p>
+<p>This approach is less than optimal in two ways:</p>
+<ul>
+<li>The intended target text to be yanked is buried deep in the kill-ring and requires several presses of <code>M-y</code>. In this scenario <code>consult-yank</code> <em>et al</em> are a faster solution.</li>
+<li>You call <code>yank-pop</code> without yanking (with <code>C-y</code>) first. Then <code>yank-pop</code> complains and does nothing.</li>
+</ul>
+<p>The shortcomings of both approaches can be fixed with a little change in the behavior of <code>yank-pop</code>:</p>
+<ul>
+<li>When called by itself (pressing <code>M-y</code> without pressing <code>C-y</code> first), call <code>consult-yank</code> to get the kill-ring as a menu. You do this when you know the text you copied a while ago is buried somewhere in the ring.</li>
+<li>When called after yanking, run <code>yank-pop</code> as usual. If you pressed <code>C-y</code> first, you know the text you want is at or near the top of the kill-ring so Emacs&rsquo; default behavior makes sense.</li>
+</ul>
+<!--listend-->
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">my/consult-yank-or-yank-pop</span> (<span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">arg</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Call </span><span style="color:#a60;background-color:#fff0f0">`consult-yank&#39;</span><span style="background-color:#fff0f0">. If called after a yank, call </span><span style="color:#a60;background-color:#fff0f0">`yank-pop&#39;</span><span style="background-color:#fff0f0"> instead.&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">interactive</span> <span style="background-color:#fff0f0">&#34;*p&#34;</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">if</span> (<span style="color:#06b;font-weight:bold">eq</span> <span style="color:#963">last-command</span> <span style="color:#a60;background-color:#fff0f0">&#39;yank</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#963">yank-pop</span> <span style="color:#963">arg</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">consult-yank</span>)))
+</span></span></code></pre></div><p>Replace <code>consult-yank</code> with your completion system equivalent.</p>
+<p>Binding this to <code>M-y</code> ensures that you don&rsquo;t need to build new muscle-memory, and that yanking now works in a somewhat DWIM fashion. In addition, this has the nice effect of assigning <code>M-[key]</code> to the advanced version of the <code>C-[key]</code> command, an irregular but somewhat prevalent aspect of the keybindings in Emacs.</p>

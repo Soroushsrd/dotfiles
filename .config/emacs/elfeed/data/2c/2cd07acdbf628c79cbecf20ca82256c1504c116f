@@ -1,0 +1,1 @@
+Community feedback reshaped our Zarr store layout — years became a dimension, shards got bigger, and we retired the TESSERA-specific convention in favour of a shared geo-embeddings standard that also covers other models.

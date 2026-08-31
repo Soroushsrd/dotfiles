@@ -1,0 +1,1 @@
+Tessera produces global land-cover embeddings at 0.1-degree resolution, roughly 11 km square at the equator. For each year and each grid tile, there is a directory containing NumPy files of the embeddings.

@@ -1,0 +1,1 @@
+<p>Something I learned today from a coworker: if you turn your monitor sideways, <a class="link-external" rel="external" href="https://en.wikipedia.org/wiki/Subpixel_rendering">subpixel anti-aliasing</a> gets completely broken. This isn’t as much of an issue on today’s high-dpi displays, but for anything lower than a 4k screen, the effect can be noticeable.</p>

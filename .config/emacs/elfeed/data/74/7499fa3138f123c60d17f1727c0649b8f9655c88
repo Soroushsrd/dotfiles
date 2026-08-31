@@ -1,0 +1,14 @@
+<p>
+Back when I learned C, people were still using <code>strcpy</code> and even <code>gets</code>. After a while, people started saying that <code>strcpy</code> wasn&rsquo;t safe and that you should use <code>strncpy</code> instead to avoid buffer overruns, either accidental or deliberate.
+</p>
+<p>
+Those days are long gone, of course, and now even <code>strncpy</code> is considered unsafe. Because of that the Linux project just completed a six year project to banish <code>strncpy</code> from the Linux kernel. The idea was to replace <code>strncpy</code> with <code>strscpy</code>, which fixes the problem with <code>strncpy</code>. The project was a lot more complicated than a simple string replace. Each instance had to be examined to see what the proper remediation was. You can read all about it in <a href="https://smist08.wordpress.com/2026/06/25/linux-kills-strncpy/">Stephen Smith&rsquo;s blog</a>.
+</p>
+<p>
+Smith&rsquo;s post has a nice chart that shows what function you should use for string copying depending on the use case. It&rsquo;s useful to help you make the right choice when you need to copy a string or, more generally, a chunk of memory from one place to another.
+</p>
+<p>
+These days there are a lot of people saying that C is unsafe and shouldn&rsquo;t be used. Those of us who were brought up using it reject that and claim that in the hands of a careful coder, C is still the best language for a wide range of problems.
+</p>
+<p>
+Even if you&rsquo;re convinced that you don&rsquo;t want to write your applications in C, the chances are good that at some point you&rsquo;ll have to maintain or extend such an application. It is, therefore, useful to know how to do it safely. Smith&rsquo;s post is a good place to learn how to deal with copying strings safely.</p>

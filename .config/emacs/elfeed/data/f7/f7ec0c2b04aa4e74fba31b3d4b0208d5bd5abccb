@@ -1,0 +1,11 @@
+<p>
+All of us are familiar with the red squiggles that appear under spelling errors when we&rsquo;re writing text. They appear in Emacs buffers and probably most other applications as well. One place they certainly appear is in Microsoft Word documents. Word is, in fact, where they were born.
+</p>
+<p>
+Raymond Chen from Microsoft has an entertaining post that examines the <a href="https://devblogs.microsoft.com/oldnewthing/20260622-00/?p=112451">history of those squiggles</a>. In early versions of Word, spell checking was a blocking operation that had to be initiated by the user. Later, the spelling check ran in the background so that the results would be available when the user asked for them but that background operation was also blocking so users tended to turn it off. Tony Krueger who worked on many of the early versions of Word was the first to implement on-the-fly spell checking—what we Emacsers call &ldquo;flyspell&rdquo;—in Word. To indicate misspellings, he underlined the misspelled words with the red squiggle that we&rsquo;re familiar with today.
+</p>
+<p>
+Chen also relates a story involving Penn &amp; Teller and Weird Al Yankovic who were fans of the squiggles and autographed pictures for Krueger. They were, reportedly, cherished by Krueger.
+</p>
+<p>
+None of this really matters, of course, but it&rsquo;s a nice piece of our shared history and the story behind a ubiquitous notation that we&rsquo;re all familiar with but probably didn&rsquo;t know the origin of.</p>

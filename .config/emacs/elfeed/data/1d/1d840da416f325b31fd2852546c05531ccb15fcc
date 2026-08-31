@@ -1,0 +1,32 @@
+<p>
+A couple of weeks ago, I wrote about <a href="https://irreal.org/blog/?p=13820">using EWW to avoid paywalls</a> and my experiments to see if it really worked. As I reported, it did in a surprising number of cases. But as I also wrote, I&rsquo;m not that interested in avoiding paywalls so I didn&rsquo;t expect to get much out of the experiment other than satisfying my idle curiosity.
+</p>
+<p>
+It turns out though that I discovered using EWW could be very restful. As I wrote in that last post,
+</p>
+<blockquote>
+<p>
+The other thing I learned is that reading content with EWW can be a very restful experience. No ads, no blinkenlights, and sometimes, no paywall either. I didn’t try running EWW with eww-readable but that would probably make the experience even more restful.
+</p>
+</blockquote>
+<p>
+My normal procedure is to read my feeds with <a href="https://github.com/emacs-elfeed/elfeed">Elfeed</a>—the world&rsquo;s best RSS reader—and to display the original Web page in the same buffer with <a href="https://github.com/fritzgrabo/elfeed-webkit">elfeed-webkit</a>. That gives me a browser like view of the page. The problem is, my ad blocker doesn&rsquo;t work with elfeed-webkit so I get all the trash and abuse one gets with a default page load<sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>.
+</p>
+<p>
+During my experiment I discovered that calling EWW when a site gets out of control is an excellent solution. The latest version of elfeed makes this easy so if I site becomes too obnoxious, I simply switch to EWW and invoke <code>eww-readable</code> with <kbd>R</kbd> to provide a quiet and restful wall of text (complete with the accompanying pictures).
+</p>
+<p>
+It&rsquo;s amazing how much junk we just take for granted when all we want to do is read an article or post. EWW takes away a lot of the sting. No, it&rsquo;s still not going to replace the browser but it&rsquo;s an excellent companion to it.
+</p>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1" role="doc-backlink">1</a></sup> </p>
+<div class="footpara" role="doc-footnote">
+<p class="footpara">
+John Gruber has an <a href="https://daringfireball.net/2026/05/what_is_a_dickover">excellent screed on one part of this default behavior</a>. There are plenty of others.
+</p>
+</div>
+</div>
+</div>
+</div>

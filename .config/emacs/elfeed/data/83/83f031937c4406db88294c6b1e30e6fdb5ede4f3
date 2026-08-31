@@ -1,0 +1,408 @@
+
+<p class="wp-block-paragraph">On Saturday, the ISO C++ committee completed its fourth meeting of C++26, held in St Louis, MO, USA.</p>
+
+
+
+<p class="wp-block-paragraph">Our host, <strong>Bill Seymour</strong>, arranged for high-quality facilities for our six-day meeting from Monday through Saturday. We had over 180 attendees, about two-thirds in-person and the others remote via Zoom, formally representing over 20 nations. At each meeting we regularly have new attendees who have never attended before, and this time there were nearly 20 new first-time attendees, mostly in-person. To all of them, once again welcome!</p>
+
+
+
+<p class="wp-block-paragraph">We also often have new nations joining, and this time we welcomed participants formally representing <strong>Kazakhstan</strong> and <strong>India</strong> for the first time. We now have 29 nations who are regular formal participants: Austria, Bulgaria, Canada, China, Czech Republic, Denmark, Finland, France, Germany, Iceland, India, Ireland, Israel, Italy, Japan, Kazakhstan, Republic of Korea, The Netherlands, Norway, Poland, Portugal, Romania, Russia, Slovakia, Spain, Sweden, Switzerland, United Kingdom, and United States.</p>
+
+
+
+<p class="wp-block-paragraph">Here is a Saturday group photo of the in-person attendees right after the meeting adjourned (some had already left to catch flights). Thanks to John Spicer for taking this photo. Our host Bill Seymour is seated in the front row with the yellow dot. Thank you very much again, Bill, for having us!</p>
+
+
+
+<figure class="wp-block-image size-large is-style-default"><a href="https://herbsutter.com/wp-content/uploads/2024/07/image.png"><img loading="lazy" width="900" height="513" data-attachment-id="5154" data-permalink="https://herbsutter.com/2024/07/02/trip-report-summer-iso-c-standards-meeting-st-louis-mo-usa/image-14/" data-orig-file="https://herbsutter.com/wp-content/uploads/2024/07/image.png" data-orig-size="900,513" data-comments-opened="0" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="image" data-image-description="" data-image-caption="" data-large-file="https://herbsutter.com/wp-content/uploads/2024/07/image.png?w=900" src="https://herbsutter.com/wp-content/uploads/2024/07/image.png?w=900" alt="A photo of the C++ standards committee in St Louis, Missouri, on and in front of a staircase, with a yellow dot designating the meeting host Bill Seymour" class="wp-image-5154" srcset="https://herbsutter.com/wp-content/uploads/2024/07/image.png 900w, https://herbsutter.com/wp-content/uploads/2024/07/image.png?w=150 150w, https://herbsutter.com/wp-content/uploads/2024/07/image.png?w=300 300w, https://herbsutter.com/wp-content/uploads/2024/07/image.png?w=768 768w" sizes="auto, (max-width: 900px) 100vw, 900px" /></a></figure>
+
+
+
+<figure class="wp-block-image size-large"><a href="https://herbsutter.com/wp-content/uploads/2024/07/image-2.png"><img loading="lazy" width="480" height="468" data-attachment-id="5158" data-permalink="https://herbsutter.com/2024/07/02/trip-report-summer-iso-c-standards-meeting-st-louis-mo-usa/image-16/" data-orig-file="https://herbsutter.com/wp-content/uploads/2024/07/image-2.png" data-orig-size="480,468" data-comments-opened="0" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="image" data-image-description="" data-image-caption="" data-large-file="https://herbsutter.com/wp-content/uploads/2024/07/image-2.png?w=480" src="https://herbsutter.com/wp-content/uploads/2024/07/image-2.png?w=480" alt="" class="wp-image-5158" srcset="https://herbsutter.com/wp-content/uploads/2024/07/image-2.png 480w, https://herbsutter.com/wp-content/uploads/2024/07/image-2.png?w=150 150w, https://herbsutter.com/wp-content/uploads/2024/07/image-2.png?w=300 300w" sizes="auto, (max-width: 480px) 100vw, 480px" /></a></figure>
+
+
+
+<p class="wp-block-paragraph"><a href="https://isocpp.org/std/the-committee">The committee</a> currently has 23 active subgroups, 16 of which met in parallel tracks throughout the week. Some groups ran all week, and others ran for a few days or a part of a day and/or evening, depending on their workloads. You can find a brief summary of ISO procedures <a href="https://isocpp.org/std/iso-iec-jtc1-procedures">here</a>.</p>
+
+
+
+<p class="wp-block-paragraph">This time, the committee adopted the next set of features for C++26, and made significant progress on other features that are now expected to be complete in time for C+26.</p>
+
+
+
+<p class="wp-block-paragraph">Three major features made strong progress:</p>
+
+
+
+<ul class="wp-block-list">
+<li><strong>P2300 std::execution</strong> for concurrency and parallelism was formally adopted to merge into the C++26 working paper</li>
+
+
+
+<li><strong>P2996 Reflection</strong> was design-approved, and is now in specification wording review aiming for C++26</li>
+
+
+
+<li><strong>P2900 Contracts</strong> made considerable progress and has a chance of being in C++26</li>
+</ul>
+
+
+
+<h2 class="wp-block-heading">P2300 std::execution formally adopted for C++26</h2>
+
+
+
+<p class="wp-block-paragraph">The major feature approved to merge into the C++26 draft standard was <a href="https://wg21.link/p2300"><strong>P2300 “std::execution”</strong></a> (aka “executors”, aka “Senders/Receivers”) by <strong>Michał Dominiak, Georgy Evtushenko, Lewis Baker, Lucian Radu Teodorescu, Lee Howes, Kirk Shoop, Michael Garland, Eric Niebler</strong>, and <strong>Bryce Adelstein Lelbach</strong>. It had already been design-approved for C++26 at prior meetings, but it’s a huge paper so the specification wording review by Library Wording subgroup (LWG) took extra time, and as questions arose the paper had to iterate with LEWG for specific design clarifications and tweaks.</p>
+
+
+
+<p class="wp-block-paragraph">P2300 aims to support both concurrency and parallelism. The definitions I use: <strong>Concurrency</strong> means doing independent work asynchronously (e.g., on different threads, or using coroutines) so that each can be responsive and progress at its own speed. <strong>Parallelism</strong> means using more hardware (cores, vector units, GPUs) to perform a single computation faster, which is the key to re-enabling the “free lunch” of being able to ship an application executable today that just naturally runs much faster on newer hardware with more compute throughput that becomes available in the future (most of which new throughput now ships in the form of more parallelism).</p>
+
+
+
+<p class="wp-block-paragraph">For <strong>concurrency</strong>, recall that in C++20 we already added coroutines, but in their initial state they were more of a “portable toolbox for writing coroutines” than a fully integrated feature (e.g., we can’t co_await a std::future with just what’s in the standard). Since then, we knew we’d want to add libraries on top to make coroutines easier to use, including std::future integration and a std::task library, which are still in progress. One of the big reasons to love std::execution is that it works well with coroutines, and is the biggest usability improvement yet to use the coroutine support we already have.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>[Edited to add:]</strong> Eric Niebler provided three examples and descriptions I want to include here:</p>
+
+
+
+<ul class="wp-block-list">
+<li><a href="https://godbolt.org/z/TbxefezrK">Example #1: cooperative multitasking on 1 thread (Godbolt)</a>. This shows how an embedded application (for example) can use raw senders to do cooperative multitasking on a single thread with zero allocations guaranteed.</li>
+
+
+
+<li><a href="https://godbolt.org/z/34f3qeoj3">Example #2: cooperative multitasking with coroutines (Godbolt)</a>. Same, but using P2300 coroutines support and a third-party task type. The only allocations are for the coroutine frames themselves. This example uses the fact that awaitables are implicitly senders, and senders can be awaited in coroutines.</li>
+
+
+
+<li><a href="https://godbolt.org/z/3sYWxn8zx">Example #3: multi-producer multi-consumer tasking system (Godbolt)</a>. Spins up a user-specified number of producer std::jthreads that schedule work onto the system execution context until they have been requested to stop. Clean shutdown using async_scope, and all producer threads are implicitly joined when main() returns.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">The above three example illustrate several techniques, described by Eric:</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">* how to cooperatively multitask on an embedded system that has only one thread and no allocator </p>
+
+
+
+<p class="wp-block-paragraph">* how to implement a multi-producer, multi-consumer tasking system</p>
+
+
+
+<p class="wp-block-paragraph">* how to use P2300 together with coroutines</p>
+
+
+
+<p class="wp-block-paragraph">* how to write a custom sender algorithm</p>
+
+
+
+<p class="wp-block-paragraph">* how to use P2300 components together with a third party library providing standard-conforming extensions</p>
+
+
+
+<p class="wp-block-paragraph">* how to spawn a variable amount of work and wait for it all to complete using the proposed async_scope from P3149</p>
+
+
+
+<p class="wp-block-paragraph">* how to use the proposed ABI-stable system context from P2079 to avoid oversubscribing the local host</p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph">Ville Voutilainen reports writing <a href="https://git.qt.io/vivoutil/libunifex-with-qt/-/blob/main/http_example_stdexec/httpdownloader.cpp?ref_type=heads#L133-155">a concurrent chunked HTTPS download</a> that integrates nicely with C++20 coroutines’ co_await and a Qt UI progress bar, using P2300’s reference implementation (plus a sender-aware task type which is expected to be standardized in the future, but third-party ones like the exec::task below work today), together with his own Qt adaptation code (about 180 lines, which will eventually ship as part of Qt). The code is short enough to show here:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; gutter: false; title: ; notranslate">
+exec::task&lt;void&gt; HttpDownloader::doFetchWithCoro()
+{
+    bytesDownloaded = 0;
+    contentLength = 0;
+    reportDownloadProgress();
+
+    req = QNetworkRequest(QUrl(QLatin1String(&quot;https://ftp.funet.fi/pub/Linux/kernel/v5.x/linux-5.19.tar.gz&quot;)));
+    QNetworkReply* reply = nam.head(req);
+    co_await qObjectAsSender(reply, &amp;QNetworkReply::finished);
+
+    updateContentLength(reply, contentLength);
+    contentLengthUpdated(contentLength);
+    reply-&gt;deleteLater();
+
+    while (bytesDownloaded != contentLength) {
+        req = setupRequest(req, bytesDownloaded, chunkSize);
+        QNetworkReply* get_reply = nam.get(req);
+        co_await qObjectAsSender(get_reply, &amp;QNetworkReply::finished);
+        updateBytesDownloaded(get_reply, bytesDownloaded);
+        reportDownloadProgress();
+        get_reply-&gt;deleteLater();
+    }
+}
+</pre></div>
+
+
+<p class="wp-block-paragraph">For <strong>parallelism</strong>, see the December 2022 HPC Wire article <a href="https://www.hpcwire.com/2022/12/05/new-c-sender-library-enables-portable-asynchrony/">“New C++ Sender Library Enables Portable Asynchrony”</a> by <strong>Eric Niebler</strong>, <strong>Georgy Evtushenko</strong>, and <strong>Jeff Larkin</strong>, which describes the cross-platform parallel performance of std::execution. &#8220;Cross-platform&#8221; means across different parallel programming models, using both distributed-memory and shared-memory, and across different computer architectures. (HT: Thanks Mark Hoemmen and others for reminding us about this article.) The NVIDIA coauthors of P2300 report that parallel performance is on par with CUDA code.</p>
+
+
+
+<p class="wp-block-paragraph">Mikael Simberg reports that another parallelism example from the HPC community to show off P2300 is <a href="https://github.com/eth-cscs/DLA-Future">DLA_Future (GitHub)</a>, which implements a distributed CPU/GPU eigensolver. It optionally uses std::execution’s reference implementation, and plans to use std::execution unconditionally once it ships in C++26 standard libraries. In that repo, one advanced example is <a href="https://github.com/eth-cscs/DLA-Future/blob/abc0f2e0fe562a54c2f7a7a669a782d50719eeb3/include/dlaf/factorization/cholesky/impl.h#L323-L425">this distributed Cholesky decomposition code (GitHub)</a> (note: it still uses start_detached which was recently removed, and plans to use async_scope once available).</p>
+
+
+
+<p class="wp-block-paragraph">See also P2300 itself for more examples of both techniques.</p>
+
+
+
+<h2 class="wp-block-heading">Reflection design-approved for C++26</h2>
+
+
+
+<p class="wp-block-paragraph">The Language Evolution working group (EWG) approved the design of the reflection proposal <a href="https://wg21.link/p2996"><strong>P2996R2 “Reflection for C++26”</strong></a> by <strong>Wyatt Childers, Peter Dimov, Dan Katz, Barry Revzin, Andrew Sutton, Faisal Vali,</strong> and <strong>Daveed Vandevoorde </strong>and it has now begun language specification wording review, currently on track for C++26. (<em>Updated to add</em>: The Library Evolution working group (LEWG) is still reviewing the library part of the design.)</p>
+
+
+
+<p class="wp-block-paragraph"><strong>This is huge, because reflection (including generation) will be by far the most impactful feature C++ has ever added since C++98, and it will dominate the next decade and more of C++ usage.</strong> It&#8217;s a watershed event; a sea change in C++. I say this for three reasons:</p>
+
+
+
+<p class="wp-block-paragraph">First, reflection and generation are the biggest power tool C++ has ever seen to improve library building: It will enable writing C++ libraries that were infeasible or impossible before, and its impact on writing libraries will likely be bigger than all the other library-writing improvements combined that the language has added from C++11 until now (e.g., lambdas, auto, if constexpr, requires, type traits).</p>
+
+
+
+<p class="wp-block-paragraph">Second, reflection and generation will simplify C++ language evolution: It will reduce the need to add as many future one-off or “narrow” language extensions to C++, because we will be able to write many of them as compile-time libraries in ordinary C++ consteval code using reflection and generation. That by itself will help slow down the future growth of complexity of the language. And it has already been happening; in recent years, SG7 (the subgroup responsible for compile-time programming) has redirected some narrow language proposals to explore how to write them using reflection instead.</p>
+
+
+
+<p class="wp-block-paragraph">Third, reflection and generation is the foundation for another potential way to dramatically simplify how we write C++ code, namely my metaclasses proposal which is “just” a small (but powerful) thin extension layered on top of reflection and generation… for details, see the Coda at the end of this post.</p>
+
+
+
+<h2 class="wp-block-heading">Still aiming for C++26 timeframe: Contracts</h2>
+
+
+
+<p class="wp-block-paragraph">We spent four full days of subgroup time on the contracts proposal <a href="https://isocpp.org/files/papers/P2900R6.pdf"><strong>P2900 “Contracts for C++”</strong></a> by <strong>Joshua Berne, Timur Doumler, Andrzej Krzemieński, Gašper Ažman, Tom Honermann, Lisa Lippincott, Jens Maurer, Jason Merrill, and Ville Voutilainen</strong>: One and a half days in language design (EWG) on Monday afternoon and Tuesday, a parallel session in the safety group (SG23) on Tuesday, two days in the Contracts subgroup (SG21) on Wednesday and Thursday, then a quarter-day back in EWG on Friday after lunch for another session on virtual function contracts. In all, we worked through many design issues and made good progress toward consensus on several of them. We still have further work to do in order to build consensus on other open design questions, but the consensus is gradually improving and the list of open questions is gradually getting shorter… we’ll see! I’m cautiously optimistic that we have a 50-50 chance of getting contracts in C++26, which means that we will have to iron out the remaining differences within the next 11 months to meet C++26’s feature-freeze no-later-than hard deadline next June.</p>
+
+
+
+<h2 class="wp-block-heading">Adopted for C++26: Core language changes/features</h2>
+
+
+
+<p class="wp-block-paragraph">Here are some additional highlights… note that these links are to the most recent public version of each paper, and some were tweaked at the meeting before being approved; the links track and will automatically find the updated version as soon as it’s uploaded to the public site.</p>
+
+
+
+<p class="wp-block-paragraph">The core language adopted 6 papers, including the following…</p>
+
+
+
+<p class="wp-block-paragraph"><a href="https://wg21.link/p0963"><strong>P0963R3 “Structured binding declaration as a condition</strong></a><strong>”</strong> by <strong>Zhihao Yuan</strong>. This allows structured binding declarations with initializers appearing in place of the conditions in if, while, for, and switch statements, so you can decompose more conveniently and take a branch only if the returned non-decomposed object evaluates to true. Thanks, Zhihao!</p>
+
+
+
+<h2 class="wp-block-heading">Adopted for C++26: Standard library changes/features</h2>
+
+
+
+<p class="wp-block-paragraph">In addition to P2300 std::execution, already covered above, the standard library adopted 11 other papers, including the following…</p>
+
+
+
+<p class="wp-block-paragraph">The lowest-numbered paper approved, which means it has been “baking” for the longest time, is something some of us have been awaiting for a while: <a href="https://wg21.link/p0843"><strong>P0843R11 “inplace_vector”</strong></a> by <strong>Gonzalo Brito Gadeschi, Timur Doumler, Nevin Liber</strong>, and <strong>David Sankel</strong>. The paper’s overview says it all – thank you, authors!</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">This paper proposes&nbsp;<code>inplace_vector</code>, a dynamically-resizable array with capacity fixed at compile time and contiguous inplace storage, that is, the array elements are stored within the vector object itself. Its API closely resembles&nbsp;<code>std::vector&lt;T, A&gt;</code>, making it easy to teach and learn, and the&nbsp;<em>inplace storage</em>&nbsp;guarantee makes it useful in environments in which dynamic memory allocations are undesired.</p>
+
+
+
+<p class="wp-block-paragraph">This container is widely-used in the standard practice of C++, with prior art in, e.g.,&nbsp;<a href="http://www.boost.org/doc/libs/1_59_0/doc/html/boost/container/static_vector.html" target="_blank" rel="noreferrer noopener"><code>boost::static_vector&lt;T, Capacity&gt;</code></a>&nbsp;or the&nbsp;<a href="https://github.com/questor/eastl/blob/master/fixed_vector.h#L71" target="_blank" rel="noreferrer noopener">EASTL</a>, and therefore we believe it will be very useful to expose it as part of the C++ standard library, which will enable it to be used as a vocabulary type.</p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph"><a href="https://wg21.link/p3235"><strong>P3235R3 “std::print more types faster with less memory”</strong></a> by <strong>Victor Zverovich</strong> gets my vote for the “best salesmanship in a paper title” award! If you like std::print, this is more, faster, sleeker (who wouldn&#8217;t vote for that?!) by expanding the applicability of the optimizations previously delivered in <a href="https://wg21.link/p3107">P3107</a> which initially were applied to only built-in type and string types, and now work for more standard library types. Thanks for all the formatted I/O, Victor!</p>
+
+
+
+<p class="wp-block-paragraph"><a href="https://wg21.link/p2968"><strong>P2968R2 “Make std::ignore a first-class object”</strong></a> by <strong>Peter Sommerlad</strong> formally blesses the use of std::ignore on the left-hand side of an assignment. Initially std::ignore was only meant to be used with std::tie, but many folks noticed (and recommended and relied on) that on every implementation you can also use it to ignore the result of an expression by just writing <code>std::ignore = expression;</code>. Even the C++ Core Guidelines’ <a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#es48-avoid-casts">ES.48 “Avoid casts”</a> recommends “Use std::ignore = to ignore [[nodiscard]] values.” And as of C++26, that advice will be upgraded from “already works in practice” to “officially legal.” Thank you, Peter!</p>
+
+
+
+<h2 class="wp-block-heading">Other progress</h2>
+
+
+
+<p class="wp-block-paragraph">All subgroups continued progress, more of which will no doubt be covered in other trip reports. Here are a few more highlights…</p>
+
+
+
+<p class="wp-block-paragraph">SG1 (Concurrency): Discussed 24 papers, and progressed the &#8220;zap&#8221; series of papers. To the happiness of many people (including me), concurrent_queue is finally nearing completion! A concurrent queue is one of the foundational concurrency primitives sorely missing from the standard library, and it’s great to see it coming closer to landing.</p>
+
+
+
+<p class="wp-block-paragraph">SG6 (Numerics): More progress on several proposals including a quantities-and-units library.</p>
+
+
+
+<p class="wp-block-paragraph">SG7 (Compile-Time Programming): Forwarded six more papers to the main subgroups, most of them reflection-related.</p>
+
+
+
+<p class="wp-block-paragraph">SG9 (Ranges): Continued working on ranges extensions for C++26, with good progress.</p>
+
+
+
+<p class="wp-block-paragraph">SG15 (Tooling): Starting to approve sending Ecosystem papers to the main subgroups, such as metadata formats and support for build systems.</p>
+
+
+
+<p class="wp-block-paragraph">SG23 (Safety): Reviewed several different proposals for safety improvement. The group voted favorably to support <a href="https://wg21.link/p3297"><strong>P3297 “C++26 needs contracts checking”</strong></a> by <strong>Ryan McDougall, Jean-Francois Campeau, Christian Eltzschig, Mathias Kraus, </strong>and<strong> Pez Zarifian</strong>.</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">Edited to add, for completeness the other presentations were: First, Bjarne Stroustrup presented his Profiles followup paper <a href="https://wg21.link/p3274">P3274R0 &#8220;A framework for Profiles development.&#8221;</a> Then P3297, which I called out because it was a communication to the other groups about the contracts topic that dominated the week (above). Then Thomas Köppe presented <a href="https://wg21.link/p3232">P3232R0 &#8220;User-defined erroneous behavior.&#8221;</a> Then Sean Baxter gave an informational demo presentation (no paper yet) of his work exploring adding borrow checking to C++ in his Circle compiler.</p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph">Thank you to all the experts who worked all week in all the subgroups to achieve so much this week!</p>
+
+
+
+<h2 class="wp-block-heading">What’s next</h2>
+
+
+
+<p class="wp-block-paragraph">Our next meeting will be in <a href="https://isocpp.org/files/papers/N4974.pdf"><strong>Wrocław, Poland in November</strong></a> hosted by <strong>Nokia</strong>.</p>
+
+
+
+<p class="wp-block-paragraph">Thank you again to the over 180 experts who attended on-site and on-line at this week’s meeting, and the many more who participate in standardization through their national bodies!</p>
+
+
+
+<p class="wp-block-paragraph">But we’re not slowing down… we’ll continue to have subgroup Zoom meetings, and then in just a few months from now we’ll be meeting again in person + Zoom to continue adding features to C++26. Thank you again to everyone reading this for your interest and support for C++ and its standardization.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity" />
+
+
+
+<h2 class="wp-block-heading">Coda: From reflection to metaclass functions and P0707</h2>
+
+
+
+<p class="wp-block-paragraph">The reason I picked reflection and generation to be the first “major” feature from Cpp2 that I brought to the committee in 2017, together with a major application use case, in the form of <a href="https://wg21.link/P707">my “metaclasses” paper P0707</a>, is because it was the biggest source of simplification in Cpp2, but it was also the riskiest part of Cpp2 — it was the most “different from what we do in C++” so I was not sure the committee and community would embrace the idea, and it was the most “risky to implement” because nothing like using compile-time functions to help generate class code had ever been tried for C++.</p>
+
+
+
+<p class="wp-block-paragraph">Most of my initial version of P0707 was a plea of ‘here’s why the committee should please give us reflection and generation.’ When I first presented it to the committee at the Toronto 2017 meeting immediately following the reflection presentation, I began my presentation with something like: “Hi, I’m Herb, and I’m <em>their </em>customer,” pointing to the reflection presenters, “because this is about what we could build on top of reflection.” That is still true; the main reason I haven’t updated P0707 since 2019 is because I haven’t needed to… the reflection work needs to exist first, and it has been continually progressing.</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">Historical note: Andrew Sutton’s Lock3 reflection implementation was created for, and funded by, my project that is now called Cpp2 , but which back then was called Cppx and used the Lock3 Clang-based reflection implementation; that’s why the Lock3 implementation has been available at <em>cppx.godbolt.org</em> (thanks again, <a href="https://www.linkedin.com/in/godbolt/">Matt</a>! you&#8217;re a rock star). C++20 consteval also came directly from this work, because we realized we would need functions that must run only at compile time to deal with static reflections and generation.</p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph">Now that reflection is landing in the standard, I plan to update my P0707 paper to finish proposing metaclasses for ISO C++. P0707 metaclasses (aka type metafunctions) are actually just a thin layer on top of P2996. To see why, consider this simple code:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; gutter: false; title: ; notranslate">
+// Example 1: Possible with P2996
+consteval { generate_a_widget_class(); }
+    // let’s say that executing this consteval function generates something like:
+    //     class widget { void f() { std::cout &lt;&lt; &quot;hello&quot;; } };
+</pre></div>
+
+
+<p class="wp-block-paragraph">With P2996, Example 1 can write such a consteval function named generate_a_widget_class that can be invoked at compile time and generates (aka injects) that widget type as if it had been hand-written by the programmer at the same point in source code.</p>
+
+
+
+<p class="wp-block-paragraph">Next, let’s slightly generalize the example by giving it an existing type’s reflection as some input to guide what gets generated:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; gutter: false; title: ; notranslate">
+// Example 2: Possible with P2996 (^ is the reflection operator)
+class gadget { /*...*/ };   // written by the programmer by hand
+consteval{ M( ^gadget ); }  // generates widget from the reflection of gadget
+    // now this generates something like:
+    //     class widget { /* some body based on the reflection of what’s in gadget */ };
+</pre></div>
+
+
+<p class="wp-block-paragraph">Still with just P2996, Example 2 can write such a consteval function named M that will generate the widget class as-if was hand-written by the programmer at this point in source code, but with the ability to refer to ^gadget… for example, perhaps widget will echo some or all the same member functions and member variables as gadget, and add additional things.</p>
+
+
+
+<p class="wp-block-paragraph">And, just like that, we’ve suddenly arrived at P0707 metaclasses because all the Lock3 implementation of Cpp2 (then Cppx) metaclasses did is to “package up Example 2,” by providing a syntax to apply the consteval function M to the type being defined:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; gutter: false; title: ; notranslate">
+// Example 3: class(M) means to apply M to the class being defined
+// (not yet legal C++)
+class(M) widget{ /*...*/ };
+    // this proposed language feature would emit something like the following:
+    //    namespace __prototype { class widget { /*...*/ }; }
+    //    consteval{ M( ^__prototype::widget ); }  // generates widget from __prototype::widget
+</pre></div>
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">Historical note: My initial proposal P0707R0 proposed the syntax &#8220;M class&#8221; (e.g., interface class, value class), and the SG7 subgroup gave feedback that it preferred &#8220;class(M)&#8221; (e.g., class(interface), class(value)) to make parsing easier. I’m fine with that; the syntax is less important, what matters is getting the expressive power.</p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph">So my plan for my next revision of P0707 is to propose class(M) syntax for Standard C++ as a further extension on top of P2996 reflection, to be implemented just like Example 3 above (and as Lock3 already did since 2017, so we know it works).</p>
+
+
+
+<p class="wp-block-paragraph">Why is that so important to simplifying C++?</p>
+
+
+
+<p class="wp-block-paragraph">First, as I show in P0707, it means that we can make classes much easier and safer to write, without wrong defaults and bug-prone boilerplate code. We can stop teaching the “Rules of 0/1/3/5,” and stop teaching =delete to get rid of generated special functions we didn’t want, because when using metafunctions to write classes we’re always using a convenient word to opt into a group of defaults for the type we’re writing and can get exactly the ones we want.</p>
+
+
+
+<p class="wp-block-paragraph">Second, we can write a Java/C#-style &#8220;class(interface)&#8221; without adding a special &#8220;interface&#8221; feature to the language as a separate type category, and with just as good efficiency and usability as languages that bake interface into the language. We can add &#8220;class(value)&#8221; to invoke a C++ function that runs at compile time to get the defaults right for value types without a new language feature hardwired into the compiler. We can add class(safe_union) and class(flag_enum) and much more.</p>
+
+
+
+<p class="wp-block-paragraph">Third, as I expressed in P0707, I hope reflection+generations+metafunctions can replace Qt MOC, COM IDL, C++/CLI extensions, C++/CX IDL, all of which exist primarily because we couldn’t express things in Standard C++ that we will now be able to express with this feature. I’m responsible for some of those nonstandard technologies; I led the design of C++/CLI and C++/CX, and one of my goals for reflection+generation+metafunctions is that I hope I will never need to design such language extensions again, by being able to express them well in normal (future) Standard C++. And I&#8217;m not alone; my understanding is that many of the vendors who own technologies like the above are already eagerly planning to responsibly transition such currently-add-on technologies to a standard reflection-and-generation based implementation, once reflection and generation are widely available in C++ compilers.</p>
+
+
+
+<p class="wp-block-paragraph">If you’re interested in more example of how metafunctions can work, I strongly recommend re-watching parts of two talks:</p>
+
+
+
+<ul class="wp-block-list">
+<li>The middle section of <a href="https://youtu.be/8U3hl8XMm8c?si=donwMvcLQpt9mwhE&amp;t=1130">my CppCon 2023 talk, starting around 18:50</a> up to 44:00, which shows many examples that work today using my cppfront compiler to translate them to regular C++, including detailed walkthroughs of the “enum” and “union” metaclass functions (in Cpp2 syntax, but they will work just as well as a minor extension of today’s C++ syntax as described above).</li>
+
+
+
+<li><a href="https://youtu.be/4AfRAVcThyA?si=UQnooMUYmKE5M-ZB&amp;t=389">My original CppCon 2017 talk starting a few minutes in</a> (an earlier version of this talk premiered initially <a href="https://www.youtube.com/watch?v=6nsyX37nsRs">at ACCU 2017</a>), which demonstrates the approach and shows the first few examples working on the early Lock3 reflection implementation. The syntax has changed slightly, but the entire talk is still super current in 2024 as the reflection and generation it relies upon is now on its way to (finally!) landing in the standard.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">I’m looking forward to finally resume updating P0707 to propose adding the rest of the expressive power it describes, as an extension to today’s C++ standard syntax, built on top of Standard C++26 (we hope!) reflection and generation. I hope to bring an updated proposal to our next meeting in November. My first step will be to try writing P0707 metafunctions in P2996 syntax to validate everything is there and works as I expect. So far, the only additional reflection support I know of that I’ll have to propose adding onto today’s P2996 is is_default_accessiblity() (alongside is_public() et al.) to query whether a member has the “default” accessibility of the class, i.e., is written before any public: or protected: or private: access specifier; that’s needed by metafunctions like &#8220;interface&#8221; that want to apply defaults, such as to make functions public and pure virtual by default without the user having to write public: or virtual or =0.</p>
+
+
+
+<p class="wp-block-paragraph">Safety is very important and we&#8217;ll be working hard on that too. But I would be remiss not to emphasize that the arrival of reflection (including generation) is a sea change that will drive of our next decade and more of C++&#8230; it&#8217;s really that big a deal, a rising tide that will lift all other boats including safety and simplicity as well. Starting soon, for many years we won&#8217;t be able to go to a C++ conference whose program doesn&#8217;t heavily feature reflection&#8230; and I&#8217;m not saying that just because I know several reflection talks have been accepted for CppCon 2024 two months from now; this really will be talked about and heavily used everywhere across our industry because there&#8217;s so much goodness to learn and use in this powerful feature.</p>

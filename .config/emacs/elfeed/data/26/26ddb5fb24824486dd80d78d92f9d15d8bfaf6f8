@@ -1,0 +1,17 @@
+<p>
+Charlie Holland has a very interesting <a href="https://www.chiply.dev/post-annotate-in-place">post about annotation in place</a>. The idea is to take notes on digital content the same way you would if your were marking up a book or a physical paper. The important thing is that you don&rsquo;t want to suffer a context switch disruption by switching to another app to take your notes and you want those notes to appear (even years later) when you revisit the file. A secondary consideration is that you want to be able to go not only from the text to the notes but also from the notes to the text.
+</p>
+<p>
+There is—as we Emacsers always say—an Emacs package for that. That package is <a href="https://github.com/nobiot/org-remark">org-remark</a>. It does its magic just as you&rsquo;d expect. The notes are anchored in the text by highlighting the passage you&rsquo;re writing about and the position of that highlight and its associated notes are kept in a separate Org file with enough meta data to get back to the original document.
+</p>
+<p>
+The package comes with builtin support for several document types but Holland says that it&rsquo;s pretty easy to add others and that in fact he&rsquo;s added them for Elfeed, PubMed, and Wombag. The major shortcoming that I can see is that PDFs aren&rsquo;t supported.
+</p>
+<p>
+Holland&rsquo;s post includes an 18 minute, 15 second video that demonstrates <code>org-remark</code> and provides a nice overview of the post. The post itself is long and comprehensive.
+</p>
+<p>
+The <code>org-remark</code> package seems like a nice app that could be a big help for those of us that like to take notes as we&rsquo;re reading. I could see myself using it to take notes on Web pages that I want to write about for Irreal. If it seems like it might be useful to you, take a look at Holland&rsquo;s post.
+</p>
+<p>
+<b>Update</b> <span class="timestamp-wrapper"><span class="timestamp">[2026-05-21 Thu 13:48]</span></span>: Added link to Holland&rsquo;s post.</p>

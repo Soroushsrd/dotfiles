@@ -1,0 +1,11 @@
+<p>
+JTR over at <a href="https://taonaw.com">The Art Of Not Asking Why</a> describes a problem—and its resolution—that I didn&rsquo;t know existed. The TL;DR is that photographs taken with an iPhone are always captured in landscape mode but Apple&rsquo;s software detects portrait photos and corrects the orientation on the fly.
+</p>
+<p>
+That leads to the problem: <a href="https://taonaw.com/2026/06/03/correcting-photo-orientation-for-orgmode.html">when iPhone portrait mode photos are shown on Linux using Org mode they are shown in landscape mode</a>. You can get the details from JTR&rsquo;s post.
+</p>
+<p>
+The fix is pretty easy. He uses the <a href="https://imagemagick.org/mogrify/#gsc.tab=0">mogrify</a> tool of <a href="https://imagemagick.org/#gsc.tab=0">ImageMagick</a> to auto-orient the photos based on their EXIF data. Since he&rsquo;s viewing these photos in Org mode he wants an easy way of making the conversion from within Emacs. That&rsquo;s a perfect job for Álvaro Ramírez&rsquo;s <a href="https://github.com/xenodium/dwim-shell-command">dwim-shell-command</a>, which JTR uses.
+</p>
+<p>
+Take a look at the code and see how simple it is. Even if you aren&rsquo;t an Elisp expert, it&rsquo;s easy to do things like this with <code>dwim-shell-command</code> right from Emacs.</p>

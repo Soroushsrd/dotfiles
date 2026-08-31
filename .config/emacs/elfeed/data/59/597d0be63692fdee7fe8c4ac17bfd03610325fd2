@@ -1,0 +1,69 @@
+<p>I went on an adventure today. I left behind the stable comforts of the terminal and compiled bleeding-edge Emacs that uses a native window system.</p>
+<p>This is a big deal for me. As long as I can remember, I’ve used Emacs from within a terminal. I’ve decided to give the GUI’d Emacs a whirl.</p>
+<h2 id="my-journey">My Journey</h2>
+<p>I’m running macOS Catalina (10.15.5). Originally I tried using the pre-built packages via brew (<code>brew cask install emacs</code>) and those available at <a class="link-external" rel="external" href="https://emacsformacosx.com">Emacs for Mac OS X</a>. However, all these pre-built binaries crashed on Catalina. I guess it’s a problem with Catalina. 🙄</p>
+<p>So, I decided to try building from source. I cloned the Emacs source code directly from <a class="link-external" rel="external" href="https://git.savannah.gnu.org/git/emacs.git">Savannah</a>:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>$ git clone https://git.savannah.gnu.org/git/emacs.git</span></span></code></pre>
+<p>I cd’d into that directory:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>$ cd emacs</span></span></code></pre>
+<p>At this point you’ve got the bleeding-edge development Emacs. You might want to check out and pull a different branch or tag. I decided to check out the <a class="link-external" rel="external" href="https://www.reddit.com/r/emacs/comments/g9vdd0/bringing_gnu_emacs_to_native_code_at_the_european/">native-compilation</a> branch:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>$ git checkout feature/native-comp</span></span>
+<span class="giallo-l"><span>$ git pull origin feature/native-comp</span></span></code></pre>
+<p>(I’m pretty sure those are the right commands; stuff got a little funky while I was building.)</p>
+<p>I exported a magic<sup class="footnote-reference" id="fr-1-1"><a href="#fn-1">1</a></sup> environment variable that I got from a <a class="link-external" rel="external" href="https://emacs.stackexchange.com/a/54433/19088">helpful Emacs StackExchange post</a>:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>$ export LIBXML2_CFLAGS=&quot;-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/libxml2&quot;</span></span></code></pre>
+<p>After exporting that variable, I ran <code>configure</code>:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>$ ./configure</span></span></code></pre>
+<p>Then I ran <code>make</code>:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>$ make</span></span></code></pre>
+<p>That will create a binary at <code>src/emacs</code> that you can run to test to make sure that all is working as it should. If you’re satisfied with that emacs configuration, you can bundle it up into a stand-alone application:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>$ make install</span></span></code></pre>
+<p>This will create <code>Emacs.app</code> inside of the <code>nextstep/</code> directory. You are free to move that around:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>$ mv nextstep/Emacs.app /Applications/</span></span></code></pre>
+<p>I also went into <code>System Preferences &gt; Security</code> and gave Emacs Full Disk Access. I heard of some people having difficulty accessing iCloud files from Emacs and this cleared it up. I haven’t had any difficulty—I just wanted Emacs to have full access anyway.</p>
+<h2 id="niceties">Niceties</h2>
+<p>I still use the terminal a <em>lot</em> (though I might use it less directly if I can get comfortable with <code>ansi-term</code> mode) so I made a few shortcuts for myself:</p>
+<ul>
+<li>
+<p>I symlinked <code>/usr/local/bin/emacs</code> to <code>/Applications/Emacs.app/Contents/MacOS/Emacs</code>:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span> $ cd /usr/local/bin</span></span>
+<span class="giallo-l"><span> $ ln -s /Applications/Emacs.app/Contents/MacOS/Emacs emacs</span></span></code></pre>
+<p><code>/usr/local/bin</code> is already in my <code>PATH</code>, so now I can just type <code>emacs</code> on the command line and it will fire it up just as it used to</p>
+</li>
+<li>
+<p>I created an alias like this in my <code>.zshrc</code> file:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span> alias &#39;e&#39;=&#39;emacs -nw&#39;</span></span></code></pre>
+<p>That way, when I’m in a terminal and type <code>e &lt;filename&gt;</code> it will open up the file in Emacs <em>in the terminal</em>. I might change that behavior at some point in the future, but that will help me transition for the time being.</p>
+</li>
+<li>
+<p>I installed the <a class="link-external" rel="external" href="https://github.com/purcell/exec-path-from-shell">exec-path-from-shell package</a> so that Emacs could fire off processes like <code>elixir</code> when using <code>lsp-mode</code>. Otherwise, you get errors like this inside the <code>*lsp::stderr*</code> buffer:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span> line 66: exec: elixir: not found</span></span></code></pre></li>
+</ul>
+<h2 id="conclusion">Conclusion</h2>
+<p>Why did I do this? Because I was a little bored. I also wanted to experiment with some of the more extensive key binding opportunities that a full-bodied Emacs offers.</p>
+<p>I’ll write updates to my blog as time goes on. I might decide to switch back to regular-old Emacs in the terminal. Right now, however, I’m enjoying the GUI’d version.</p>
+<p>You can see my Emacs config on <a class="link-external" rel="external" href="https://github.com/ashton314/.dotfiles">my GitHub</a>. Feel free to drop me a line if you have any questions.</p>
+<h2 id="update-2020-07-23">UPDATE 2020-07-23</h2>
+<p>After using Emacs 28.0.5 for a day, here’s what I came away with:</p>
+<ul>
+<li>
+<p>No crashes. Things did start getting a little strange when I tried selecting text with the mouse in ansi-term without switching from character-mode to line-mode; I ended up killing that ansi-term session and creating a new one.</p>
+</li>
+<li>
+<p>I really missed having frames all in the same place and switching between them with <code>C-x 5 o</code>. I found a <em>very</em> acceptable replacement; as of Emacs 27, you can enable the built-in <code>tab-bar-mode</code> and switch between “tabs” with <code>C-x t o</code>, create new ones with <code>C-x t 2</code>, etc. It looks just like switching between frames does in the terminal, minus the display of which tab you’re on. I haven’t figured out how to turn that on yet.</p>
+</li>
+<li>
+<p>Using the tab-bar stuff, I created a tab and fired up ansi-term. I was able to switch back and forth between my editor tab and the console tab as I would between iTerm tabs or if I were using <code>C-z</code> to suspend.</p>
+</li>
+<li>
+<p>Inputting special characters via the keyboard has changed. No longer can I hit <code>alt-shift--</code> to insert an em-dash. Instead, I turn on TeX mode input (<code>C-\ TeX RET</code>) and I can type the TeX character sequence (in the case of an em-dash, you just type a normal dash three times) and it will be inserted into the buffer.</p>
+</li>
+</ul>
+<p>In short, I’m finding this switch a decently comfortable one. I’m not giving up very much, and I’m gaining a decent amount. I’ve had some difficulty getting all the colors in the theme how I like them—I might just give up for a bit and see if I get used to them.</p>
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn-1">
+<p>I’m not entirely sure what it does. I know that it didn’t work before using this environment variable, and now it works after I tried using it. <a href="#fr-1-1">↩</a></p>
+</li>
+</ol>
+</section>

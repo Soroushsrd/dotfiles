@@ -1,0 +1,191 @@
+<img width="150" height="150" src="https://lemire.me/blog/wp-content/uploads/2026/08/si3ao-150x150.jpg" class="webfeedsFeaturedVisual wp-post-image" alt="" style="display: block; margin-bottom: 5px; clear:both;max-width: 100%;" link_thumbnail="" decoding="async" loading="lazy" /><p>C++26 adds a new container to the standard library: <code>std::hive</code>. It is meant to occupy the ground between <code>std::vector</code> and <code>std::list</code>. Like a vector, it keeps its elements in contiguous blocks of memory, so scanning it does not require you to chase a pointer for every element. Like a list, it never moves an element once it has been inserted: your pointers, references and iterators stay valid, and you may erase any element in constant time without disturbing the others.</p>
+<p>Internally, a hive is a linked list of blocks. Each block carries a <em>skipfield</em>: a small integer per slot that tells the iterator how many erased slots to jump over.</p>
+<p>No standard library ships <code>std::hive</code> yet to my knowledge. Fortunately there is an implementation (<a href="https://github.com/mattreecebentley/plf_hive">plf::hive</a> by Matt Bentley) as a single header file that you can use today.</p>
+<p>I use elements of type <code>uint64_t</code>, GCC 16.1 with <code>-O3 -march=native</code>, on an Intel Xeon Gold 6548N (Emerald Rapids), pinned to one core. Numbers are nanoseconds per element, along with the cycles and instructions retired per element.</p>
+<p>We start from an empty container and append a million values. The container is then destroyed.</p>
+<table style="width: 100%; border-collapse: collapse; margin: 1.2rem 0; border: 1px solid #d0d7de; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+<thead style="background: #f6f8fa; color: #24292f;">
+<tr>
+<th style="text-align: left; font-weight: 600; border-bottom: 2px solid #d0d7de; padding: 0.65rem 0.8rem; vertical-align: top;">container</th>
+<th style="text-align: right;">ns/element</th>
+<th style="text-align: right;">instructions/element</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::vector</code> (<code>reserve</code>)</td>
+<td style="text-align: right;">0.29</td>
+<td style="text-align: right;">8.0</td>
+</tr>
+<tr style="background: #fbfcfd;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::vector</code></td>
+<td style="text-align: right;">0.81</td>
+<td style="text-align: right;">8.0</td>
+</tr>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::hive</code></td>
+<td style="text-align: right;">1.57</td>
+<td style="text-align: right;">16.2</td>
+</tr>
+<tr style="background: #fbfcfd;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::hive</code> (<code>reserve</code>)</td>
+<td style="text-align: right;">1.76</td>
+<td style="text-align: right;">17.0</td>
+</tr>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::list</code></td>
+<td style="text-align: right;">14.22</td>
+<td style="text-align: right;">220.0</td>
+</tr>
+</tbody>
+</table>
+<p>A <code>std::list</code> needs one allocation per element, and glibc&#8217;s malloc and free together cost over 200 instructions per element. It is an order of magnitude behind everyone else. That is not news.</p>
+<p>The interesting comparison is vector against hive. A hive is about twice the cost of a vector, and it needs twice the instructions. This is the price of the skipfield: every insertion writes an element <em>and</em> a skipfield entry, and maintains the block bookkeeping. Note that calling <code>reserve</code> on a hive does not help in my experiments.</p>
+<p>Next we iterate over the the container and sum the values.</p>
+<table style="width: 100%; border-collapse: collapse; margin: 1.2rem 0; border: 1px solid #d0d7de; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+<thead style="background: #f6f8fa; color: #24292f;">
+<tr>
+<th style="text-align: left; font-weight: 600; border-bottom: 2px solid #d0d7de; padding: 0.65rem 0.8rem; vertical-align: top;">container</th>
+<th style="text-align: right;">ns/element</th>
+<th style="text-align: right;">cycles/element</th>
+<th style="text-align: right;">instructions/element</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::vector</code></td>
+<td style="text-align: right;">0.22</td>
+<td style="text-align: right;">0.78</td>
+<td style="text-align: right;">1.0</td>
+</tr>
+<tr style="background: #fbfcfd;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::list</code></td>
+<td style="text-align: right;">1.51</td>
+<td style="text-align: right;">5.27</td>
+<td style="text-align: right;">4.0</td>
+</tr>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::hive</code></td>
+<td style="text-align: right;">1.77</td>
+<td style="text-align: right;">6.18</td>
+<td style="text-align: right;">9.0</td>
+</tr>
+</tbody>
+</table>
+<p>A hive iterates no faster than a linked list here, slightly slower, in fact, and about eight times slower than a vector. (Update: Joseph Garvin points out that I measure the happy case for the <code>std::list</code> in this instance where all the entries were allocated in sequence. The worst case scenario for <code>std::list</code> when the nodes are all over the heap can be much slower.)</p>
+<p>The vector loop retires one instruction per element and finishes in 0.78 cycles: the processor is executing several elements at once. This is possible because the <code>std::vector</code> implementation benefits from autovectorization: the compiler recognizes that it can load several words at once in wide (SIMD). Further, it does not have to check the bitfield like the <code>std::hive</code> data structure.</p>
+<p>We can check this. Walk the same container with two independent iterators, one starting halfway in, and count the cost per element visited:</p>
+<table style="width: 100%; border-collapse: collapse; margin: 1.2rem 0; border: 1px solid #d0d7de; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+<thead style="background: #f6f8fa; color: #24292f;">
+<tr>
+<th style="text-align: left; font-weight: 600; border-bottom: 2px solid #d0d7de; padding: 0.65rem 0.8rem; vertical-align: top;">container</th>
+<th style="text-align: right;">one traversal</th>
+<th style="text-align: right;">two interleaved traversals</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::vector</code></td>
+<td style="text-align: right;">0.78 cycles</td>
+<td style="text-align: right;">0.79 cycles</td>
+</tr>
+<tr style="background: #fbfcfd;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::list</code></td>
+<td style="text-align: right;">5.27 cycles</td>
+<td style="text-align: right;">3.02 cycles</td>
+</tr>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::hive</code></td>
+<td style="text-align: right;">6.18 cycles</td>
+<td style="text-align: right;">3.10 cycles</td>
+</tr>
+</tbody>
+</table>
+<p>The vector does not care: it was already throughput-bound. The hive and the list get nearly twice as fast per element, because two independent chains can be in flight at once. Hive iteration is latency-bound, exactly like list iteration. It merely has better locality.</p>
+<p>That locality does show up when the data gets big. At ten million elements the list falls apart while the hive holds steady:</p>
+<table style="width: 100%; border-collapse: collapse; margin: 1.2rem 0; border: 1px solid #d0d7de; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+<thead style="background: #f6f8fa; color: #24292f;">
+<tr>
+<th style="text-align: left; font-weight: 600; border-bottom: 2px solid #d0d7de; padding: 0.65rem 0.8rem; vertical-align: top;">container</th>
+<th style="text-align: right;">100K</th>
+<th style="text-align: right;">1M</th>
+<th style="text-align: right;">10M</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::vector</code></td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">0.22</td>
+<td style="text-align: right;">0.32</td>
+</tr>
+<tr style="background: #fbfcfd;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::list</code></td>
+<td style="text-align: right;">1.48</td>
+<td style="text-align: right;">1.51</td>
+<td style="text-align: right;">3.51</td>
+</tr>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::hive</code></td>
+<td style="text-align: right;">1.76</td>
+<td style="text-align: right;">1.77</td>
+<td style="text-align: right;">1.96</td>
+</tr>
+</tbody>
+</table>
+<p>Erasing is what a hive is for, so it would be unfair not to look. I erase half the elements at scattered positions using <code>std::remove_if</code>:</p>
+<table style="width: 100%; border-collapse: collapse; margin: 1.2rem 0; border: 1px solid #d0d7de; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+<thead style="background: #f6f8fa; color: #24292f;">
+<tr>
+<th style="text-align: left; font-weight: 600; border-bottom: 2px solid #d0d7de; padding: 0.65rem 0.8rem; vertical-align: top;">container</th>
+<th style="text-align: right;">ns per original element</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::hive</code></td>
+<td style="text-align: right;">2.1</td>
+</tr>
+<tr style="background: #fbfcfd;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::vector</code></td>
+<td style="text-align: right;">3.0</td>
+</tr>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::list</code></td>
+<td style="text-align: right;">77.4</td>
+</tr>
+</tbody>
+</table>
+<p>The hive wins, but by less than you might expect, and at ten million elements the ordering reverses (1.3 ns for the vector against 2.5 for the hive). <code>std::remove_if</code> is a single streaming pass, and streaming passes are cheap. Of course the vector moved every surviving element and invalidated every pointer into it, which is precisely what a hive promises not to do.</p>
+<p>Memory, measured by asking glibc how many bytes it has handed out, per live element:</p>
+<table style="width: 100%; border-collapse: collapse; margin: 1.2rem 0; border: 1px solid #d0d7de; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+<thead style="background: #f6f8fa; color: #24292f;">
+<tr>
+<th style="text-align: left; font-weight: 600; border-bottom: 2px solid #d0d7de; padding: 0.65rem 0.8rem; vertical-align: top;">container</th>
+<th style="text-align: right;">after building</th>
+<th style="text-align: right;">after <code>shrink_to_fit</code></th>
+</tr>
+</thead>
+<tbody>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::vector</code></td>
+<td style="text-align: right;">8.4</td>
+<td style="text-align: right;">8.0</td>
+</tr>
+<tr style="background: #fbfcfd;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::hive</code></td>
+<td style="text-align: right;">9.4</td>
+<td style="text-align: right;">9.4</td>
+</tr>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;"><code>std::list</code></td>
+<td style="text-align: right;">32.0</td>
+<td style="text-align: right;"></td>
+</tr>
+</tbody>
+</table>
+<p>A hive costs about a byte per element over a vector, for a payload of eight bytes, when the vector is packed tight. A list costs more due to the overhead of the linked list.</p>
+<p>A vector built by <code>push_back</code> has a capacity that typically exceeds its size. Thus even if you have 8-byte entries, you will use, on average, more than 8 bytes per entry even for large vectors. You can recover the excess capacity with the <code>shrink_to_fit</code> method.</p>
+<p>What should we conclude?</p>
+<p>The <code>std::hive</code> data structure is not a faster vector. But it is a much better <code>std::list</code>. It gives you the same guarantees that make people reach for a list, stable references, cheap erasure anywhere, while using less memory.</p>
+<p><a href="https://github.com/lemire/Code-used-on-Daniel-Lemire-s-blog/tree/master/2026/08/02">My source code is available</a>.</p>

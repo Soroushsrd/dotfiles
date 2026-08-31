@@ -1,0 +1,55 @@
+<img width="150" height="150" src="https://lemire.me/blog/wp-content/uploads/2026/07/Bh4a1-150x150.jpg" class="webfeedsFeaturedVisual wp-post-image" alt="" style="display: block; margin-bottom: 5px; clear:both;max-width: 100%;" link_thumbnail="" decoding="async" loading="lazy" /><p>When your program asks for memory that is not in cache, the processor has to go to RAM. That trip costs on the order of 100 nanoseconds. On a 3 GHz core, that is about 300 cycles of doing nothing.</p>
+<p>Memory latency has not improved in ten years. The 2016 Broadwell answers a random access in 100 ns. The 2025 Turin, with DDR5-6400 and every advantage of a decade of progress, takes 140 ns. It got worse.</p>
+<p>The good news is that a modern core does not have to sit still. It can issue a second request before the first one comes back, and a third, and a tenth. The number of requests a single core can keep in flight is its memory-level parallelism. It is one of the most important numbers in software performance, and one of the least advertised: you will not find it on a spec sheet.</p>
+<p>Thankfully, memory-level parallelism has improved a lot. To measure it, I use my <a href="https://github.com/lemire/testingmlp">testingmlp</a> benchmark. The idea is a pointer chase. We build a 1 GiB array containing a single random cycle covering every element: each element holds the index of the next. Following the cycle is inherently serial. Each load has to complete before you know the address of the next one, so a single chase measures pure memory latency and nothing else. Then we run several such chases at once, from different starting points on the same cycle. We call these <em>lanes</em>. With two lanes, the core has two independent loads to work on. With twenty, twenty. We increase the number of lanes and watch the throughput. When adding a lane stops helping, we have found the limit. As my metric, I use the total estimated bandwidth.</p>
+<p>I ran experiments on the Amazon cloud (AWS). The bandwidth shape is the same everywhere: a steep, nearly linear climb as we add lanes, then a knee, then a plateau. <br />
+<a href="http://lemire.me/blog/wp-content/uploads/2026/07/mlp-curves.png"><img loading="lazy" decoding="async" src="http://lemire.me/blog/wp-content/uploads/2026/07/mlp-curves-723x1024.png" alt="" width="660" height="935" class="alignnone size-large wp-image-22745" srcset="https://lemire.me/blog/wp-content/uploads/2026/07/mlp-curves-723x1024.png 723w, https://lemire.me/blog/wp-content/uploads/2026/07/mlp-curves-212x300.png 212w, https://lemire.me/blog/wp-content/uploads/2026/07/mlp-curves-768x1087.png 768w, https://lemire.me/blog/wp-content/uploads/2026/07/mlp-curves-1085x1536.png 1085w, https://lemire.me/blog/wp-content/uploads/2026/07/mlp-curves.png 1159w" sizes="auto, (max-width: 660px) 100vw, 660px" /></a></p>
+<p>How did it evolve over time? Intel went from 10 to 30, meaning that a single Intel core can sustain 30 memory requests at once in practice. AMD went from 15 to 58. Graviton went from 6 to 19.</p>
+<p>Intel was flat for a long time. Broadwell and Cascade Lake both sit at 10 concurrent misses. Ice Lake doubled it to 20. Granite Rapids is at 30. Intel has roughly tripled in a decade, with all the gain arriving in the last two generations.</p>
+<p>AMD started ahead and stayed ahead, then jumped. Naples was already at 15 in 2018, when Intel was at 10. Milan reached 22. And then Turin does something different in kind: 58 concurrent cache lines from a single core.</p>
+<p>Graviton 1 was a toy: 6 concurrent misses. Graviton 2 doubled it, Graviton 3 went to 17, and then Graviton 4 essentially stood still at 18. Graviton 5 only reaches 19. But look at the latency panel: since 2017, Graviton 5 is the only chip in this entire collection that made a random access <em>faster</em> than its predecessor. <a href="https://www.amazon.science/blog/graviton5s-improved-design-increases-speed-and-energy-efficiency-beyond-moores-law">AWS advertised better DRAM latency for Graviton 5</a>, and that claim holds up.</p>
+<p>So who wins? On bandwidth and memory-level parallelism, it is AMD, and it is not close. The Zen 5 core in the <code>m8a</code> instances sustains 58 concurrent cache-line fetches and 24.5 GiB/s of random-access throughput from one core. AMD is roughly twice as fast as Intel.</p>
+<table style="width: 100%; border-collapse: collapse; margin: 1.2rem 0; border: 1px solid #d0d7de; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+<thead style="background: #f6f8fa; color: #24292f;">
+<tr>
+<th style="text-align: left; font-weight: 600; border-bottom: 2px solid #d0d7de; padding: 0.65rem 0.8rem; vertical-align: top;">Instance</th>
+<th style="text-align: left; font-weight: 600; border-bottom: 2px solid #d0d7de; padding: 0.65rem 0.8rem; vertical-align: top;">Year</th>
+<th style="text-align: left; font-weight: 600; border-bottom: 2px solid #d0d7de; padding: 0.65rem 0.8rem; vertical-align: top;">Processor</th>
+<th style="text-align: left; font-weight: 600; border-bottom: 2px solid #d0d7de; padding: 0.65rem 0.8rem; vertical-align: top;">Memory</th>
+<th style="text-align: left; font-weight: 600; border-bottom: 2px solid #d0d7de; padding: 0.65rem 0.8rem; vertical-align: top;">Latency</th>
+<th style="text-align: left; font-weight: 600; border-bottom: 2px solid #d0d7de; padding: 0.65rem 0.8rem; vertical-align: top;">Peak BW</th>
+<th style="text-align: left; font-weight: 600; border-bottom: 2px solid #d0d7de; padding: 0.65rem 0.8rem; vertical-align: top;">Concurrency</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">m8i.large</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">2025</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">Xeon 6975P-C, Granite Rapids</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">DDR5-7200</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">133 ns</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">13.3 GiB/s</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">30</td>
+</tr>
+<tr style="background: #fbfcfd;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">m8a.large</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">2025</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">EPYC 9R45, Zen 5 (Turin)</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">DDR5-6400</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">142 ns</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">24.5 GiB/s</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">58</td>
+</tr>
+<tr style="background: #ffffff;">
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">m9g.large</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">2026</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">Graviton 5, Neoverse V3</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">DDR5-8800</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">96 ns</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">12.0 GiB/s</td>
+<td style="padding: 0.65rem 0.8rem; border-bottom: 1px solid #eaeef2; vertical-align: top;">19</td>
+</tr>
+</tbody>
+</table>
+<p><em>The raw output, the system information from each machine, and the scripts are <a href="https://github.com/lemire/Code-used-on-Daniel-Lemire-s-blog/tree/master/2026/07/25">in the usual place</a>.</p>
+<p><span data-offset-key="bfh9p-0-0">Note that Apple Silicon </span></em><span data-offset-key="bfh9p-1-0"><a href="https://lemire.me/blog/2025/07/09/memory-level-parallelism-apple-m2-vs-apple-m4/" rel="noopener noreferrer nofollow" target="_blank" role="link" class="css-1jxf684 r-bcqeeo r-1ttztb7 r-qvutc0 r-poiln3 r-1inkyih r-rjixqe r-1ddef8g r-tjvw6i r-1loqt21">does even better, </a></span><em><span data-offset-key="bfh9p-2-0">but it is another category.</span></em></p>

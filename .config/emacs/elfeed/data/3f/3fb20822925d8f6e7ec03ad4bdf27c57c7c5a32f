@@ -1,0 +1,99 @@
+<p>Profile Guided Optimization (PGO) has long been one of the most powerful tools in the MSVC compiler&#8217;s arsenal for improving the runtime performance of C and C++ applications. By using execution profile data collected from representative workloads, PGO enables the compiler to make smarter decisions about inlining, code layout, and hot/cold code separation &#8211; decisions that are impossible to make from static analysis alone. In practice, PGO can deliver <strong>large performance improvements</strong> for C/C++ code.</p>
+<p>Today, we&#8217;re introducing <strong>Sample Profile Guided Optimization (SPGO)</strong>, a new approach to profile-guided optimization that makes it dramatically easier to bring PGO quality optimizations to your codebase without the overhead and complexity of traditional instrumented PGO. SPGO is available in all versions of Visual Studio 2022, and Visual Studio 2026.</p>
+<p>(There is a full tutorial which covers all details of using SPGO, if you want to dive right in: <a href="https://learn.microsoft.com/en-us/cpp/build/sample-profile-guided-optimization?view=msvc-180">Tutorial: Use Sample Profile-Guided Optimization (SPGO) to improve C++ performance | Microsoft Learn</a>.)</p>
+<h2>Limitations of Traditional PGO</h2>
+<p>Traditional PGO (sometimes called &#8220;instrumented PGO&#8221;) works in three phases:</p>
+<ol>
+<li><strong>Instrument</strong>: Compile your application with special instrumentation probes inserted at key points in the code.</li>
+<li><strong>Train</strong>: Run the instrumented binary through representative workloads to collect execution counts.</li>
+<li><strong>Optimize</strong>: Recompile using the collected profile data to guide optimizations.</li>
+</ol>
+<p>While this approach produces high-quality profile data, it comes with significant practical challenges:</p>
+<ul>
+<li><strong>Performance overhead</strong>: The instrumented binary runs significantly slower than the release build, making it impractical to deploy to production.</li>
+<li><strong>Training burden</strong>: You need to create and maintain representative training scenarios that accurately reflect real-world usage patterns.</li>
+<li><strong>Workflow complexity</strong>: The three-phase build process adds complexity to your CI/CD pipeline and release workflow.</li>
+<li><strong>Staleness</strong>: Profile data can go stale as your code evolves, requiring frequent re-training.</li>
+<li><strong>Deployment constraints</strong>: Instrumented binaries cannot be shipped to customers, so the training scenarios may not perfectly represent real customer workloads.</li>
+</ul>
+<p>For many teams, these barriers mean that PGO, despite its significant performance benefits, remains out of reach.</p>
+<h2>Enter SPGO: Profile Guidance from Production Sampling</h2>
+<p>SPGO takes a fundamentally different approach. Instead of instrumenting your binary and running it through synthetic training scenarios, SPGO uses <strong>hardware performance counter sampling</strong> collected from your actual release binaries. Modern processors provide hardware sampling capabilities such as Last Branch Records (LBR) and retired instruction counters. These can be collected with negligible runtime overhead, making it practical to gather runtime profiles directly from production.</p>
+<p>Because SPGO profiles release bits, not instrumented builds, it enables much more flexibility in where and how you collect data. You can gather runtime profiles from production servers, developer workstations, performance labs, or any combination. The upper end of SPGO&#8217;s performance range is unlocked by the quality, completeness, and consistency of the input data you provide.</p>
+<h2>The SPGO Workflow</h2>
+<p>The SPGO workflow is an iterative cycle of building, collecting, converting, and rebuilding. For those familiar with the legacy PGO approach, the key difference here is that there is no dedicated instrumentation step, and everything is done with fast, release binaries:</p>
+<h3>Step 0: Environmental Setup</h3>
+<p>There are some one-time prerequisites to collecting data for SPGO.  Please see full details on updating xperf&#8217;s perfcore.ini along with a full walk-through here: <a href="https://learn.microsoft.com/en-us/cpp/build/sample-profile-guided-optimization?view=msvc-180">Tutorial: Use Sample Profile-Guided Optimization (SPGO) to improve C++ performance | Microsoft Learn</a></p>
+<h3>Step 1: Build with Link-Time Code Generation (LTCG) and SPGO Switch</h3>
+<p>Compile your application with LTCG and add the <code>/spgo</code> linker switch. During this build, the compiler produces a <strong>Sample Profile Database (SPD)</strong> file (one per binary) containing the static structure of your code: control flow graphs, block layouts, and inline expansion information. Save the SPD files alongside your build output. For example:</p>
+<p><code>cl /EHsc /GL /O2 /Zi app.cpp /link /debug /spgo</code></p>
+<h3>Step 2: Collect Hardware Samples</h3>
+<p>Run your application under representative workloads with xperf hardware sampling enabled. The Windows Performance Toolkit (xperf) is commonly used for collection. There are two collection modes:</p>
+<p><strong>1. IP (Instruction Pointer) sampling</strong> &#8211; periodic snapshots of where the CPU is executing. Effective on all platforms. For example:</p>
+<p><code>xperf -on LOADER+PROC_THREAD+PROFILE -MinBuffers 4096 -BufferSize 4096 -setProfInt Timer 1221 -stackwalk profile</code></p>
+<p><strong>2. LBR (Last Branch Records)</strong> &#8211; records of recently taken branches, providing consecutive source/destination address pairs. LBR data is preferred because it reveals edge frequencies in the control flow graph, not just block hit counts. Last Branch Records (LBR) are performance counters provided on Intel Haswell CPUs (4th gen Core, 2013) or later; AMD Zen 4 (2022) or later, ARM64 ARMv9.2-A (2020) or later. For example:</p>
+<p><code>xperf -on LOADER+PROC_THREAD+PMC_PROFILE -MinBuffers 4096 -MaxBuffers 4096 -BufferSize 4096 -pmcprofile BranchInstructionRetired -LastBranch PmcInterrupt -setProfInt BranchInstructionRetired 16384</code></p>
+<p>A typical collection session runs for around 5 minutes on a representative workload and generates an Event Trace Log (ETL) file with the results. The raw ETL trace is then converted to <strong>Sample Profile Trace (SPT)</strong> format. It is common to collect many SPT files from different scenarios and machines.</p>
+<h3>Step 3: Convert with SPDConvert</h3>
+<p>The SPDConvert tool correlates the raw hardware samples in the SPT files against the static code structure in the SPD:</p>
+<p><code>spdconvert app.spd scenario1.spt scenario2.spt scenario3.spt</code></p>
+<p>This step performs sample correlation, flow smoothing and size/speed decisions, producing an enriched SPD file with execution counts annotated on the flow graph.</p>
+<p>You can combine data from multiple sources in a single conversion &#8211; lab benchmarks, internal monitoring, and production profile counts can all contribute SPT files. To emphasize the importance of a particular scenario, you can specify its SPT file multiple times (e.g., listing a critical benchmark SPT three times effectively triples its weight).</p>
+<h3>Step 4: Optimized Rebuild</h3>
+<p>Rebuild your application, passing the enriched SPD to the linker:</p>
+<p><code>cl /O2 /GL /Zi source.cpp /link /debug /LTCG /spdin:app.spd</code></p>
+<p>The compiler uses the sample-derived profile data to guide optimization decisions. Importantly, the build also produces a <strong>new SPD</strong> file; save this for the next iteration of the cycle.</p>
+<h3>Iterate</h3>
+<p>The workflow is designed for continuous improvement. Each build produces a fresh SPD that can be enriched with new samples from the latest version. Over time, your profile data becomes increasingly comprehensive and reflective of real usage.</p>
+<h2>Data Collection Strategies</h2>
+<p>The best performance results come from thoughtful investment in profile data collection. SPGO provides a means of combining data from multiple sources over time to get incremental benefits.</p>
+<h3>Lab Benchmarks</h3>
+<p>Performance labs are an important source of high-quality samples. Many teams already have benchmarks in place for key scenarios. Ensure that these benchmarks run long enough and with sufficient sample density to produce a meaningful profile. Increasing the sample rate (using the xperf setProfInt switch) or extending the test runtime can improve coverage.</p>
+<h3>Internal Monitoring</h3>
+<p>Monitoring utilization by your own team, especially on release candidate builds, provides valuable real-world data that correlates to a single binary version. This can be done by collecting profile data during normal development activity.</p>
+<h3>Production Profile Counts</h3>
+<p>Collecting from production workloads provides the most representative data, especially for large-scale services. In cloud environments, sampling can be distributed across many nodes with very small per-node overhead, making it effectively undetectable. For products with a large user base, opted-in profile counts collection can be distributed across millions of machines.</p>
+<h3>Blending Sources</h3>
+<p>The overall best performance is obtained by <strong>blending</strong> profiles from production usage with targeted lab benchmarks. Data can be scaled to adjust the significance of each source. Start with what you have easily available and incrementally add more scenarios over time.</p>
+<h2>How the Compiler Improves Optimization using Profile Data</h2>
+<p>The compiler uses the collected sample data to populate counts on each block and edge in the program&#8217;s control flow graph. These counts drive the same powerful optimizations as traditional PGO:</p>
+<ul>
+<li><strong>Profile-guided inlining</strong>: Aggressively inline hot call sites while avoiding code bloat from inlining cold paths.</li>
+<li><strong>Hot/cold code separation</strong>: Move rarely executed code to different sections of the binary, improving instruction cache utilization and paging behavior.</li>
+<li><strong>Function layout</strong>: Place functions that call each other frequently near each other in the binary, reducing page faults and improving locality. Optimized functions are organized into high affinity COFF groups in the binary.</li>
+<li><strong>Size/speed decisions</strong>: Compile hot functions for speed and cold functions for size. Routines with no observed profile hits may be compiled for size rather than speed, limiting optimizations like inlining and loop unrolling in those cold paths.</li>
+<li><strong>Speculative devirtualization</strong>: When sampling reveals that an indirect call consistently targets the same function, SPGO can speculate on that target and inline it, with a fallback for the uncommon case.</li>
+</ul>
+<p>For applications with an important steady-state, the most valuable data comes from that steady-state; collecting on warm-up or shutdown is generally not useful.</p>
+<h2>Handling Sparse and Evolving Data</h2>
+<p>Sampling data is inherently statistical. SPGO addresses this with sophisticated algorithms:</p>
+<ul>
+<li><strong>Minimum Cost Flow (MCF) smoothing</strong> reconstructs consistent flow graph counts from sparse sample data, ensuring that block and edge counts are flow consistent.</li>
+<li><strong>Interprocedural light-up</strong> propagates liveness information across the call graph, so even functions with too few samples to be directly observed can benefit from being called by sampled functions.</li>
+<li><strong>Identical Code Folding (ICF) awareness</strong> correctly handles cases where the linker has merged identical function bodies, redistributing sample counts to all original functions.</li>
+</ul>
+<p>SPGO also handles <strong>code staleness</strong> gracefully. When your source code changes between profile collection and the optimized build, SPGO continues to use existing profile data for unchanged routines and for routines where the control flow graph is unaltered. The ideal approach is to recollect fresh data regularly, but partial staleness does not invalidate your entire profile. The linker reports a &#8220;Total Dynamic Instructions Optimized using profile data %&#8221; metric that indicates how much of your existing profile remains applicable. Even a small drop (3-5%) in this value can signal that it&#8217;s time to refresh your profiles.</p>
+<p>For teams adopting SPGO incrementally, there is also a linker option to avoid penalizing functions that lack profile data, compiling them with standard LTCG optimizations instead. This is particularly useful during early adoption when profile coverage is still growing.</p>
+<h2>Practical Tips</h2>
+<ul>
+<li><strong>Store SPD files as versioned packages</strong> (e.g., NuGet). This enables rollback, debugging with specific versions, and tracking profile evolution over time.</li>
+<li><strong>Use <code>/EMBEDSPD</code></strong> as a linker option to embed the SPD inside the PDB for convenient distribution alongside debug information. Be aware this increases PDB size.</li>
+<li><strong>SPGO matches by PDB GUID and age</strong> &#8211; always use the SPD from the exact build that produced your binary. Mismatches will cause <code>spdconvert</code> to report a warning and skip the data.</li>
+<li><strong>Emphasizing important runtime scenarios </strong>&#8211; add SPT files multiple times on the SPDConvert step to underscore their importance.</li>
+</ul>
+<h2>SPGO and Cloud Cost Optimization</h2>
+<p>One of the most compelling use cases for SPGO is reducing the <strong>cost of goods sold (COGS)</strong> for large-scale cloud services. When you&#8217;re running thousands of instances of a service, even a 5-15% improvement in CPU efficiency translates directly to significant cost savings. Cloud environments are ideally suited for SPGO: you can collect lightweight production profiles continuously, aggregate data from many nodes, and feed enriched profiles back into your build pipeline &#8211; creating a virtuous cycle of measurement and optimization.</p>
+<h2>Summary</h2>
+<p>SPGO brings the performance benefits of profile-guided optimization to a much wider audience by removing the need for instrumented builds and synthetic training scenarios. By leveraging hardware sampling from release binaries, SPGO provides:</p>
+<ul>
+<li><strong>5-15% performance improvements</strong> for C/C++ applications, with the upper range unlocked by high-quality profile data</li>
+<li><strong>Real-world profile data</strong> reflecting actual customer and production usage</li>
+<li><strong>Near-zero collection overhead</strong> safe for production deployment</li>
+<li><strong>Flexible data blending</strong> from labs, internal monitoring, and production profile counts</li>
+<li><strong>Graceful handling of sparse and stale data</strong> through sophisticated smoothing and staleness management</li>
+<li><strong>The same powerful optimizations</strong> as traditional PGO: inlining, code layout, hot/cold separation, and speculative devirtualization</li>
+<li><strong>An iterative workflow</strong> that improves over time as profiles are refreshed and enriched</li>
+</ul>
+<p>SPGO is available now in MSVC Build Tools version 14.51 as part of Visual Studio 2026 version 18.6. We believe it represents a significant step forward in making profile-guided optimization accessible and practical for C++ developers building high-performance applications with MSVC. We would love to hear your feedback! You can share your comments below, or, after <a href="https://aka.ms/vs/download/?cid=learn-onpage-download-install-visual-studio-page-cta">Installing Visual Studio</a>, via Help &gt; Send Feedback &gt; Report a Problem in-product or on <a href="https://developercommunity.visualstudio.com/index.html">Visual Studio Developer Community</a>.</p>
+<p>&nbsp;</p>
+<p>The post <a href="https://devblogs.microsoft.com/cppblog/introducing-sample-profile-guided-optimization-in-msvc/">Introducing Sample Profile Guided Optimization in MSVC</a> appeared first on <a href="https://devblogs.microsoft.com/cppblog">C++ Team Blog</a>.</p>

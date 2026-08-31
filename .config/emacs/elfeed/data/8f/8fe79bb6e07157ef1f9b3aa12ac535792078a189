@@ -1,0 +1,86 @@
+
+<p class="wp-block-paragraph">The Biden administration just issued <a href="https://www.whitehouse.gov/briefing-room/presidential-actions/2025/01/16/executive-order-on-strengthening-and-promoting-innovation-in-the-nations-cybersecurity/">another executive order (EO) on hardening U.S. cybersecurity</a>. This is all great stuff. (*) (**)</p>
+
+
+
+<p class="wp-block-paragraph"><em><strong>A lot</strong> </em>of this EO is repeating the same things I urged in my essay nearly a year ago, <a href="https://herbsutter.com/2024/03/11/safety-in-context/">&#8220;C++ safety &#8212; in context&#8221;</a>&#8230; here&#8217;s a cut-and-paste of my &#8220;Call(s) to action&#8221; conclusion section I published back then, and I think you&#8217;ll see a heavy overlap with this week&#8217;s new EO&#8230;</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<h2 class="wp-block-heading" id="call-to-action">Call(s) to action</h2>
+
+
+
+<p class="wp-block-paragraph">As an industry generally, we must make a major improvement in programming language memory safety — and we will.</p>
+
+
+
+<p class="wp-block-paragraph">In C++ specifically, we should first target the four key safety categories that are our perennial empirical attack points (type, bounds, initialization, and lifetime safety), and drive vulnerabilities in these four areas down to the noise for new/updated C++ code — and we can.</p>
+
+
+
+<p class="wp-block-paragraph">But we must also recognize that programming language safety is not a silver bullet to achieve cybersecurity and software safety. It’s one battle (not even the biggest) in a long war: Whenever we harden one part of our systems and make that more expensive to attack, attackers always switch to the next slowest animal in the herd. Many of 2023’s worst data breaches did not involve malware, but were caused by inadequately stored credentials (e.g.,&nbsp;<a href="https://blog.aquasec.com/the-ticking-supply-chain-attack-bomb-of-exposed-kubernetes-secrets">Kubernetes Secrets</a>&nbsp;on public GitHub repos), misconfigured servers (e.g.,&nbsp;<a href="https://cybernews.com/security/darkbeam-data-leak/#google_vignette">DarkBeam</a>,&nbsp;<a href="https://cybernews.com/security/kidsecurity-parental-control-data-leak/">Kid Security</a>), lack of testing, supply chain vulnerabilities, social engineering, and other problems that are independent of programming languages.&nbsp;<a href="https://www.apple.com/newsroom/pdfs/The-Continued-Threat-to-Personal-Data-Key-Factors-Behind-the-2023-Increase.pdf">Apple’s white paper</a>&nbsp;about 2023’s rise in cybercrime emphasizes improving the handling, not of program code, but of the data: “it’s imperative that organizations consider limiting the amount of personal data they store in readable format while making a greater effort to protect the sensitive consumer data that they do store [including by using] end-to-end [E2E] encryption.”</p>
+
+
+
+<p class="wp-block-paragraph">No matter what programming language we use, security hygiene is essential:</p>
+
+
+
+<ul class="wp-block-list">
+<li><strong>Do</strong>&nbsp;use your language’s static analyzers and sanitizers. Never pretend using static analyzers and sanitizers is unnecessary “because I’m using a safe language.” If you’re using C++, Go, or Rust, then use those languages’ supported analyzers and sanitizers. If you’re a manager, don’t allow your product to be shipped without using these tools. (Again: This doesn’t mean running all sanitizers all the time; some sanitizers conflict and so can’t be used at the same time, some are expensive and so should be used periodically, and some should be run only in testing and never in production including because their presence can create new security vulnerabilities.)</li>
+
+
+
+<li><strong>Do</strong>&nbsp;keep all your tools updated. Regular patching is not just for iOS and Windows, but also for your compilers, libraries, and IDEs.</li>
+
+
+
+<li><strong>Do</strong>&nbsp;secure your software supply chain.&nbsp;<strong>Do</strong>&nbsp;use package management for library dependencies.&nbsp;<strong>Do</strong>&nbsp;track a software bill of materials for your projects.</li>
+
+
+
+<li><strong>Don’t</strong>&nbsp;store secrets in code. (Or, for goodness’ sake, on GitHub!)</li>
+
+
+
+<li><strong>Do</strong>&nbsp;configure your servers correctly, especially public Internet-facing ones. (Turn authentication on! Change the default password!)</li>
+
+
+
+<li><strong>Do</strong>&nbsp;keep non-public data encrypted, both when at rest (on disk) and when in motion (ideally E2E… and oppose proposed legislation that tries to neuter E2E encryption with ‘backdoors only good guys will use’ because there’s no such thing).</li>
+
+
+
+<li><strong>Do</strong>&nbsp;keep investing long-term in keeping your threat modeling current, so that you can stay adaptive as your adversaries keep trying different attack methods.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">We need to improve software security and software safety across the industry, especially by improving programming language safety in C and C++, and in C++ a 98% improvement in the four most common problem areas is achievable in the medium term. But if we focus on programming language safety alone, we may find ourselves fighting yesterday’s war and missing larger past and future security dangers that affect software written in any language.</p>
+
+
+
+<p class="wp-block-paragraph">Sadly, there are too many bad actors. For the foreseeable future, our software and data will continue to be under attack, written in any language and stored anywhere. But we can defend our programs and systems, and we will.</p>
+</blockquote>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity" />
+
+
+
+<p class="wp-block-paragraph">(*) My main disappointment is that some of the provisions have deadlines that are too far away. Specifically: Why would it take until 2030 to migrate to TLS 1.3? It&#8217;s not just more secure, it&#8217;s also faster and has been published for seven years already&#8230; maybe I&#8217;m just not aware enough of TLS 1.3 adoptability issues though, as I&#8217;m not a TLS expert.</p>
+
+
+
+<p class="wp-block-paragraph">(**) Here in the United States, we&#8217;ll have to see whether the incoming administration will continue this EO, or amend/replace/countermand it. In the United States, that&#8217;s a drawback of using an EO compared to passing an actual law with Congressional approval&#8230; an EO is &#8220;quick&#8221; because the President can issue it without getting legislative approval (for things that are in the Presidential remit), but for the same reason an EO also isn&#8217;t &#8220;durable&#8221; or guaranteed to outlive its administration. Because the next President can just order something different, an EO&#8217;s default shelf life is just 1-4 years.</p>
+
+
+
+<p class="wp-block-paragraph">So far, all the major U.S. cybersecurity EOs that could affect C++ have been issued since 2021, which means so far they have all come from one President&#8230; and so we&#8217;re all going to learn a lot this year, one way or another, about their permanence. (In both the U.S. and the E.U., actual laws are also in progress to shift software liability from consumer to software producers, and <em>those </em>will have real teeth. But here we&#8217;re talking about the U.S. EOs from 2021 to date.)</p>
+
+
+
+<p class="wp-block-paragraph">That said, what I see in these EOs is common sense pragmatism that&#8217;s forcing the software industry to eat our vegetables, so I&#8217;m cautiously optimistic that we&#8217;ll continue to maintain something like these EOs and build on them further as we continue to work hard to secure the infrastructure that our comfortable free lifestyle (and, possibly someday, our lives) depends on. This isn&#8217;t about whether we love a given programming language, it&#8217;s about how we can achieve the greatest hardening at the greatest possible scale for our civilization&#8217;s infrastructure, and for those of us whose remit includes the C++ language that means doing everything we can to harden as much of the existing C and C++ code out there as possible &#8212; all the programmers in the world can only write so much new/rewritten code every year, and for us in C++ by far the maximum contribution we can make to overall security issues related to programming languages (i.e., the subset of security issues that fall into our remit) is to find ways to improve existing C and C++ code with no manual source code changes &#8212; that won&#8217;t always be possible, but where it&#8217;s possible it will maximize our effectiveness in improving security at enormous scale. <a href="https://youtu.be/nXcswVW0-Wk?si=CTjWhcRVPfWb2UZk&amp;t=3473">See also this 2-minute answer I gave</a> in post-talk Q&amp;A in Poland two months ago.</p>

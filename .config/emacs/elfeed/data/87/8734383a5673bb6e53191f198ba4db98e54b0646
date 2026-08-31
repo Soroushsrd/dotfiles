@@ -1,0 +1,11 @@
+<p>
+Over at <a href="https://taonaw.com">The Art Of Not Asking Why</a>, JTR has begun a series on his Emacs configuration. This post covers his <a href="https://taonaw.com/2026/07/23/emacs-config-gems-part.html">special arrangements for macOS</a>. There are two tips, in particular, that seem to come up all the time.
+</p>
+<p>
+The first is setting the path. That, of course, is supposed to be a simple process on Unix-like systems but doesn&rsquo;t work correctly for Emacs on macOS. A long time ago, Steve Purcell solved this problem with his <a href="https://github.com/purcell/exec-path-from-shell">exec-path-from-shell package</a>. You can read the details and what the exact problem is at the package&rsquo;s GitHub repository. If you&rsquo;re using Emacs on a Mac, you definitely need this package.
+</p>
+<p>
+The second problem involves Dired. It&rsquo;s obvious, if you think about it, that Dired depends on the Unix ‘ls’ command to produce its listings and some of its other operations. The problem is that the macOS version of ls is missing some of the options that Dired needs. The solution is to use the GNU version of ls, called gls. That&rsquo;s easy to do but you first have to install it. The easy way to do that is through <a href="https://brew.sh/">Homebrew</a>. Once gls is installed, you need merely tell Dired to use it.
+</p>
+<p>
+All the details for solving these two problems are in JTR&rsquo;s post so if you&rsquo;re running on macOS, you should definitely take a look at it. I&rsquo;ve had both those changes installed for as long as I can remember but I <i>do</i> recall struggling with these issues until I found the solutions. Happily, if you&rsquo;re new to Emacs on the Mac, JTR has both solutions for you in one place.</p>

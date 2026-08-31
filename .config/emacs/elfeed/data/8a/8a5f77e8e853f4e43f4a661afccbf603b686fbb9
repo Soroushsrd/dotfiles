@@ -1,0 +1,11 @@
+<p>
+Bozhidar Batsov has a <a href="https://emacsredux.com/blog/2026/07/20/flymake-can-now-show-diagnostics-at-the-end-of-the-line/">quick post</a> on a recent enhancement to <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Flymake.html">Emacs Flymake</a>. The  TL;DR is that you can arrange for Flymake to append a diagnostic at the end of any line with a problem. It&rsquo;s a quick way of seeing what the problem is and maybe fixing it without a lot of extra work.
+</p>
+<p>
+As Batsov (and the documentation) says, that can get a little noisy so (of course) Emacs gives you a setting to control how much information is displayed. Take a look at Batsov&rsquo;s post for the details.
+</p>
+<p>
+I&rsquo;ve never warmed up to Flymake but lots of people, I know, love it. If you&rsquo;re one of those people, be sure to take a look at Batsov&rsquo;s post. Everything is controlled by a single variable so it&rsquo;s easy to try out the various options.
+</p>
+<p>
+This feature is available only with Emacs 30 and later. Getting it may be a good reason to upgrade if you haven&rsquo;t already.</p>

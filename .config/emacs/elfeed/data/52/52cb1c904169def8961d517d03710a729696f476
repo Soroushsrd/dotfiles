@@ -1,0 +1,21 @@
+<p>
+Protesilaos Stavrou (prot) has an excellent video that addresses a problem I often see people asking about. The problem is <a href="https://protesilaos.com/codelog/2026-07-08-emacs-global-keybinding-overrides/">how to globally set a key binding so that it won&rsquo;t be overridden</a>. He uses setting <kbd>Meta</kbd>+<kbd>o</kbd> to <code>other-window</code> as an example to explore the problem.
+</p>
+<p>
+Prot begins by defining <kbd>Meta</kbd>+<kbd>o</kbd> in the global map in the usual way:
+</p>
+<div class="org-src-container">
+<pre class="src src-elisp"><code>(define-key global-map (kbd <span style="color: #8b2252;">"M-o"</span>) 'other-window )
+</code></pre>
+</div>
+<p>
+That works well until he tries it in an HTML buffer. In the HTML buffer, <kbd>Meta</kbd>+<kbd>o</kbd> turns out to be a prefix key for inserting an HTML face command. The problem is that Emacs will use the most specific bindings first. Global bindings are the most general, followed by major mode bindings, and ending with minor mode bindings as the most specific.
+</p>
+<p>
+Since HTML is a major mode, its keybinding take precedence over the global binding that we set. The answer is to get more specific yet by defining our binding in a minor mode so that it will always have precedence.
+</p>
+<p>
+Prot shows how to define a minor where we can define our binding and activate it globally so that it&rsquo;s always available. Of course, once we have this mechanism set up, we can add any number of bindings to our minor mode. Prot demonstrates this by adding a binding that Org uses.
+</p>
+<p>
+Take a look at Prot&rsquo;s video for all the details. He&rsquo;s also included a copy of the file he was working with so you can see everything without worrying about copying it down from the video. The video is 12 minutes, 45 seconds so it should be easy to fit in.</p>

@@ -1,0 +1,23 @@
+<p>
+As I&rsquo;ve written recently [<a href="https://irreal.org/blog/?p=13924">1</a>, <a href="https://irreal.org/blog/?p=13939">2</a>, <a href="https://irreal.org/blog/?p=13943">3</a>, <a href="https://irreal.org/blog/?p=13945">4</a>], I&rsquo;ve been changing the Irreal Bunker&rsquo;s spelling corrector to <a href="https://github.com/minad/jinx">Jinx</a>. I&rsquo;ve had a couple of issues—mostly with choosing the correction—but things have mostly been smooth and Jinx has a lot of nice features.
+</p>
+<p>
+One thing I don&rsquo;t like is the face that Jinx chooses for misspelled words. Ispell used red, which stood out and made it easy to pick out the misspellings. Jinx uses a color that is almost the same as the text and even though misspellings are underlined with a wavy line they&rsquo;re harder to pick out. There are two colors: one for dark themes and one for light themes. Oddly, there are no options for changing the colors.
+</p>
+<p>
+Happily, this is Emacs so the source code is only a click away. It turns out the color is defined by a <code>defface</code> in the <code>jinx.el</code> file. I copied that to my <code>init.el</code> and changed the color to red Here&rsquo;s the result:
+</p>
+<div class="org-src-container">
+<pre class="src src-elisp"><code>(<span style="color: #a020f0;">defface</span> <span style="color: #a0522d;">jinx-misspelled</span>
+  '((((class color) (min-colors 88) (background dark)
+      (supports <span style="color: #483d8b;">:underline</span> (<span style="color: #483d8b;">:style</span> wave)))
+     <span style="color: #483d8b;">:underline</span> (<span style="color: #483d8b;">:style</span> wave <span style="color: #483d8b;">:color</span> <span style="color: #8b2252;">"#d2b580"</span>))
+    (((class color) (min-colors 88) (background light)
+      (supports <span style="color: #483d8b;">:underline</span> (<span style="color: #483d8b;">:style</span> wave)))
+     <span style="color: #483d8b;">:underline</span> (<span style="color: #483d8b;">:style</span> wave <span style="color: #483d8b;">:color</span> <span style="color: #8b2252;">"#ff0000"</span>)) <span style="color: #b22222;">; </span><span style="color: #b22222;">&lt;-- changed color
+</span>    (t <span style="color: #483d8b;">:underline</span> t <span style="color: #483d8b;">:inherit</span> error))
+  <span style="color: #8b2252;">"Face used for misspelled words."</span>)
+</code></pre>
+</div>
+<p>
+I was going to change the color for the dark theme too just for completeness but the Minions wouldn&rsquo;t allow it. You know how they are about dark themes. If you want to change the color in your Emacs, just paste the above into your <code>init.el</code> and choose whichever color works for you. You can, of course, also fix things up for dark themes. Just don&rsquo;t tell the Minions.</p>

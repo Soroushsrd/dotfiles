@@ -1,0 +1,176 @@
+<p>After reading <a href="http://featherweightmusings.blogspot.com/2015/04/graphs-in-rust.html">nrc&rsquo;s blog post about graphs</a>, I felt inspired to
+write up an alternative way to code graphs in Rust, based on vectors
+and indicates. This encoding has certain advantages over using <code>Rc</code>
+and <code>RefCell</code>; in particular, I think it&rsquo;s a closer fit to Rust&rsquo;s
+ownership model. (Of course, it has disadvantages too.)</p>
+<p>I&rsquo;m going to describe a simplified version of the strategy that rustc
+uses internally. The <a href="https://github.com/rust-lang/rust/blob/master/src/librustc/middle/graph.rs">actual code in Rustc</a> is written in a
+somewhat dated &ldquo;Rust dialect&rdquo;. I&rsquo;ve also put the sources to this blog
+post in their <a href="https://github.com/nikomatsakis/simple-graph">own GitHub repository</a>. At some point, presumably
+when I come up with a snazzy name, I&rsquo;ll probably put an extended
+version of this library up on crates.io. Anyway, the code I cover in
+this blog post is pared down to the bare essentials, and so it doesn&rsquo;t
+support (e.g.) enumerating incoming edges to a node, or attach
+arbitrary data to nodes/edges, etc. It would be easy to extend it to
+support that sort of thing, however.</p>
+<!-- more -->
+<h3 id="the-high-level-idea">The high-level idea</h3>
+<p>The high-level idea is that we will represent a &ldquo;pointer&rdquo; to a node or
+edge using an index. A graph consists of a vector of nodes and a
+vector of edges (much like the mathematical description <code>G=(V,E)</code> that
+you often see):</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="k">pub</span><span class="w"> </span><span class="k">struct</span> <span class="nc">Graph</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">nodes</span>: <span class="nb">Vec</span><span class="o">&lt;</span><span class="n">NodeData</span><span class="o">&gt;</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">edges</span>: <span class="nb">Vec</span><span class="o">&lt;</span><span class="n">EdgeData</span><span class="o">&gt;</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>Each node is identified by an index. In this version, indices are just
+plain <code>usize</code> values. In the real code, I prefer a struct wrapper just
+to give a bit more type safety.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="k">pub</span><span class="w"> </span><span class="k">type</span> <span class="nc">NodeIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">usize</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">pub</span><span class="w"> </span><span class="k">struct</span> <span class="nc">NodeData</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">first_outgoing_edge</span>: <span class="nb">Option</span><span class="o">&lt;</span><span class="n">EdgeIndex</span><span class="o">&gt;</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>Each node just contains an optional edge index, which is the start of
+a linked list of outgoing edges. Each edge is described by the
+following structure:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="k">pub</span><span class="w"> </span><span class="k">type</span> <span class="nc">EdgeIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">usize</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">pub</span><span class="w"> </span><span class="k">struct</span> <span class="nc">EdgeData</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">target</span>: <span class="nc">NodeIndex</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">next_outgoing_edge</span>: <span class="nb">Option</span><span class="o">&lt;</span><span class="n">EdgeIndex</span><span class="o">&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>As you can see, an edge contains a target node index and an optional
+index for the next outgoing edge. All edges in a particular linked
+list share the same source, which is implicit. Thus there is a linked
+list of outgoing edges for each node that begins in the node data for
+the source and is threaded through each of the edge datas.</p>
+<p>The entire structure is shown in this diagram, which depicts a simple
+example graph and the various data structures. Node indices are
+indicated by a number like <code>N3</code> and edge indices by a number like
+<code>E2</code>. The fields of each <code>NodeData</code> and <code>EdgeData</code> are shown.</p>
+<pre tabindex="0"><code>Graph:
+    N0 ---E0---&gt; N1 ---E1--&gt; N2
+    |                         ^
+    E2                        |
+    |                         |
+    v                         |
+    N3 ----------E3-----------+
+    
+Nodes (NodeData):
+  N0 { Some(E0) }     
+  N1 { Some(E1) }
+  N2 { None     } 
+  N3 { Some(E3) } 
+  
+Edges:
+  E0 { N1, Some(E2) }
+  E1 { N2, None     }
+  E2 { N3, None     }
+  E3 { N2, None     }
+</code></pre><h3 id="growing-the-graph">Growing the graph</h3>
+<p>Writing methods to grow the graph is pretty straightforward. For
+example, here is the routine to add a new node:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="k">impl</span><span class="w"> </span><span class="n">Graph</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">add_node</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">)</span><span class="w"> </span>-&gt; <span class="nc">NodeIndex</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">nodes</span><span class="p">.</span><span class="n">len</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="bp">self</span><span class="p">.</span><span class="n">nodes</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">NodeData</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">first_outgoing_edge</span>: <span class="nb">None</span> <span class="p">});</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">index</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>This routine will add an edge between two nodes (for simplicity, we
+don&rsquo;t bother to check for duplicates):</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="k">impl</span><span class="w"> </span><span class="n">Graph</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">add_edge</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">source</span>: <span class="nc">NodeIndex</span><span class="p">,</span><span class="w"> </span><span class="n">target</span>: <span class="nc">NodeIndex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">edge_index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">edges</span><span class="p">.</span><span class="n">len</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">node_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">source</span><span class="p">];</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="bp">self</span><span class="p">.</span><span class="n">edges</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">EdgeData</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">target</span>: <span class="nc">target</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">next_outgoing_edge</span>: <span class="nc">node_data</span><span class="p">.</span><span class="n">first_outgoing_edge</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">});</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">node_data</span><span class="p">.</span><span class="n">first_outgoing_edge</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">index</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>Finally, we can write an iterator to enumerate the successors of a
+given node, which just walks down the linked list:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="k">impl</span><span class="w"> </span><span class="n">Graph</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">successors</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">source</span>: <span class="nc">NodeIndex</span><span class="p">)</span><span class="w"> </span>-&gt; <span class="nc">Successors</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">first_outgoing_edge</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">source</span><span class="p">].</span><span class="n">first_outgoing_edge</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Successors</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">graph</span>: <span class="nc">self</span><span class="p">,</span><span class="w"> </span><span class="n">current_edge_index</span>: <span class="nc">first_outgoing_edge</span><span class="w"> </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">pub</span><span class="w"> </span><span class="k">struct</span> <span class="nc">Successors</span><span class="o">&lt;</span><span class="na">&#39;graph</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">graph</span>: <span class="kp">&amp;</span><span class="na">&#39;graph</span> <span class="nc">Graph</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">current_edge_index</span>: <span class="nb">Option</span><span class="o">&lt;</span><span class="n">EdgeIndex</span><span class="o">&gt;</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">impl</span><span class="o">&lt;</span><span class="na">&#39;graph</span><span class="o">&gt;</span><span class="w"> </span><span class="nb">Iterator</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">Successors</span><span class="o">&lt;</span><span class="na">&#39;graph</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">type</span> <span class="nc">Item</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NodeIndex</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">fn</span> <span class="nf">next</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">)</span><span class="w"> </span>-&gt; <span class="nb">Option</span><span class="o">&lt;</span><span class="n">NodeIndex</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">match</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">current_edge_index</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="nb">None</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">None</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="nb">Some</span><span class="p">(</span><span class="n">edge_num</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="kd">let</span><span class="w"> </span><span class="n">edge</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="bp">self</span><span class="p">.</span><span class="n">graph</span><span class="p">.</span><span class="n">edges</span><span class="p">[</span><span class="n">edge_num</span><span class="p">];</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="bp">self</span><span class="p">.</span><span class="n">current_edge_index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">edge</span><span class="p">.</span><span class="n">next_outgoing_edge</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="nb">Some</span><span class="p">(</span><span class="n">edge</span><span class="p">.</span><span class="n">target</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><h3 id="advantages">Advantages</h3>
+<p>This approach plays very well to Rust&rsquo;s strengths. This is because,
+unlike an <code>Rc</code> pointer, an index alone is not enough to mutate the
+graph: you must use one of the <code>&amp;mut self</code> methods in the graph. This
+means that can track the mutability of the graph as a whole in the
+same way that it tracks the mutability of any other data structure.</p>
+<p>As a consequence, graphs implemented this way can easily be sent
+between threads and used in data-parallel code (any graph shared
+across multiple threads will be temporarily frozen while the threads
+are active). Similarly, you are statically prevented from modifying
+the graph while iterating over it, which is often desirable. If we
+were to use <code>Rc</code> nodes with <code>RefCell</code>, this would not be possible &ndash;
+we&rsquo;d need locks, which feels like overkill.</p>
+<p>Another advantage of this apprach over the <code>Rc</code> approach is
+efficiency: the overall data structure is very compact. There is no
+need for a separate allocation for every node, for example (since they
+are just pushes into a vector, additions to the graph are O(1),
+amortized). In fact, many C libaries that manipulate graphs also use
+indices, for this very reason.</p>
+<h3 id="disadvantages">Disadvantages</h3>
+<p>The primary disadvantage comes about if you try to remove things from
+the graph. The problem then is that you must make a choice: either you
+reuse the node/edge indices, perhaps by keeping a free list, or else
+you leave a placeholder. The former approach leaves you vulnerable to
+&ldquo;dangling indices&rdquo;, and the latter is a kind of leak. This is
+basically exactly analogous to malloc/free. Another similar problem
+arises if you use the index from one graph with another graph (you can
+mitigate that with fancy type tricks, but in my experience it&rsquo;s not
+really worth the trouble).</p>
+<p>However, there are some important qualifiers here:</p>
+<ul>
+<li>It frequently happens that you don&rsquo;t have to remove nodes or edges
+from the graph.  Often you just want to build up a graph and use it
+for some analysis and then throw it away. In this case the danger is
+much, much less.</li>
+<li>The danger of a &ldquo;dangling index&rdquo; is much less than a traditional
+dangling pointer. For example, it can&rsquo;t cause memory unsafety.</li>
+</ul>
+<p>Basically I find that this is a <em>theoretical problem</em> but for many use
+cases, it&rsquo;s not a <em>practical</em> one.</p>
+<p>The big exception would be if a long-lived graph is the heart of your
+application. In that case, I&rsquo;d probably go with a <code>Rc</code> (or maybe
+<code>Arc</code>) based approach, or perhaps even a hybrid &ndash; that is, use
+indices as I&rsquo;ve shown here, but reference count the indices too. This
+would preserve the data-parallel advantages.</p>
+<h3 id="conclusion">Conclusion</h3>
+<p>The key insights in this approach are:</p>
+<ul>
+<li>indices are often a compact and convenient way to represent complex
+data structures;</li>
+<li>they play well with multithreaded code and with ownership;</li>
+<li>but they also carry some risks, particularly for long-lived data
+structures, where there is an increased change of indices being
+misused between data structures or leaked.</li>
+</ul>

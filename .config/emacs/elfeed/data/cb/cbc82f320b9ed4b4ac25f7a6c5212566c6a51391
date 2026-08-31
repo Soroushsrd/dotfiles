@@ -1,0 +1,29 @@
+<p>+++</p>
+<p>I’m a FreeBSD guy. My first computer was a FreeBSD machine that my dad had running in a closet. I learned how to use Emacs as well as the command line on that black-screen white-text no-mouse interface. That’s how real programmers spend their childhood! 😎 😜</p>
+<p>I’ve only heard good things about FreeBSD. While not known as particularly desktop-friendly (various Linux distros win here) I’ve heard tales of its rock-solid stability. I wanted to try running on FreeBSD again, just to see what all the fuss was about.</p>
+<h1 id="installing">Installing</h1>
+<p>Installing was relatively straight forward. I followed the instructions
+<a class="link-external" rel="external" href="https://wiki.freebsd.org/action/show/arm/Raspberry%20Pi?action=show&amp;redirect=FreeBSD%2Farm%2FRaspberry+Pi">here</a>.</p>
+<p>Once I got the card flashed (took about an hour) and booted, I reset the
+passwords for users <code>root</code> and <code>freebsd</code>. Note that at time of writing
+WiFi wasn’t supported; I had to hard-link an Ethernet cable. It found
+the connection without any trouble, so that was nice.</p>
+<h1 id="initial-setup">Initial Setup</h1>
+<h2 id="setting-up-the-clock">Setting up the clock</h2>
+<p><a class="link-external" rel="external" href="https://www.freebsd.org/doc/handbook/network-ntp.html">https://www.freebsd.org/doc/handbook/network-ntp.html</a></p>
+<p>The clock is necessary to start working with the ports. Set the config
+variables in <code>/etc/rc.conf</code>:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>ntpd_enable=YES</span></span>
+<span class="giallo-l"><span>ntpd_sync_on_start=YES  # This one might not be necessary</span></span></code></pre>
+<p>You should be able to just run this without rebooting. (I ended up
+rebooting, but I think I did things out of order.)</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #88C0D0;">service</span><span style="color: #A3BE8C;"> ntpd start</span></span></code></pre><h2 id="installing-the-port-tree">Installing the port tree</h2>
+<p><a class="link-external" rel="external" href="https://www.freebsd.org/doc/handbook/ports-using.html">https://www.freebsd.org/doc/handbook/ports-using.html</a></p>
+<p>Run the following: (I think you can do this in any directory)</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #88C0D0;">portsnap</span><span style="color: #A3BE8C;"> fetch</span></span>
+<span class="giallo-l"><span style="color: #88C0D0;">portsnap</span><span style="color: #A3BE8C;"> extract</span></span></code></pre><h1 id="installing-the-critical-tools-emacs-and-git">Installing the critical tools: Emacs and Git</h1>
+<p>I tried going into <code>/usr/ports/editors/emacs/</code> and running
+<code>make install</code>, but I must have had an option wrong because it tried
+installing… I think the entire X Windowing System. Yikes.</p>
+<p>I gave up after about a day and instead ran <code>pkg install emacs-nox</code> and
+<code>pkg install git</code>; those ran pretty quickly.</p>

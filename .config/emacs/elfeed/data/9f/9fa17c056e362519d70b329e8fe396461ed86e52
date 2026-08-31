@@ -1,0 +1,241 @@
+<p>This blog post summarizes changes to the <a href="https://vcpkg.io/">vcpkg package manager</a> as part of the <a href="https://github.com/microsoft/vcpkg/releases/tag/2026.05.25">2026.05.25</a> registry release. No vcpkg-tool releases occurred during this period. This release includes major library updates for Boost 1.91, Qt 6.11, and OpenCASCADE 8.0, along with 27 new ports and over 500 port updates.</p>
+<ul>
+<li>There are now <strong>2,824 total ports</strong> available in the vcpkg curated registry. A <a href="https://learn.microsoft.com/vcpkg/concepts/ports">port is a versioned recipe</a> for building a package from source, such as a C or C++ library.</li>
+<li><strong>27 new ports</strong> were added to the curated registry.</li>
+<li><strong>521 ports were updated in May</strong>. As always, we validate each change to a port by building all other ports that depend on or are depended by the library that is being updated for our main <a href="https://learn.microsoft.com/vcpkg/concepts/triplets">triplets</a>.</li>
+<li><strong>85</strong> community contributors made commits.</li>
+<li>The main vcpkg repo has over <strong>7,500 forks</strong> and <strong>27,100 stars</strong> on GitHub.</li>
+</ul>
+<h2>vcpkg changelog (2026.05.25 release)</h2>
+<p>Since no vcpkg-tool changes were released this month, this changelog highlights notable port updates:</p>
+<ul>
+<li><strong>Boost updated to 1.91.0</strong>, up from 1.90.0. This includes the new <code>boost-decimal</code> library, now available as a standalone port.</li>
+<li><strong>Qt updated to 6.11.0</strong>, up from 6.10.2. This is a major Qt release bringing new features across the entire Qt framework.</li>
+<li><strong>OpenCASCADE updated to 8.0.0</strong>, a major version bump for the open-source CAD/CAM/CAE geometry kernel.</li>
+<li><strong>curl updated to 8.20.0</strong>, continuing to provide the latest networking improvements and security fixes.</li>
+<li><strong>Vulkan SDK components updated to 1.4.350.0</strong>, including vulkan-headers, vulkan-loader, spirv-tools, spirv-cross, shaderc, and related packages.</li>
+<li><strong>SDL3 updated to 3.4.8</strong>, along with SDL3-image and SDL3-mixer updates.</li>
+<li><strong>MuJoCo updated to 3.8.1</strong>, a significant jump from 3.5.0 for physics simulation users.</li>
+<li><strong>Botan updated to 3.12.0</strong>, bringing the latest cryptographic library improvements.</li>
+<li><strong>OpenBLAS updated to 0.3.33</strong>, a jump from 0.3.29 for high-performance linear algebra users.</li>
+<li>10 ports were removed as part of ongoing registry maintenance: cppcoro, eraser, ereignis, flagpp, libe57, lockpp, luminoengine, poolparty, rebind, and scylla-wrapper.</li>
+<li>Other minor improvements and bug fixes.</li>
+</ul>
+<h2>Documentation updates</h2>
+<ul>
+<li>Added documentation for community support of OHOS (OpenHarmony/HarmonyOS) triplets (<code>arm64-ohos</code>, <code>arm-ohos</code>, <code>x64-ohos</code>).</li>
+</ul>
+<h2>Total ports available for tested triplets</h2>
+<table>
+<thead>
+<tr>
+<th><strong>Triplet</strong></th>
+<th><strong>Ports available</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x86-windows</td>
+<td>2596</td>
+</tr>
+<tr>
+<td>x64-windows</td>
+<td>2726</td>
+</tr>
+<tr>
+<td>x64-windows-release</td>
+<td>2722</td>
+</tr>
+<tr>
+<td>x64-windows-static</td>
+<td>2603</td>
+</tr>
+<tr>
+<td>x64-windows-static-md</td>
+<td>2662</td>
+</tr>
+<tr>
+<td>arm64-windows</td>
+<td>2400</td>
+</tr>
+<tr>
+<td>arm64-windows-static-md</td>
+<td>2384</td>
+</tr>
+<tr>
+<td>arm64-osx</td>
+<td>2543</td>
+</tr>
+<tr>
+<td>x64-linux</td>
+<td>2626</td>
+</tr>
+<tr>
+<td>arm64-linux</td>
+<td>2245</td>
+</tr>
+<tr>
+<td>arm-neon-android</td>
+<td>2179</td>
+</tr>
+<tr>
+<td>x64-android</td>
+<td>2239</td>
+</tr>
+<tr>
+<td>arm64-android</td>
+<td>2204</td>
+</tr>
+</tbody>
+</table>
+<p>While vcpkg supports a much larger variety of target platforms and architectures (as <a href="https://github.com/microsoft/vcpkg/tree/master/triplets/community">community triplets</a>), the list above is validated exhaustively to ensure updated ports don&#8217;t break other ports in the catalog.</p>
+<h2>Thank you to our contributors</h2>
+<p>vcpkg couldn&#8217;t be where it is today without contributions from our open-source community. Thank you for your continued support! The following people contributed to the <a href="https://github.com/microsoft/vcpkg">vcpkg</a>, <a href="https://github.com/microsoft/vcpkg-tool">vcpkg-tool</a>, or <a href="https://github.com/MicrosoftDocs/vcpkg-docs/">vcpkg-docs</a> repos in this release (listed by commit author or GitHub username):</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0bi0</td>
+<td>Adrien Bourdeaux</td>
+<td>Aleksandr Kovalko</td>
+<td>Alexander Neumann</td>
+</tr>
+<tr>
+<td>Alexander Smyslov</td>
+<td>Alexandre Bique</td>
+<td>Ali Alamiri</td>
+<td>An Tao</td>
+</tr>
+<tr>
+<td>Andrew Tribick</td>
+<td>Angelos Serpezoudis</td>
+<td>Anton Kolesnyk</td>
+<td>Attila Kovacs</td>
+</tr>
+<tr>
+<td>autoantwort</td>
+<td>Ben Hekster</td>
+<td>Bertrand Lebonnois</td>
+<td>Bruno</td>
+</tr>
+<tr>
+<td>Byoungchan Lee</td>
+<td>Chase Knowlden</td>
+<td>chenjunfu2</td>
+<td>Chris W</td>
+</tr>
+<tr>
+<td>Chuck Walbourn</td>
+<td>Craig Edwards (Brain)</td>
+<td>Daniele E. Domenichelli</td>
+<td>datta-s-duerr-ndt</td>
+</tr>
+<tr>
+<td>Dustin L. Howett</td>
+<td>eao197</td>
+<td>Echo Cipher</td>
+<td>Eduard Mishkurov</td>
+</tr>
+<tr>
+<td>Eduardo Dantas</td>
+<td>Eric Rosenkranz</td>
+<td>Ethan J. Musser</td>
+<td>Ethin Probst</td>
+</tr>
+<tr>
+<td>Eugene Gershnik</td>
+<td>Fabian Wosar</td>
+<td>Fletcher Dunn</td>
+<td>Francisco Facioni</td>
+</tr>
+<tr>
+<td>GioGio</td>
+<td>Greisberger Christophe</td>
+<td>Henrik Gaßmann</td>
+<td>hical</td>
+</tr>
+<tr>
+<td>Jack·Boos·Yu</td>
+<td>JinmingHu</td>
+<td>Jinwoo Sung</td>
+<td>John Wason</td>
+</tr>
+<tr>
+<td>Jonathan Sweemer</td>
+<td>Jörg Bornemann</td>
+<td>Julius Künzel</td>
+<td>Kadir</td>
+</tr>
+<tr>
+<td>Kaedras</td>
+<td>Kai Pastor</td>
+<td>kcenon</td>
+<td>Kim Laine</td>
+</tr>
+<tr>
+<td>kzhdev</td>
+<td>Mark Schofield</td>
+<td>miyan</td>
+<td>N&#8217;yoma Diamond</td>
+</tr>
+<tr>
+<td>Nathan White</td>
+<td>nevergiveupcpp</td>
+<td>Nicholas Matteo</td>
+<td>Orange++</td>
+</tr>
+<tr>
+<td>Osyotr</td>
+<td>Pasukhin Dmitry</td>
+<td>patrick</td>
+<td>Pete Brown</td>
+</tr>
+<tr>
+<td>ptahmose</td>
+<td>Rafael Kitover</td>
+<td>RealTimeChris</td>
+<td>Rémy Tassoux</td>
+</tr>
+<tr>
+<td>René Meusel</td>
+<td>Saikari</td>
+<td>Sean Farrell</td>
+<td>Sorg-plusplus</td>
+</tr>
+<tr>
+<td>starxg</td>
+<td>SunBlack</td>
+<td>sunnuay</td>
+<td>talregev</td>
+</tr>
+<tr>
+<td>tartanpaint</td>
+<td>Tobias Funk</td>
+<td>toge</td>
+<td>tzcnt</td>
+</tr>
+<tr>
+<td>Vitalii Koshura</td>
+<td>Weihang Ding</td>
+<td>xiaotang</td>
+<td>Yusen Gao</td>
+</tr>
+<tr>
+<td>菜姬</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2>Learn more</h2>
+<p>You can find the <a href="https://github.com/microsoft/vcpkg/releases">main release notes</a> on GitHub. Recent updates to the vcpkg tool can be viewed on the <a href="https://github.com/microsoft/vcpkg-tool/releases">vcpkg-tool Releases page</a>. To contribute to vcpkg documentation, visit the <a href="https://github.com/MicrosoftDocs/vcpkg-docs/">vcpkg-docs repo</a>. If you&#8217;re new to vcpkg or curious about how a package manager can make your life easier as a C/C++ developer, check out the <a href="https://vcpkg.io">vcpkg website – vcpkg.io</a>.</p>
+<p>If you would like to contribute to vcpkg and its library catalog, or want to give us feedback on anything, check out our <a href="https://github.com/microsoft/vcpkg">GitHub repo</a>. Please report bugs or request updates to ports in our <a href="https://github.com/microsoft/vcpkg/issues">issue tracker</a> or join more general discussion in our <a href="https://github.com/microsoft/vcpkg/discussions">discussion forum</a>.</p>
+<p>The post <a href="https://devblogs.microsoft.com/cppblog/whats-new-in-vcpkg-may-2026/">What&#8217;s New in vcpkg (May 2026)</a> appeared first on <a href="https://devblogs.microsoft.com/cppblog">C++ Team Blog</a>.</p>

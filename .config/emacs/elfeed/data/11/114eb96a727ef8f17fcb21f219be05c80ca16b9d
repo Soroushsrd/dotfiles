@@ -1,0 +1,14 @@
+<p>
+Regular readers will be familiar with my occasional posts concerning my old pal Watts Martin&rsquo;s journey into the Emacs event horizon. When he began, he swore that he would not be one of those &ldquo;everything in Emacs&rdquo; folks. He still (barely) hasn&rsquo;t succumbed but the Borg are smiling and mumbling something about resistance and futility.
+</p>
+<p>
+His latest step into the unknown frontiers of the black hole is <a href="https://coyotetracks.org/blog/best-worst-email/">adopting mu4e as his email client</a>. It&rsquo;s not an uninformed decision. Martin has tried lots and lots and email clients and mostly hates them all. As a long time Mac Head, he doesn&rsquo;t care for the mu4e UI—it is, he says, the opposite of what a proper Mac app UI should be. But yet. It <i>does</i> have a lot of features that other mail clients don&rsquo;t have. You can take a look at his post for the details.
+</p>
+<p>
+Martin complains, rightly, that mu4e is hard to configure, especially considering that you also have to deal with isync/mbsync or something similar to retrieve email from it&rsquo;s IMAP server. Longtime readers will remember my own struggles with that. I managed to avoid one of the problems that Martin dealt with by forwarding all my email accounts to a single account from which I retrieve them.
+</p>
+<p>
+That saves a lot of trouble on the mbsync end but still allows me to handle each account separately within mu4e. If I answer an email, mu4e looks at the address the email was sent to and automatically sends it from the right address. If I initiate an email, it&rsquo;s a simple matter to arrange it to be sent from any of my accounts.
+</p>
+<p>
+Martin&rsquo;s post on mu4e is actually a pretty good review of the app and worth looking at if you&rsquo;re an Emacs user looking for a new email client.</p>

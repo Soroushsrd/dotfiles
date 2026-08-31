@@ -1,0 +1,156 @@
+<p data-bo="198">There are several Rust quizzes online, including one that’s literally called the
+“Unfair Rust Quiz” at <a href="https://this.quiz.is.fckn.gay/">https:&#x2F;&#x2F;this.quiz.is.fckn.gay&#x2F;</a>, but when I was given the
+opportunity to record an episode of the <a href="https://sdr-podcast.com/">Self-Directed Research
+podcast</a> live on the main stage of <a href="https://eurorust.eu/2025/">EuroRust
+2025</a>, I thought I’d come up with something special.</p>
+
+<figure
+class="paragraph-like"
+ data-bo="576"><picture><source type="image/jxl" media="(max-width: 400px)" srcset="https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~ed108ab5e398e6fd.w400.jxl 1x,https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~9093a2a7a70cc8e5.w800.jxl 2x"><source type="image/jxl" media="(max-width: 900px)" srcset="https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~d7a48a7116058709.w900.jxl 1x"><source type="image/jxl" srcset="https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~478a86d3446281d7.jxl 1x,https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~478a86d3446281d7.jxl 2x"><source type="image/avif" media="(max-width: 400px)" srcset="https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~aa7feff27338fbf1.w400.avif 1x,https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~90dd56ba49448e1b.w800.avif 2x"><source type="image/avif" media="(max-width: 900px)" srcset="https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~f09872ca2f77e192.w900.avif 1x"><source type="image/avif" srcset="https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~fed46df743b852f4.avif 1x,https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~fed46df743b852f4.avif 2x"><source type="image/webp" media="(max-width: 400px)" srcset="https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~08ad393242985292.w400.webp 1x,https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~ee23edc5aa00cc8d.w800.webp 2x"><source type="image/webp" media="(max-width: 900px)" srcset="https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~c25e7d8684579398.w900.webp 1x"><source type="image/webp" srcset="https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~58012d0f832f4c70.webp 1x,https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~58012d0f832f4c70.webp 2x"><img src="https://cdn.fasterthanli.me/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x~478a86d3446281d7.jxl" loading="lazy" width="795" height="714" data-kind="media" data-input-path="/content/articles/engineering-a-rust-optimization-quiz/unfair-rust-quiz@2x.jxl" title="The unfair rust quiz really deserves its name. It is best passed with a knowledgeable friend by your side. " alt="Question Misc 6 of the unfair Rust quiz, about drop order. "></picture><figcaption><div class="markup-container figure-caption"><p>The unfair rust quiz really deserves its name. It is best passed with a knowledgeable friend by your side.</p>
+</div></figcaption>
+</figure>
+
+
+
+<a id="coming-up-with-the-questions" href="#coming-up-with-the-questions" class="anchor"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a id="nih-syndrome-ppt" href="#nih-syndrome-ppt" class="anchor"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a id="server-side-shenanigans-and-room-codes" href="#server-side-shenanigans-and-room-codes" class="anchor"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a id="deploying-the-beast" href="#deploying-the-beast" class="anchor"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a id="d-2-starting-fights-at-a-paris-meetup" href="#d-2-starting-fights-at-a-paris-meetup" class="anchor"></a>
+
+
+
+
+
+
+<a id="d-1-panic-mode-and-missing-explanations" href="#d-1-panic-mode-and-missing-explanations" class="anchor"></a>
+
+
+
+
+
+
+
+
+
+
+<a id="day-of-github-oauth-and-swipe-gestures" href="#day-of-github-oauth-and-swipe-gestures" class="anchor"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a id="showtime" href="#showtime" class="anchor"></a>
+
+
+
+
+
+
+
+
+
+

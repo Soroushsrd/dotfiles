@@ -1,0 +1,11 @@
+<p>
+Charles Choi is back with more menus. Most of you know that I generally eschew the use of Emacs menus but they definitely have a place in seldom used commands whose name or key shortcut are hard to remember. In most cases, it&rsquo;s possible to play around with fuzzy command completion and find what you&rsquo;re looking for but it&rsquo;s a lot easier to simply use a menu if it&rsquo;s there.
+</p>
+<p>
+That&rsquo;s where Choi&rsquo;s latest update to <a href="https://irreal.org/blog/?p=13711">Anju</a> comes in. He says that the introduction of <code>context-menu-mode</code> in Emacs 28 made it possible <a href="http://yummymelon.com/devnull/enhancing-elisp-development-with-context-menus.html">to provide cotentxt sensitive menus for Elisp development</a> and he has added it to the latest version of Anju.
+</p>
+<p>
+His post has a couple of screen shots of his menus in action. In the first, the point is on a function definition and the menu, among other things, offers the choice to instrument that function. In the second, the function has been instrumented and now the (context sensitive) menu offers things you can do—such as step into, set a breakpoint, and others—with the function. Naturally all of this is dependent on where the point is. That&rsquo;s the point: the menu is context sensitive.
+</p>
+<p>
+Choi says that the use of the context menus has markedly improved his Elisp development. If you do some but not a lot of Emacs development, it may be a win for you. On the other hand, Choi certainly <i>does</i> do a lot of Emacs development and still finds it a win. Perhaps—no matter your normal workflow—you will too.</p>

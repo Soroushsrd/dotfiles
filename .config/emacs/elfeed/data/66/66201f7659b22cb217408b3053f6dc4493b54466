@@ -1,0 +1,320 @@
+<p>Are you tired of pressing <code>C-x o</code> repeatedly to switch to the window you want in Emacs? Or <code>M-g n</code> and <code>M-g p</code> to cycle through compile errors or grep matches? How about navigating outline headings with (yuck) <code>C-c @ C-n</code> and <code>C-c @ C-p</code>?</p>
+<p>The correct answer to the latter is that no one traverses headings this way, because these keybindings are atrocious. Even the shorter ones start to grate when you need to use them repeatedly in an editing session.</p>
+<p>Depending on their levels of comfort with Emacs, users typically deal with them in one of three ways:</p>
+<ol>
+<li>They aren&rsquo;t aware of or don&rsquo;t use these commands, or use the menu to access them.</li>
+<li>They rebind the ones they need elsewhere, to an easier to press but equally idiosyncratic location. After a few such short non-prefixed keybindings they run out of room on their keyboards.</li>
+<li>They use one of the many, many available helpers written with the <a href="https://github.com/abo-abo/hydra">Hydra</a> or <a href="https://github.com/magit/transient">Transient</a> packages for these.<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup></li>
+</ol>
+<p>But there&rsquo;s a fourth option. Emacs 28 bundles a simple and hassle-free way to take the tedium out of these keybindings: Repeat Mode.</p>
+<p>Repeat Mode lets you call multiple commands in a keymap without repeating the prefix each time. So you can press</p>
+<ul>
+<li><code>C-x o</code>, <code>o</code>, <code>o</code>, &hellip; to switch windows repeatedly. <code>O</code> will cycle backwards.</li>
+<li><code>C-x u</code>, <code>u</code>, <code>u</code>, &hellip; to undo repeatedly,</li>
+<li><code>C-x @ C-n</code>, <code>n</code>, <code>p</code>, <code>f</code>, <code>b</code>,&hellip; to traverse headings,</li>
+<li><code>M-g n</code>, <code>n</code>, <code>p</code>, <code>n</code>,&hellip; to navigate errors or grep matches, and so on.</li>
+</ul>
+<p>With <code>repeat-mode</code>  active, calling the prefix (<code>M-g</code>) the first time &ldquo;activates&rdquo; the keymap, after which only the &ldquo;base&rdquo; key for a command (<code>n</code> or <code>p</code>)is needed.</p>
+<details open>
+<summary>Naming things is hard</summary>
+<div class="details">
+<p>In this write-up I&rsquo;ll call all but the final part of a keybinding the &ldquo;prefix&rdquo;, and the final key or chord the &ldquo;base&rdquo; key.</p>
+<p>Example: <code>org-next-link</code>, bound to  <code>C-c C-x C-n</code>:</p>
+<ul>
+<li>The prefix is <code>C-c C-x</code>.</li>
+<li>The base key is <code>C-n</code>.</li>
+</ul>
+</div>
+</details>
+<details open>
+<summary>Repeating a single command</summary>
+<div class="details">
+<p>If you want to call a <em>single command</em> repeatedly, <code>repeat-mode</code> is not required. You can just call <code>M-x repeat</code>, bound to <code>C-x z</code> by default. This has been part of Emacs for ages. You can repeat invocations of the repeat command itself with just <code>z</code>, so it&rsquo;s <code>C-x z z z...</code> to repeat the last command multiple times.</p>
+</div>
+</details>
+<p>In comparison to <code>M-x repeat</code>, <code>repeat-mode</code> shines when there&rsquo;s a whole keymap of related commands with keys (like <code>n</code>, <code>p</code>, <code>f</code>, <code>b</code>, <code>u</code> for outline navigation) under the same prefix (like <code>C-c @</code> for <code>outline-minor-mode</code>). In this video I switch windows, jump through Occur (grep) matches, navigate git-diff hunks
+<span class="sidenote-number"><small class="sidenote">
+With <code>diff-hl-mode</code>, which supports repeating commands out of the box.
+</small></span>
+and call undo repeatedly with single key presses. The buffer on the right lists the keystrokes. Commands with the same prefix or repeated commands are single key presses:</p>
+<video style="center" width="1280" controls>
+<source src="https://karthinks.com/img/repeat-help-full-demo-gh.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/repeat-help-full-demo-gh.mp4">[VIDEO]</a></video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ul>
+<li>After the first invocation of <code>other-window</code> (<code>C-x o</code>), I switch windows with <code>o</code> (and <code>O</code>).</li>
+<li>Next I find  <code>occur</code> -ences  of the phrase &ldquo;repeat-mode&rdquo; in the buffer. The <code>next-error</code> (<code>M-g n</code>) and <code>previous-error</code> (<code>M-g p</code>) commands jump through the matches. I only need to type the prefix (<code>M-g</code>) once.</li>
+<li>I call <code>diff-hl-previous-hunk</code> from the end of the buffer to jump to modified hunks in this version-controlled document. This is provided by the <code>diff-hl</code> package. Again, I only type in the prefix (<code>C-x v</code>  in my configuration) once.</li>
+<li>I mark a modified hunk with <code>SPC</code> &ndash; corresponding to the full version  <code>C-x v SPC</code>. Then I call <code>undo</code> a few times. As a bonus, undo in Emacs is limited to the active region.</li>
+<li>After the first invocation of the <code>C-x</code> prefix, undo is just <code>u</code>. This is simpler than holding down Control to press <code>C-/</code>, the other undo binding, a bunch of times.</li>
+</ul>
+</div>
+</details>
+<p>Repeat Mode comes with built-in support for a bunch of keymaps. There&rsquo;s no learning curve, <code>M-x repeat-mode</code> and you&rsquo;re set. You&rsquo;ll wonder how you lived without it.</p>
+<h2 id="what-s-in-a-keymap">What&rsquo;s in a keymap</h2>
+<p>Before we dive into Repeat Mode proper, let&rsquo;s address the issue of creating an easily repeatable command using Emacs&rsquo; base API.</p>
+<p>A <em>&ldquo;keymap&rdquo;</em> is a data structure that maps a collection of keybindings (<em>i.e.</em> keyboard shortcuts) to commands. Let&rsquo;s call each element of this map a <em>&ldquo;binding&rdquo;</em>. Any number of keymaps can be <em>&ldquo;active&rdquo;</em> at a time in Emacs, meaning that typing a keybinding will run some command that it&rsquo;s mapped to in these keymaps. Which command runs is a question of which keymap is looked up first.</p>
+<p>For our purposes, a <em>&ldquo;transient keymap&rdquo;</em> is one that</p>
+<ul>
+<li>takes priority over all other keymaps, and</li>
+<li>disappears after a keypress unless unless you explicitly ask it to stick around.</li>
+</ul>
+<p>If we want to make a  key run a command no matter what other keymaps are active, we can use a transient keymap. If we want this keymap to stick around until some arbitrary condition is met, we can do that too. Putting these ideas together lets us add a &ldquo;repeat&rdquo; feature to any command.</p>
+<p>For example, I <a href="../dealing-with-window-clutter-in-emacs">cycle through popup buffers </a> in Emacs with the key <code>C-M-`</code>, or Control, Alt and the grave key chorded together. This calls the <code>popper-cycle</code> command. Needless to say, this isn&rsquo;t very conducive to repeated invocations. So I activate a transient-keymap after each call to <code>popper-cycle</code>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">advice-add</span> <span style="color:#a60;background-color:#fff0f0">&#39;popper-cycle</span> <span style="color:#007020">:after</span>
+</span></span><span style="display:flex;"><span>            (<span style="color:#007020">defun</span> <span style="color:#963">my/popper-cycle-repeated</span> (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">_</span>)
+</span></span><span style="display:flex;"><span>              <span style="background-color:#fff0f0">&#34;Continue to cycle popups with the grave key.&#34;</span>
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">set-transient-map</span>
+</span></span><span style="display:flex;"><span>               (<span style="color:#007020">let</span> ((<span style="color:#963">map</span> (<span style="color:#06b;font-weight:bold">make-sparse-keymap</span>)))
+</span></span><span style="display:flex;"><span>                 (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;`&#34;</span>) <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">popper-cycle</span>)
+</span></span><span style="display:flex;"><span>                 <span style="color:#963">map</span>))))
+</span></span></code></pre></div><p>This keymap binds <code>popper-cycle</code> to the grave key, and it stays active for exactly one keypress. Typing the grave key thus calls <code>popper-cycle</code> again, or I can break this chain by doing anything else. (Note: This is a terrible way to do it!<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup>)</p>
+<p>The logic used by Repeat Mode is quite different, but the effect is similar. In its simplest form, binding a shared set of commands to a transient map is how you could add a &ldquo;repeat&rdquo; functionality to the set.</p>
+<h2 id="adding-repeat-mode-support-to-keymaps">Adding <code>repeat-mode</code> support to keymaps</h2>
+<p>Repeat Mode supports a few keymaps out of the box, including all the ones in my demo above.</p>
+<p>To add Repeat Mode support to commands in a keymap, you add a <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Symbol-Properties.html">symbol property</a> to each command. Here&rsquo;s support for the completely unpressable <code>smerge-mode</code> commands:
+<span class="sidenote-number"><small class="sidenote">
+See below for a demo.
+</small></span></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">map-keymap</span>
+</span></span><span style="display:flex;"><span> (<span style="color:#007020">lambda</span> (<span style="color:#963">_key</span> <span style="color:#963">cmd</span>)
+</span></span><span style="display:flex;"><span>   (<span style="color:#007020">when</span> (<span style="color:#06b;font-weight:bold">symbolp</span> <span style="color:#963">cmd</span>)
+</span></span><span style="display:flex;"><span>     (<span style="color:#06b;font-weight:bold">put</span> <span style="color:#963">cmd</span> <span style="color:#a60;background-color:#fff0f0">&#39;repeat-map</span> <span style="color:#a60;background-color:#fff0f0">&#39;smerge-basic-map</span>)))
+</span></span><span style="display:flex;"><span> <span style="color:#963">smerge-basic-map</span>)
+</span></span></code></pre></div><p>This is simple enough that we can shove it into a function that repeat-izes keymaps:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">repeatize</span> (<span style="color:#963">keymap</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Add </span><span style="color:#a60;background-color:#fff0f0">`repeat-mode&#39;</span><span style="background-color:#fff0f0"> support to a KEYMAP.&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#06b;font-weight:bold">map-keymap</span>
+</span></span><span style="display:flex;"><span>   (<span style="color:#007020">lambda</span> (<span style="color:#963">_key</span> <span style="color:#963">cmd</span>)
+</span></span><span style="display:flex;"><span>     (<span style="color:#007020">when</span> (<span style="color:#06b;font-weight:bold">symbolp</span> <span style="color:#963">cmd</span>)
+</span></span><span style="display:flex;"><span>       (<span style="color:#06b;font-weight:bold">put</span> <span style="color:#963">cmd</span> <span style="color:#a60;background-color:#fff0f0">&#39;repeat-map</span> <span style="color:#963">keymap</span>)))
+</span></span><span style="display:flex;"><span>   (<span style="color:#06b;font-weight:bold">symbol-value</span> <span style="color:#963">keymap</span>)))
+</span></span></code></pre></div><p>The &ldquo;repeat&rdquo; state is shared between commands that are (i) bound in a keymap, and (ii) have the keymap  as their  <code>repeat-map</code> symbol property. But what if the commands you want to repeat aren&rsquo;t defined on top of a prefix, unlike all the above examples? Or if the commands we want to group aren&rsquo;t part of a single keymap to begin with? Then this is a two step process:</p>
+<ol>
+<li>Bind your commands of interest in some keymap,  to short keys if necessary.</li>
+<li>Attach the keymap name as a symbol property to all of them.</li>
+</ol>
+<p>For instance, suppose you&rsquo;d  like to be able to Isearch repeatedly with just <code>s</code> and <code>r</code> instead of hammering <code>C-s</code> over and over. To do this you can bind them to short keys in a keymap, and attach the keymap name to the commands&rsquo; <code>repeat-map</code> symbol properties:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defvar</span> <span style="color:#963">isearch-repeat-map</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">map</span> (<span style="color:#06b;font-weight:bold">make-sparse-keymap</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;s&#34;</span>) <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">isearch-repeat-forward</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;r&#34;</span>) <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">isearch-repeat-backward</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#963">map</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">dolist</span> (<span style="color:#963">cmd</span> <span style="color:#333">&#39;</span>(<span style="color:#963">isearch-repeat-forward</span> <span style="color:#963">isearch-repeat-backward</span>))
+</span></span><span style="display:flex;"><span>  (<span style="color:#06b;font-weight:bold">put</span> <span style="color:#963">cmd</span> <span style="color:#a60;background-color:#fff0f0">&#39;repeat-map</span> <span style="color:#a60;background-color:#fff0f0">&#39;isearch-repeat-map</span>))
+</span></span></code></pre></div><p>Note: You&rsquo;re not going to have trouble typing &ldquo;s&rdquo; or &ldquo;r&rdquo; as part of the search string, even after you&rsquo;ve begun the search with  <code>C-s</code> &ndash; it&rsquo;s only the repeated invocations (isearch-<em>repeat</em>-forward)  that are shortened!</p>
+<p>This is a somewhat low-level (though simple) operation and the recipe is fairly constant. So we could package it in a macro  for ease of use&hellip; but we don&rsquo;t have to. There are already multiple packages that let you specify commands to be repeated along with their short keys. Here are a few:</p>
+<ol>
+<li><a href="https://tildegit.org/acdw/define-repeat-map.el">define-repeat-map</a> by <a href="https://www.acdw.net/">Case Duckworth</a></li>
+<li><a href="https://github.com/mmarshall540/repeaters">repeaters</a> by <a href="https://github.com/mmarshall540">mmarshall540</a></li>
+<li><a href="https://gitlab.com/jjzmajic/hercules.el">Hercules</a> by <a href="https://gitlab.com/jjzmajic">jjzmajic</a>, an external package that bypasses the whole <code>repeat-mode</code> system and lets you define repeat functionality for any keymap.</li>
+</ol>
+<details open>
+<summary>Making repeat-maps: Emacs 29 update</summary>
+<div class="details">
+<p>Emacs 29 introduces <code>defvar-keymap</code>, making it easier to define keymaps with the <code>repeat-map</code> property attached:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">defvar-keymap</span> <span style="color:#963">hl-todo-repeat-map</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#007020">:repeat</span> <span style="color:#036;font-weight:bold">t</span>
+</span></span><span style="display:flex;"><span>    <span style="background-color:#fff0f0">&#34;n&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">hl-todo-next</span>
+</span></span><span style="display:flex;"><span>    <span style="background-color:#fff0f0">&#34;p&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">hl-todo-previous</span>
+</span></span><span style="display:flex;"><span>    <span style="background-color:#fff0f0">&#34;o&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">hl-todo-occur</span>)
+</span></span></code></pre></div><p>Or, for finer control over when the repeat-map is (de)activated,</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">defvar-keymap</span> <span style="color:#963">hl-todo-repeat-map</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#007020">:repeat</span> (<span style="color:#007020">:enter</span> (<span style="color:#963">hl-todo-insert</span>) <span style="color:#007020">:exit</span> (<span style="color:#963">hl-todo-occur</span>))
+</span></span><span style="display:flex;"><span>    <span style="background-color:#fff0f0">&#34;n&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">hl-todo-next</span>
+</span></span><span style="display:flex;"><span>    <span style="background-color:#fff0f0">&#34;p&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">hl-todo-previous</span>
+</span></span><span style="display:flex;"><span>    <span style="background-color:#fff0f0">&#34;o&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">hl-todo-occur</span>)
+</span></span></code></pre></div><p>which specifies that using <code>hl-=todo-insert</code> should activate the repeat-map and  <code>hl-todo-occur</code> should deactivate it.</p>
+<p>Note that turning an existing keymap into a repeat-map or adding this behavior to individual commands still requires one of the above helpers, like <code>repeatize</code>.</p>
+</div>
+</details>
+<p>With any of these packages you could develop the above idea into a complete modal editing environment &ndash; like <a href="https://github.com/emacsorphanage/god-mode">God Mode</a>, but with custom modes for specialized editing tasks. Even at a more basic level, you can go wild here, placing all commands into repeat maps: Why delete words with <code>M-d</code> or <code>M-DEL</code> five times when you can just do <code>M-d d d d d</code>? Why cycle through the kill-ring with <code>M-y</code>  when you can just yank and cycle with <code>C-y y y y...</code>?</p>
+<p>I&rsquo;m not sure about taking it that far. For one, it&rsquo;s simpler to use digit arguments: <code>M-5 M-d</code> is shorter and possibly faster to type. Second, many commands that involve more than three levels of &ldquo;cycling&rdquo; are better served by a menu with choices, <em>i.e.</em> a <code>completing-read</code> interface or an <a href="../avy-can-do-anything">Avy selection</a>. I&rsquo;ve found that the returns diminish and the common issues with modality start to surface as the repeat maps become more  expansive.</p>
+<p>Repeat maps appear to be best suited for families of related commands that are usually invoked in succession and are cumbersome to invoke. Pretty much exactly what folks use Hydras or (more lately) Transients for, which brings us to&hellip;</p>
+<h2 id="repeat-mode-vs-hydra-transient-and-hercules">Repeat Mode vs Hydra, Transient and Hercules</h2>
+<p>Repeat Mode has a few advantages when compared to Hydras/Transients<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup> for repeating commands:</p>
+<ul>
+<li>There&rsquo;s no special definition or code to write, maintain or copy: it just works.</li>
+<li>There&rsquo;s only one set of keys defined for a command: You can use the same full keybinding with or without Repeat Mode active.</li>
+<li>You can rebind both the prefix and the base keys without losing the repeat behavior.</li>
+<li>Repeat Mode has support for many prefix maps out of the box, and adding support for new maps is easy, see below.</li>
+<li>It&rsquo;s built into Emacs.</li>
+</ul>
+<p>The Hercules package shares many of these advantages, since it too uses existing keymaps as the basis for a repeat interface. However, Repeat Mode is more minimal in its configuration and presentation, does not depend on Which Key, and does not offer a fancy key hinting system out of the box.</p>
+<p>With all of the above alternatives, you still need to invoke the mode somehow. With <code>repeat-mode</code> this requires pressing the unwieldy prefix key <em>once</em>: <code>C-c @</code> for <code>outline-minor-mode</code>, <code>C-c ^</code> for <code>smerge-mode</code>, and so on. This is cause enough for rebinding them somewhere convenient, perhaps to the <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Key-Binding-Conventions.html">user-reserved</a> <code>C-c o</code> (for outline) and <code>C-c m</code> (for merge). Or under a leader key if you use <code>evil-mode</code>. <strong>Note that you have to do this with a Hydra/Transient as well.</strong></p>
+<p>There are disadvantages to Repeat Mode too. First, Hydras/Transients are incredibly versatile, and repeating commands isn&rsquo;t even in the top three problems they solve. Using them for repeating commands is like using an elephant gun to hunt a mouse.</p>
+<p>They can be full fledged suites combining settings and bespoke commands that don&rsquo;t have much in common. For example, here&rsquo;s a Transient I use to toggle minor-modes in Emacs:</p>
+<figure><img src="https://karthinks.com/img/repeat-help-toggle-transient.png" width="700px"/>
+</figure>
+
+<p>And another to resize or clip a video with <code>ffmpeg</code>:</p>
+<figure><img src="https://karthinks.com/img/repeat-help-transient-2.png" width="700px"/>
+</figure>
+
+<p>Basically, Transients have <em>state</em>.</p>
+<p>In contrast, Repeat Mode only aims to save your fingers some work. You <em>can</em> gather disparate commands under the same umbrella map for use with <code>repeat mode</code>, but it gets out of hand rather quickly. So we will limit ourselves to the intended patterns of Repeat Mode usage in this write-up.</p>
+<p>Second, Hydras can stay alive while you press keys not in the keymap. This means you can (usually) move the cursor around to where you next want to call a Hydra command.  You can add this behavior to Repeat Mode with some creative use of <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Inheritance-and-Keymaps.html">composed keymaps</a>, but by default the prefix map does not stay active if you call a non-keymap command. Again, I&rsquo;m going to hew to the default scope of Repeat Mode here.</p>
+<p>Finally, <code>repeat-mode</code> prompts you with available keys in the echo area, but not what commands they&rsquo;re bound to:</p>
+<figure><img src="https://karthinks.com/img/repeat-help-basic-auto.png" width="700px"/>
+</figure>
+
+<p>This is generally sufficient, but I could use a Which Key style menu for rarely used keymaps with lots of keys (like <code>smerge-mode</code>). As it turns out, this is quite straightforward to add.</p>
+<h2 id="adding-a-hydra-like-prompt-to-repeat-mode">Adding a Hydra-like prompt to Repeat Mode</h2>
+<p>If you prefer an explicit and persistent menu of available keys/commands &ndash; like a Hydra or Transient menu &ndash; you can produce a menu using Which Key or an Embark prompter when calling a relevant command:</p>
+<figure><img src="https://karthinks.com/img/repeat-help-which-key-auto.png" width="1000px"/>
+</figure>
+
+<p>Doing this is quite simple: we disable the built-in hint display and advise the function that sets the transient keymap after a &ldquo;repeatable key&rdquo; is pressed. Here&rsquo;s the Which Key version:
+<span class="sidenote-number"><small class="sidenote">
+This code creates a closure, so remember to <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Using-Lexical-Binding.html">enable lexical-binding</a> where it&rsquo;s placed.
+</small></span></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span><span style="color:#888">;; Disable the built-in repeat-mode hinting</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#963">custom-set-variables</span> <span style="color:#963">repeat-echo-function</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">ignore</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#888">;; Spawn or hide a which-key popup</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#963">advice-add</span> <span style="color:#a60;background-color:#fff0f0">&#39;repeat-post-hook</span> <span style="color:#007020">:after</span>
+</span></span><span style="display:flex;"><span>            (<span style="color:#007020">defun</span> <span style="color:#963">repeat-help--which-key-popup</span> ()
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">if-let</span> ((<span style="color:#963">cmd</span> (<span style="color:#007020">or</span> <span style="color:#963">this-command</span> <span style="color:#963">real-this-command</span>))
+</span></span><span style="display:flex;"><span>                       (<span style="color:#963">keymap</span> (<span style="color:#007020">or</span> <span style="color:#963">repeat-map</span>
+</span></span><span style="display:flex;"><span>                                   (<span style="color:#963">repeat--command-property</span> <span style="color:#a60;background-color:#fff0f0">&#39;repeat-map</span>))))
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">run-at-time</span>
+</span></span><span style="display:flex;"><span>                 <span style="color:#00d;font-weight:bold">0</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>                 (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>                   (<span style="color:#963">which-key--create-buffer-and-show</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#036;font-weight:bold">nil</span> (<span style="color:#06b;font-weight:bold">symbol-value</span> <span style="color:#963">keymap</span>))))
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">which-key--hide-popup</span>))))
+</span></span></code></pre></div><p>Specifically, we schedule the which-key popup on the main event loop. (<strong>Emacs</strong>: Making things happen when other things happen™.)</p>
+<p>In action, applied to the <code>smerge-mode</code> keymap when performing a Git merge:</p>
+<video style="center" width="1000" controls>
+<source src="https://karthinks.com/img/repeat-help-smerge-which-key-demo.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/repeat-help-smerge-which-key-demo.mp4">[VIDEO]</a></video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ul>
+<li>Open a file with merge conflicts.</li>
+<li>Call <code>smerge-previous</code> (<code>C-c m p</code> in my configuration) to go to the beginning of a hunk. This &ldquo;activates&rdquo; the keymap and the Which Key pop up.</li>
+<li>Jump through conflict regions with <code>n</code> and <code>p</code>.</li>
+<li>Resolve conflicts by picking the upper (<code>u</code>) or lower (<code>l</code>) regions.</li>
+<li>Save the buffer. This quits the repeat map and the popup.</li>
+</ul>
+</div>
+</details>
+<p>The code to produce a suitable Embark indicator involves a little more book-keeping, but the idea is the same: Schedule a keymap display when a repeatable command is invoked and remove it once it&rsquo;s not relevant any more.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span><span style="color:#888">;; Disable the built-in repeat-mode hinting</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#963">custom-set-variables</span> <span style="color:#963">repeat-echo-function</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">ignore</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">repeat-help--embark-indicate</span> ()
+</span></span><span style="display:flex;"><span>  (<span style="color:#963">if-let</span> ((<span style="color:#963">cmd</span> (<span style="color:#007020">or</span> <span style="color:#963">this-command</span> <span style="color:#963">real-this-command</span>))
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">keymap</span> (<span style="color:#007020">or</span> <span style="color:#963">repeat-map</span>
+</span></span><span style="display:flex;"><span>                       (<span style="color:#963">repeat--command-property</span> <span style="color:#a60;background-color:#fff0f0">&#39;repeat-map</span>))))
+</span></span><span style="display:flex;"><span>      (<span style="color:#963">run-at-time</span>
+</span></span><span style="display:flex;"><span>       <span style="color:#00d;font-weight:bold">0</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>       (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>         (<span style="color:#007020">let*</span> ((<span style="color:#963">bufname</span> <span style="background-color:#fff0f0">&#34;*Repeat Commands*&#34;</span>)
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">embark-verbose-indicator-buffer-sections</span>
+</span></span><span style="display:flex;"><span>                 <span style="color:#333">&#39;</span>(<span style="color:#963">bindings</span>))
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">embark--verbose-indicator-buffer</span> <span style="color:#963">bufname</span>)
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">embark-verbose-indicator-display-action</span>
+</span></span><span style="display:flex;"><span>                 <span style="color:#333">&#39;</span>(<span style="color:#963">display-buffer-at-bottom</span>
+</span></span><span style="display:flex;"><span>                   (<span style="color:#963">window-height</span> <span style="color:#333">.</span> <span style="color:#963">fit-window-to-buffer</span>)
+</span></span><span style="display:flex;"><span>                   (<span style="color:#06b;font-weight:bold">window-parameters</span> <span style="color:#333">.</span> ((<span style="color:#963">no-other-window</span> <span style="color:#333">.</span> <span style="color:#036;font-weight:bold">t</span>)
+</span></span><span style="display:flex;"><span>                                         (<span style="color:#963">mode-line-format</span>))))))
+</span></span><span style="display:flex;"><span>           (<span style="color:#06b;font-weight:bold">funcall</span>
+</span></span><span style="display:flex;"><span>            (<span style="color:#963">embark-verbose-indicator</span>)
+</span></span><span style="display:flex;"><span>            (<span style="color:#06b;font-weight:bold">symbol-value</span> <span style="color:#963">keymap</span>))
+</span></span><span style="display:flex;"><span>           (<span style="color:#007020">setq</span> <span style="color:#963">other-window-scroll-buffer</span> (<span style="color:#06b;font-weight:bold">get-buffer</span> <span style="color:#963">bufname</span>)))))
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">when-let</span> ((<span style="color:#963">win</span>
+</span></span><span style="display:flex;"><span>                (<span style="color:#06b;font-weight:bold">get-buffer-window</span>
+</span></span><span style="display:flex;"><span>                 <span style="background-color:#fff0f0">&#34;*Repeat Commands*&#34;</span> <span style="color:#a60;background-color:#fff0f0">&#39;visible</span>)))
+</span></span><span style="display:flex;"><span>      (<span style="color:#06b;font-weight:bold">kill-buffer</span> (<span style="color:#06b;font-weight:bold">window-buffer</span> <span style="color:#963">win</span>))
+</span></span><span style="display:flex;"><span>      (<span style="color:#963">delete-window</span> <span style="color:#963">win</span>))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#963">advice-add</span> <span style="color:#a60;background-color:#fff0f0">&#39;repeat-post-hook</span> <span style="color:#007020">:after</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">repeat-help--embark-indicate</span>)
+</span></span></code></pre></div><p>Here&rsquo;s what it produces:</p>
+<figure><img src="https://karthinks.com/img/repeat-help-embark-auto.png" width="1000px"/>
+</figure>
+
+<p>If these are too busy, you might prefer to toggle the prompter on demand. There are only a few keymaps I need hints to use, so I bind the popup key to <code>C-h</code>. Here I jump between modified hunks in a version controlled document and examine and stage them for committing using the Embark popup/indicator as a guide. Keep an eye on the key/command description at the top of the window:</p>
+<video style="center" width="600" controls>
+<source src="https://karthinks.com/img/repeat-help-embark-manual.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/repeat-help-embark-manual.mp4">[VIDEO]</a></video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ul>
+<li>Call <code>diff-hl-next-hunk</code>, which I&rsquo;ve bound to <code>C-x v n</code> . This is the only time I type the prefix <code>C-x v</code>.</li>
+<li>Jump between modified hunks in the document with <code>n</code> and <code>p</code>, which would be <code>C-x v n</code> and <code>C-x v p</code> without <code>repeat-mode</code>.</li>
+<li>Bring up the Embark key description popup with <code>C-h</code>. I toggle it a couple of times.</li>
+<li>Call <code>diff-hl-show-hunk</code> with <code>*</code>, and stage the previous hunk with <code>S</code>.</li>
+<li>Perform an action that ends the <code>repeat-mode</code> chain, in this case by yanking some text into the buffer.</li>
+</ul>
+</div>
+</details>
+<p>The key description popup does not need to be cancelled: it automatically disappears when you run any command that&rsquo;s not in the keymap, such as inserting text. (This is regular  behavior for transient keymaps in Emacs.)</p>
+<p>Both indicators (Embark and Which Key) and both kinds of behavior (auto-popup or toggle on demand) are available in <a href="https://github.com/karthink/repeat-help">Repeat Help</a>, a package I wrote to get a simplified Hydra-like prompt for repeat maps. The prompt interface is basic but generic, so any function that can list a keymap&rsquo;s entries can be plugged in.</p>
+<h2 id="command-smells">Command smells</h2>
+<p>To find  other commands or keymaps that could use repeat-izing, we can look for a code smell:</p>
+<ul>
+<li>
+<p>Any command that has &ldquo;next&rdquo;, &ldquo;forward&rdquo;, &ldquo;previous&rdquo; or &ldquo;backward&rdquo; in the name is fair game. For reasons alluded to above, this excludes common commands like <code>next-line</code> or <code>forward-word</code>: jumping across text is better solved by Isearch or Avy.
+<span class="sidenote-number"><small class="sidenote">
+These do other useful things besides, like pushing the mark and letting you act on the region you jumped across.
+</small></span>
+But something contextual like <code>org-next-link</code> is fair game:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defvar</span> <span style="color:#963">org-link-repeat-map</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">map</span> (<span style="color:#06b;font-weight:bold">make-sparse-keymap</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;n&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;org-next-link</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;p&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;org-previous-link</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#963">map</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">dolist</span> (<span style="color:#963">cmd</span> <span style="color:#333">&#39;</span>(<span style="color:#963">org-next-link</span> <span style="color:#963">org-previous-link</span>))
+</span></span><span style="display:flex;"><span>  (<span style="color:#06b;font-weight:bold">put</span> <span style="color:#963">cmd</span> <span style="color:#a60;background-color:#fff0f0">&#39;repeat-map</span> <span style="color:#a60;background-color:#fff0f0">&#39;org-link-repeat-map</span>))
+</span></span></code></pre></div><p>It&rsquo;s surprising that link navigation isn&rsquo;t already part of <a href="https://orgmode.org/manual/Speed-Keys.html">Org Speed Keys</a>, which is included in Org Mode.</p>
+</li>
+<li>
+<p>Any predictable sequence of actions that forms a &ldquo;task&rdquo; is a good candidate. Smerge Mode is a good example. In its most basic usage you jump to each merge conflict, pick one of three choices and repeat. Critically, it has to be a sequence of actions carried out in (or across) an editable buffer. In <code>read-only-mode</code> buffers like help windows or mail clients, most relevant commands are already bound to single key presses at the top level.</p>
+</li>
+<li>
+<p>Any command that tweaks an analog setting will need to be repeated. Setting the text scale (<code>C-x C-=</code> ) or  window width (<code>C-x {</code>), for instance. Fortunately these are already handled by Repeat Mode.</p>
+<p>But other built-in libraries like Windmove, for which Hydras are usually written, can be repeat-ized instead:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defvar</span> <span style="color:#963">windmove-repeat-map</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">map</span> (<span style="color:#06b;font-weight:bold">make-sparse-keymap</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;&lt;left&gt;&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;windmove-left</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;S-&lt;left&gt;&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;windmove-swap-states-left</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;&lt;right&gt;&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;windmove-right</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;S-&lt;right&gt;&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;windmove-swap-states-right</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;&lt;up&gt;&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;windmove-up</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;S-&lt;up&gt;&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;windmove-swap-states-up</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;&lt;down&gt;&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;windmove-down</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;S-&lt;down&gt;&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;windmove-swap-states-down</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#963">map</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">map-keymap</span>
+</span></span><span style="display:flex;"><span> (<span style="color:#007020">lambda</span> (<span style="color:#963">_key</span> <span style="color:#963">cmd</span>)
+</span></span><span style="display:flex;"><span>   (<span style="color:#007020">when</span> (<span style="color:#06b;font-weight:bold">symbolp</span> <span style="color:#963">cmd</span>)
+</span></span><span style="display:flex;"><span>     (<span style="color:#06b;font-weight:bold">put</span> <span style="color:#963">cmd</span> <span style="color:#a60;background-color:#fff0f0">&#39;repeat-map</span> <span style="color:#a60;background-color:#fff0f0">&#39;windmove-repeat-map</span>)))
+</span></span><span style="display:flex;"><span> <span style="color:#963">windmove-repeat-map</span>)
+</span></span></code></pre></div></li>
+</ul>
+<p>Now you can continue to move across or rearrange windows with the arrow keys after calling any Windmove command.</p>
+<h2 id="dot-dot-dot-but-i-repeat-myself">&hellip;but I repeat myself</h2>
+<p>Keybindings are typically where modal editing paradigms have an advantage. Indeed, most repeated invocations in Vim &ndash; like searching forward with <code>n</code> , <code>f</code> or <code>;</code>&ndash; are single key presses. But here too I had to rebind keys to switch windows (<code>C-w j</code>  etc) to use it comfortably over a long editing session.</p>
+<p>The question remained: Why do I need to press so many keys to do the same few things? After failing to gel with the Hydra paradigm, I had been manually setting up transient keymaps (with <code>set-transient-map</code>) to speed up consecutive calls for a bunch of commands. Placing them behind a uniform interface is a welcome addition. Repeat Mode is a small feature that solves a small problem, but with a big cumulative impact on my experience of using Emacs.</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>Technically there&rsquo;s one more approach: Use bespoke solutions like <code>ace-window</code> to switch windows. But in terms of a general approach it&rsquo;s just these three.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>Setting a new transient keymap on each call is actually a wasteful way of producing this effect! Instead, you can set a transient keymap just once but instruct it to stay active as long as the only key pressed is grave.&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p>It makes sense that the Transient package is called that, since Transients (the menus Magit uses) are &ldquo;just&rdquo; souped-up transient maps, the way a Komodo dragon is just a lizard. But it causes no end of confusion when talking about them. Here I refer to a regular Emacs transient map in lowercase and the Magit-style popup-menu variety in uppercase.&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>

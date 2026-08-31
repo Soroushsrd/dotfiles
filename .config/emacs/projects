@@ -1,2 +1,8 @@
 ;;; -*- lisp-data -*-
-(("/home/rusty/.config/emacs/elpa/lambda-themes/"))
+(("/home/rusty/.config/emacs/elpa/reader/") ("/home/rusty/Codes/Work/zaban/")
+ ("/home/rusty/.config/emacs/elpa/tla-ts-mode/")
+ ("/home/rusty/.config/emacs/elpa/org-modern-indent/") ("/home/rusty/dotfiles/")
+ ("/home/rusty/.config/emacs/elpa/eglot-booster/") ("/home/rusty/.config/emacs/elpa/batppuccin/")
+ ("/home/rusty/Codes/Work/z/") ("/home/rusty/.config/emacs/elpa/punch-line/")
+ ("/home/rusty/.config/emacs/elpa/kusanagi-theme/") ("/home/rusty/.config/emacs/elpa/folio-theme/")
+ ("/home/rusty/.config/emacs/elpa/ultra-scroll/") ("/home/rusty/.config/emacs/elpa/claudemacs/"))

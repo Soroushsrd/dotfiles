@@ -1,0 +1,2 @@
+<p>Control-Flow Analysis is a popular technique for performing static analysis of many different kinds of programming languages.
+It’s most often needed in cases where you have some kind of dynamic dispatch: either where you have first-class functions or when you have objects and you call one of their methods.</p>

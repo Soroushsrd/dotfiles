@@ -1,0 +1,11 @@
+<p>
+Raymond Chen has an amusing story just in time for Mothers&rsquo; Day. It&rsquo;s a story from the joint OS/2 development effort of Microsoft and IBM about <a href="https://devblogs.microsoft.com/oldnewthing/20260505-00/?p=112298">the mismatch in organizational structures between Microsoft and IBM</a>. In those days, at least, Microsoft had a relatively shallow management structure whereas IBM epitomized a stolid bureaucracy.
+</p>
+<p>
+A dispute arose over which key to use for moving from field to field in dialog boxes. The Microsofties wanted to use the <kbd>Tab</kbd> key and implemented that in the code. The IBMers were unalterably opposed although Chen doesn&rsquo;t say what key they proposed to use. IBM insisted on escalating the debate to Redmond where the answer came back that they supported use of the <kbd>Tab</kbd> key.
+</p>
+<p>
+The IBMers were not satisfied and escalated the issue up about 7 levels of IBM management to the VP level. The VP was also opposed to the choice of the <kbd>Tab</kbd> key and demanded that the Microsofties escalate the issue to an equivalent level at Redmond.
+</p>
+<p>
+The local Microsoftie&rsquo;s reply was hilarious and apparently ended the discussion. Take a look at Chen&rsquo;s post to see what that reply was and what it had to do with Mothers&rsquo; Day.</p>

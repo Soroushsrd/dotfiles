@@ -1,0 +1,52 @@
+<p>+++</p>
+<p>Today I figured out how to get <a class="link-external" rel="external" href="https://pandoc.org">Pandoc</a> to automatically generate MLA citations for me!</p>
+<p>I used Pandoc and the Biblatex bibliography format. What’s nice about this is that you can enter in all the information you know about the source, keep it nice and organized in a file, and then change the citation style on the fly. Imagine if you thought you had to use MLA, but then realized you needed to switch to APA citation styles. You can do that instantly with Pandoc and Biblatex.</p>
+<p>First, you’ll need <a class="link-external" rel="external" href="https://pandoc.org">pandoc</a> and <a class="link-external" rel="external" href="http://hackage.haskell.org/package/pandoc-citeproc">pandoc-citeproc</a>. (Instructions to install are on the Pandoc website. If you’re running macOS, you can use <a href="https://lambdaland.org/posts/2019-02-06-citations-with-pandoc/brew.sh">Homebrew</a> to install with <code>brew install pandoc</code> and <code>brew install pandoc-citeproc</code>.)</p>
+<p>Next, create a bibliography file. Pandoc can work with many different formats, outlined <a class="link-external" rel="external" href="https://pandoc.org/MANUAL.html#citations">in their documentation</a>, but I’ll show an example with Biblatex, the bibliography database format used with LaTeX.</p>
+<p>Example markdown file:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>---</span></span>
+<span class="giallo-l"><span>title: Irresponsible Encryption</span></span>
+<span class="giallo-l"><span>author: Ashton Wiersdorf</span></span>
+<span class="giallo-l"><span>date: \today</span></span>
+<span class="giallo-l"><span>bibliography: research/refs.bib</span></span>
+<span class="giallo-l"><span>link-citations: true</span></span>
+<span class="giallo-l"><span>cls: Modern Language Association 8th edition</span></span>
+<span class="giallo-l"><span>---</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>Imagine a world where every phone call was tapped, where every purchase online could compromise your credit card, and where every one of your online accounts could be hacked. Imagine if every email you sent were scanned, analyzed, and the findings sold to the highest bidder. Imagine if your health, financial, and shopping records were public. That would be the end of our modern life as we know it. That is a real possiblity we are facing. (Especially if you use Gmail—Google has scanned the contents of emails in the past to serve targeted ads. [See @scroogled_blog]) Governments across the world—from the United States to Australia—are pushing or have passed legislation that mandates &quot;exceptional access mechanisms&quot;—means by which they can break encryption if they have a warrant to do so. They point to cases where criminals—from drug dealers to terrorists—have used encryption to conceal evidence against themselves. However, what they are asking for would have its consequences.</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>\pagebreak</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span># References</span></span></code></pre>
+<p>Note how I have <code>bibliography: research/refs.bib</code> at the top of the file. That lets Pandoc know where to go to find the biblography file. Then you can have a database file like this stored in <code>research/refs.bib</code>:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>@online{scroogled_blog,</span></span>
+<span class="giallo-l"><span>	Annotation = {Ars Technica reports on this---the scary part is that Google was scanning emails in the first place.},</span></span>
+<span class="giallo-l"><span>	Author = {Diane Greene},</span></span>
+<span class="giallo-l"><span>	Crossref = {ars_scroogled},</span></span>
+<span class="giallo-l"><span>	Date = {2017-06-23},</span></span>
+<span class="giallo-l"><span>	Title = {As G Suite gains traction in the enterprise, G Suite&#39;s Gmail and consumer Gmail to more closely align},</span></span>
+<span class="giallo-l"><span>	Url = {https://blog.google/products/gmail/g-suite-gains-traction-in-the-enterprise-g-suites-gmail-and-consumer-gmail-to-more-closely-align/},</span></span>
+<span class="giallo-l"><span>	Urldate = {2019-02-05},</span></span>
+<span class="giallo-l"><span>	Bdsk-Url-1 = {https://blog.google/products/gmail/g-suite-gains-traction-in-the-enterprise-g-suites-gmail-and-consumer-gmail-to-more-closely-align/}}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>@online{ars_scroogled,</span></span>
+<span class="giallo-l"><span>	Author = {Ron Amadeo},</span></span>
+<span class="giallo-l"><span>	Date = {2017-06-23},</span></span>
+<span class="giallo-l"><span>	Title = {Scroogled no more: Gmail won&#39;t scan e-mails for ads personalization},</span></span>
+<span class="giallo-l"><span>	Url = {https://arstechnica.com/gadgets/2017/06/gmail-will-no-longer-scan-e-mails-for-ad-personalization/},</span></span>
+<span class="giallo-l"><span>	Urldate = {2019-02-05},</span></span>
+<span class="giallo-l"><span>	Bdsk-Url-1 = {https://arstechnica.com/gadgets/2017/06/gmail-will-no-longer-scan-e-mails-for-ad-personalization/}}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>...</span></span></code></pre>
+<p>Each entry has a <em>cite key</em>: something that lets you refer to the citation from within your document. Note how in the markdown file I wrote <code>[See @scroogled_blog]</code>. That gets replaced with the following in the final product:</p>
+<blockquote>
+<p>…Google has scanned the contents of emails in the past to serve targeted ads. (See Greene 2017)…</p>
+</blockquote>
+<p>And at the end of the paper, I get a nice-looking citation like this:</p>
+<blockquote>
+<p>Greene, Diane. 2017. “As G Suite Gains Traction in the Enterprise, G Suite’s Gmail and Consumer Gmail to More Closely Align.” June 23, 2017. https://blog.google/products/gmail/g-suite-gains-traction-in-the-enterprise-g-suites-gmail-and-consumer-gmail-to-more-closely-align/.</p>
+</blockquote>
+<p>To generate the finished product, I simply run <code>pandoc --filter pandoc-citeproc paper.md -o paper.pdf</code>. Poof! Nicely formatted and automatic citations!</p>
+<p>To change the citation style, simply alter what is on the line starting with <code>cls:</code> in the header. You can find a list of valid styles <a class="link-external" rel="external" href="https://www.zotero.org/styles">here</a>, with more information <a class="link-external" rel="external" href="https://citationstyles.org/authors/">here</a>. Good luck with your papers!</p>

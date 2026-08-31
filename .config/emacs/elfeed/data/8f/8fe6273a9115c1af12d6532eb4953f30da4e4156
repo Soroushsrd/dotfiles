@@ -1,0 +1,20 @@
+<p>Just a short note for today, as the super-fast-latex post is still cooking:</p>
+<p>Emacs provides a few mechanisms to manage buffer/window state as a group. There&rsquo;s <code>current-window-configuration</code> (and its register variants) and <code>desktop-save</code>, and you can act on groups of buffers by every predicate imaginable in <code>ibuffer</code>. But the window configurations vaporize when you shut down Emacs, and they don&rsquo;t handle unopened file buffers. <code>desktop-read</code> is an all-or-nothing affair. Somehow there&rsquo;s no clear way to bookmark and switch to (across Emacs sessions) a collection of files, buffers and windows together as a unit&hellip; or project.</p>
+<p>Spinning up a new Emacs session (it happens) or switching between projects (using <code>project.el</code>) always annoyed me since I&rsquo;d have to reopen or redisplay the project files I was working on last, then recreate my preferred window configuration and so on. This is especially so since all the ingredients to seamlessly switch projects are present in the Emacs API but haven&rsquo;t been put together.</p>
+<p>Between <code>burly</code>, <code>bufler</code>, <code>persp-mode</code>, <code>projectile</code> and various tab libraries I&rsquo;m sure this hole is covered, but I&rsquo;m happy with <code>project.el</code> and wanted something much simpler, so <a href="https://github.com/karthink/project-x">I whipped something up</a>.</p>
+<p><code>project-x</code> saves my project state (open files, buffers and window configuration) and restores them across Emacs sessions.</p>
+<h2 id="resuming-project-states">Resuming project states</h2>
+<p>Resume a saved project state in a fresh Emacs process:</p>
+<video style="center" width="700" controls loop>
+<source src="https://karthinks.com/img/project-switching-new-emacs.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<p>In addition to the window configuration, project files saved by <code>project-x</code> are restored (as highlighted in <code>ibuffer</code> here.)</p>
+<h2 id="enhanced-project-switching">Enhanced project switching</h2>
+<p>When I switch projects I switch window configurations too, opening files if needed:</p>
+<video style="center" width="700" controls loop>
+<source src="https://karthinks.com/img/project-switching.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<p>Normally this kind of customization would just live in <code>init.el</code>, but I decided to package it in case someone&rsquo;s looking for a similar feature. At just a few defuns and a couple of hook functions, it really is much simpler than full fledged workspace management packages for Emacs. It works perfectly within a session, but it only restores files and directory windows across sessions (no shells, help buffers, etc). It&rsquo;ll do for now.</p>
+<p>I also threw in a project backend to recognize non-version controlled projects through the presence of a &ldquo;.project&rdquo; file in the path. I might take it out to make the library do-one-thing-well, or I might add more <code>project.el</code> enhancements to it instead. The struggle is eternal.</p>

@@ -1,0 +1,8 @@
+<p>
+Raymond Zeitler over at <a href="https://ray-on-emacs.blogspot.com">Ray on Emacs</a> has a nice post on <a href="https://ray-on-emacs.blogspot.com/2026/07/how-to-copy-link-at-point-undocumented.html">copying the link at point in EWW</a>. It&rsquo;s sort of hidden so that&rsquo;s the reason for his post and this one. He decided to write his own because he couldn&rsquo;t find anything that already did the job. It was only after he wrote it that he stumbled on the existing functionality.
+</p>
+<p>
+The short answer is that the <code>u</code> key does just what he wanted. The longer answer is that sometimes <code>w</code> also works. The documentation says that <code>w</code> copies the URL of the current page <i>but</i> if the point is on a link, it will copy the link&rsquo;s URL instead.
+</p>
+<p>
+I&rsquo;m finding that I&rsquo;m using EWW more and more so I&rsquo;m glad to have this information. Zeitler has more details so be sure to take a look at his post.</p>

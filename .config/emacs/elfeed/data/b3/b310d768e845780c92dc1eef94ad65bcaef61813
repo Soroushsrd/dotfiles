@@ -1,0 +1,14 @@
+<p>
+Last week I saw <a href="https://www.acdw.net/carnival-emacs-2026-05/">this post by Case Duckworth about Emacs bankruptcy</a> but this post isn&rsquo;t really about Duckworth&rsquo;s post. Rather, it&rsquo;s about the whole notion of Emacs bankruptcy and whether it&rsquo;s something we should embrace as a routine activity. Some writers view it as part of the cycle of our Emacs life and recommend it as a regular activity.
+</p>
+<p>
+As <a href="https://irreal.org/blog/?p=13257">I wrote last year</a>, my <code>init.el</code> is an organic entity that grows and adapts as my needs change. Sometimes I delete configurations or packages that I no longer use but most often I add a configuration or package as my needs change or I learn something new. I&rsquo;ve put a lot of work into evolving my configuration and I can&rsquo;t think of any reason that I&rsquo;d want to abandon all that work and start over. Much better to fix the parts that need fixing and save the parts that are working.
+</p>
+<p>
+My configuration is by no means a carefully considered project that has grown according to some master plan. Rather, it has evolved to meet my changing needs and newfound knowledge. Sometimes there are experiments that don&rsquo;t work out and when that happens, I simply delete the offending lines and keep going.
+</p>
+<p>
+At no point have I ever felt the need to just quit and start over. That strikes me as crazy. It is, I suppose, an Emacs specific example of the urge to scrap an existing system and rewrite it. As <a href="https://www.joelonsoftware.com/2000/04/06/things-you-should-never-do-part-i/">Joel says</a>, that always ends in tears.
+</p>
+<p>
+The TL;DR is that I reject the idea of Emacs bankruptcy and think that in almost every case, you should too.</p>

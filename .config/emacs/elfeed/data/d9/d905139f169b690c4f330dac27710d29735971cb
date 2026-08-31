@@ -1,0 +1,47 @@
+<p>I started using <a class="link-external" rel="external" href="https://typst.app">Typst</a> about a month ago to write my dissertation proposal. I had seen Typst before and decided to keep an eye on it as it matured. While it still is very much in development, it is mature enough that I was able to rewrite my dissertation proposal from an org-mode → LaTeX pipeline to pure Typst in about an hour with <em>no</em> major hiccups. In fact, most things got <em>simpler</em> as a consequence of using Typst.</p>
+<div class="marginnote">
+<p><a class="link-external" rel="external" href="https://typst.app">Typst</a> is a typesetting system written in <a class="link-external" rel="external" href="https://rust-lang.org">Rust</a> designed to be a replacement for <a class="link-external" rel="external" href="https://en.wikipedia.org/wiki/LaTeX">LaTeX</a>. LaTeX is the de-facto standard for typesetting technical documents thanks to its unsurpassed support for rendering mathematical formulae and its attention to <a class="link-external" rel="external" href="https://ctan.org/pkg/microtype">excellent typography</a>. Both LaTeX and Typst operate by transforming a markup language into an output format like PDF.</p>
+</div>
+<p>I am working on a presentation to give as part of my oral defense of my dissertation proposal. (<strong>Note:</strong> I am not defending my dissertation yet—first I have to justify my plan of research to my PhD committee.) I found a way to use Typst to get gorgeous source code blocks at minimal cost.</p>
+<h2 id="classic-ways-to-get-syntax-highlighting">Classic ways to get syntax highlighting</h2>
+<p>I like having good syntax highlighting in my technical presentations, but getting properly highlighted code was either shoddy or labor-intensive. The tradeoff is:</p>
+<dl>
+<dt>Good-quality source code</dt>
+<dd>I have often typed the source code into my slide and then manually highlighted each word the appropriate color. This is pretty time-consuming, but it has the best results since the font can be scaled as large as I want, and I can manipulate the text as I see fit. Having things like a pre-defined color palette in my color picker and selecting non-contiguous regions with <code>⌘-click</code>: I can select all keywords and highlight them with the color I want.</dd>
+<dt>Quick screenshots</dt>
+<dd>Of course, taking a screenshot of an IDE is always an option. This is nice because you don’t have to spend any time manually highlighting each word. The downside is that it’s fundamentally a pixellated image and that becomes evident as you scale the picture.</dd>
+</dl>
+<p>I will still be using the highlight-each-word technique when I need to show some code and simulate editing it; the “Magic Move” transition in Keynote makes these kinds of code-editing demos easy to build and easy for the audience to follow. However, the majority of the time I’m just displaying code on the screen.</p>
+<h2 id="typst-to-the-rescue">Typst to the rescue</h2>
+<p>I built a <a href="/files/code_template.typ">Typst template</a> and associated <a href="/files/Nord.tmTheme">theme file</a> for code blocks. Now, if I have some code I want to put on a slide, I write a Typst file like the following and put into e.g. <code>example.typ</code>:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="typst"><span class="giallo-l"><span style="color: #ECEFF4;">#</span><span style="color: #81A1C1;">import</span><span style="color: #ECEFF4;"> &quot;</span><span style="color: #A3BE8C;">code_template.typ</span><span style="color: #ECEFF4;">&quot;:</span><span> conf</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">#</span><span style="color: #81A1C1;">show</span><span style="color: #ECEFF4;">:</span><span> conf.</span><span style="color: #88C0D0;">with</span><span style="color: #ECEFF4;">(</span><span>cols</span><span style="color: #ECEFF4;">:</span><span style="color: #B48EAD;"> 92</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">```</span><span>elixir</span></span>
+<span class="giallo-l"><span># Receive from the client &lt;- client_proof</span></span>
+<span class="giallo-l"><span>valid? = SRP.valid_client_proof?(client_proof, password_verifier,</span></span>
+<span class="giallo-l"><span>                                 server_key_pair, client_public_key)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>if valid? do</span></span>
+<span class="giallo-l"><span>  # Send back to client the server&#39;s proof -&gt; server_proof</span></span>
+<span class="giallo-l"><span>else</span></span>
+<span class="giallo-l"><span>  # Send back unauthorized</span></span>
+<span class="giallo-l"><span>end</span></span>
+<span class="giallo-l"><span>```</span></span></code></pre>
+<p>Then I run <code>typst compile example.typ</code> and I get a PDF file with a transparent background that looks like this:</p>
+<!-- {% resize_image("/img/typst_render_demo.png") %} -->
+<p><img src="/img/typst_render_demo.png" alt="" /></p>
+<p>(That’s obviously a PNG file so that it displays nicely here on the web. The real output of that command is a PDF file.)</p>
+<p>I can take that PDF file with a transparent background and drop it straight into my Keynote presentation. Typst takes care of all the syntax highlighting and it’s been good enough for my needs.</p>
+<h2 id="i-am-really-excited-about-typst">I am really excited about Typst</h2>
+<p>Typst is still pretty new software. It has some rough edges and I will not be asking conferences to support Typst for their submissions until all those corners have been smoothed out. However, I am hopeful for Typst’s future, and anywhere where I can get away with just submitting a PDF without the source, I will be using Typst.</p>
+<p>The things that Typst does better than LaTeX right now:</p>
+<ul>
+<li>Incredibly friendly syntax and rendering model. I went from not knowing anything about Typst to reproducing my résumé perfectly in an <em>hour</em>. I even made use of fancy things like functions.</li>
+<li>Excellent documentation. Did I mention how quickly I learned how to use Typst? It is easy to find the thing you want to customize.</li>
+<li>Instantaneous build times. Anyone who works with LaTeX will be familiar with 20+ second build times. Typst is so fast that it can live-rerender documents multiple times a second.</li>
+</ul>
+<p>Typst has good typography and bibliography support. It can work with BibLaTeX <code>.bib</code> files, so you can start using Typst without having to rewrite your whole bibliography. Citation syntax is simple and easy to figure out.</p>
+<p>Typst sill has a bit of a way to go before it does everything that the venerable LaTeX <a class="link-external" rel="external" href="https://ctan.org/pkg/microtype">Microtype</a> package does, but it’s making progress in this area.</p>
+<p>Typst is free and open-source; you can contribute on their <a class="link-external" rel="external" href="https://github.com/typst/typst">GitHub</a> repository. It’s written in Rust and the code seems to be well-organized. They have a hosted collaboration platform that is proprietary; you can subscribe to this, and the funds spent here go towards paying a few full-time developers to work on both the closed-source collaboration platform <em>and</em> improving the open-source compiler. I think this is a neat model and I hope it lets Typst get off the ground and get the adoption it will need to survive and (hopefully!) supplant LaTeX as the typesetting system of choice for technical audiences.</p>

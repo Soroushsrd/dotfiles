@@ -1,0 +1,30 @@
+<p>A quick note that I thought might be interesting to document.</p>
+<p>As befits a shell written in elisp, eshell is extremely easy to modify to your use.  There are a few packages floating around that add autojump/fasd/z type functionality to eshell. These let you jump quickly to any previously visited directory. As it turns out it&rsquo;s very easy to implement a more powerful version of this by piggybacking off of <a href="https://github.com/karthink/consult-dir">consult-dir</a>.</p>
+<p>Here&rsquo;s a <strong>z</strong> command that lets you jump to any previously visited directory, as well as any bookmark, project or emacs-wide recent directory:</p>
+<video style="center" width="700" controls loop>
+<source src="https://karthinks.com/img/eshell-z.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<p>It&rsquo;s a single function:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">eshell/z</span> (<span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">regexp</span>)
+</span></span><span style="display:flex;"><span>    <span style="background-color:#fff0f0">&#34;Navigate to a previously visited directory in eshell, or to
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">any directory proferred by </span><span style="color:#a60;background-color:#fff0f0">`consult-dir&#39;</span><span style="background-color:#fff0f0">.&#34;</span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">let</span> ((<span style="color:#963">eshell-dirs</span> (<span style="color:#963">delete-dups</span>
+</span></span><span style="display:flex;"><span>                        (<span style="color:#06b;font-weight:bold">mapcar</span> <span style="color:#a60;background-color:#fff0f0">&#39;abbreviate-file-name</span>
+</span></span><span style="display:flex;"><span>                                (<span style="color:#963">ring-elements</span> <span style="color:#963">eshell-last-dir-ring</span>)))))
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">cond</span>
+</span></span><span style="display:flex;"><span>       ((<span style="color:#007020">and</span> (<span style="color:#963">not</span> <span style="color:#963">regexp</span>) (<span style="color:#007020">featurep</span> <span style="color:#a60;background-color:#fff0f0">&#39;consult-dir</span>))
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">let*</span> ((<span style="color:#963">consult-dir--source-eshell</span> <span style="color:#333">`</span>(<span style="color:#007020">:name</span> <span style="background-color:#fff0f0">&#34;Eshell&#34;</span>
+</span></span><span style="display:flex;"><span>                                             <span style="color:#007020">:narrow</span> <span style="color:#04d;background-color:#fff0f0">?e</span>
+</span></span><span style="display:flex;"><span>                                             <span style="color:#007020">:category</span> <span style="color:#963">file</span>
+</span></span><span style="display:flex;"><span>                                             <span style="color:#007020">:face</span> <span style="color:#963">consult-file</span>
+</span></span><span style="display:flex;"><span>                                             <span style="color:#007020">:items</span> <span style="color:#333">,</span><span style="color:#963">eshell-dirs</span>))
+</span></span><span style="display:flex;"><span>               (<span style="color:#963">consult-dir-sources</span> (<span style="color:#06b;font-weight:bold">cons</span> <span style="color:#963">consult-dir--source-eshell</span>
+</span></span><span style="display:flex;"><span>                                          <span style="color:#963">consult-dir-sources</span>)))
+</span></span><span style="display:flex;"><span>          (<span style="color:#963">eshell/cd</span> (<span style="color:#06b;font-weight:bold">substring-no-properties</span>
+</span></span><span style="display:flex;"><span>                      (<span style="color:#963">consult-dir--pick</span> <span style="background-color:#fff0f0">&#34;Switch directory: &#34;</span>)))))
+</span></span><span style="display:flex;"><span>       (<span style="color:#036;font-weight:bold">t</span> (<span style="color:#963">eshell/cd</span> (<span style="color:#007020">if</span> <span style="color:#963">regexp</span> (<span style="color:#963">eshell-find-previous-directory</span> <span style="color:#963">regexp</span>)
+</span></span><span style="display:flex;"><span>                            (<span style="color:#06b;font-weight:bold">completing-read</span> <span style="background-color:#fff0f0">&#34;cd: &#34;</span> <span style="color:#963">eshell-dirs</span>)))))))
+</span></span></code></pre></div><p>Plus <code>consult-dir</code>, of course.</p>
+<p>Note that if you provide input to the command instead, <em>e.g.</em> <code>z doc</code>, it will jump directly to the last matching directory you visited in eshell, <em>i.e.</em> <code>~/Documents/</code> or something like it.</p>
+<p>The idea is simple, and it should be trivial to write something similar if you&rsquo;re a Helm or Ivy user, as well as to write one for the comint mode <code>M-x shell</code>.</p>

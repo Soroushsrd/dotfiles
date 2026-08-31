@@ -1,0 +1,12 @@
+<p>“No-code automation” has been in Emacs far longer than its usage as a term of art. Better known as <em>keyboard macros</em>, this feature has allowed Emacs users to achieve their bespoke needs for decades, all without needing to know a whit about Lisp. I can testify to this personally: though I’ve been using Emacs since the early 90’s, only in the past three years has writing Elisp played any part in it. For most of my Emacs journey, I got by with just making keyboard macros.</p>
+<p>If you’re unfamiliar with them, here are two links you should get to know:</p>
+<ul>
+<li><a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Keyboard-Macros.html">The official Emacs manual for keyboard macros</a> ((emacs) Keyboard Macros)</li>
+<li>Mickey Petersen’s post - <a href="https://www.masteringemacs.org/article/keyboard-macros-are-misunderstood">“Keyboard Macros are Misunderstood”</a></li>
+</ul>
+<p>My addition to the knowledge of those posts is to boost this fact: <strong>mouse events can also be captured by a keyboard macro</strong>. If you know where a command <em>is</em> in a menu, you can also record clicking on it. I think the ability to combine both keyboard and mouse events in a keyboard macro is compelling, so much so that I decided to emphasize this in Anju.</p>
+<p>The recent <a href="https://github.com/kickingvegas/anju">Anju</a> v1.5.0 release added the menu “Tools › Macro Recorder” to the menu bar as shown below.</p>
+<p><img alt="img" src="images/anju-kmacros/anju-main-menu-tools-kmacro.png"></p>
+<p>With this, mouse enthusiasts can create and run keyboard macros without need to recall keybindings or deal with inconsistent command naming, as observed in Petersen’s post.</p>
+<p>One thing that I TILed about keyboard macros in building this menu was the command <code>list-keyboard-macros</code> (see <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Kmacro-Menu.html">(emacs) Kmacro menu</a>). This command is available in the “Macro Recorder” menu as the item “List macros”. This lets you manage multiple keyboard macros that have been defined during a session.</p>
+<p>If this interests you, I invite you install <a href="https://melpa.org/#/anju">Anju from MELPA</a> and give it a try. Let me know <a href="https://github.com/kickingvegas/anju/discussions/121">what you think</a>!</p>

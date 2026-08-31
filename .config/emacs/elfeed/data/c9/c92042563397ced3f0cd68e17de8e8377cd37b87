@@ -1,0 +1,45 @@
+<p>One of the first customizations folks make to their Emacs is to hide the menu bar. This makes some sense if you&rsquo;re using a completion UI like Ivy: it&rsquo;s usually faster and more convenient to find an option using fuzzy completion in the minibuffer than it is to mouse over a series of menus. Also, the menu covers only  options that are relevant to the end-user. If you want fine-grained customization or access to Emacs&rsquo; API, you&rsquo;ll need to use a different interface (like <code>customize</code>). The menu is thus seen as a crutch for new users to outgrow.</p>
+<p>It&rsquo;s a shame, though. The menu bar serves two useful purposes:</p>
+<ol>
+<li>
+<p><strong>Discoverability</strong>: <code>M-x</code> and the <code>describe-*</code> commands are good for &ldquo;keyword searches&rdquo;, <em>i.e</em> finding exact names for features that you know exist, including a rough idea of what it might be called (<em>&quot;&hellip;probably ends in <code>-hook</code>?&quot;</em>). But what about the unknown unkowns? Unless you chance upon features you want when looking for something else, you&rsquo;re out of luck. The menu bar is a helpful guide to discover features. CUA-mode, one of the most common new user requests is front and center in the menu bar:</p>
+<figure><img src="https://karthinks.com/img/tab-bar-menu-demo-1.png"/>
+    </figure>
+
+</li>
+<li>
+<p><strong>Organization</strong>: The menu bar for any major-mode usually contains a comprehensive collection of options for that mode. Notwithstanding some recent improvements to command filtering, the <code>M-x</code> interface throws up the entire bag of Emacs&rsquo; commands at you irrespective of the context in which it&rsquo;s called. The <code>describe-*</code> commands are worse. In contrast, the menu bar changes depending on what modes you have active, and generally provides a relevant set of actions. For example, the menu bar in programming modes provides options for linting, compilation, tracing, code folding and so on.<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> The menu in LaTeX or Org-mode is quite different.</p>
+</li>
+</ol>
+<p>But if we&rsquo;re honest, the real reason the menu bar is avoided tends to be more superficial: <em>it takes up space and does not compose visually with Emacs&rsquo; theming.</em></p>
+<p>Let&rsquo;s address this too. There are at least two non-invasive approaches to using the menu in Emacs.</p>
+<h2 id="the-text-mode-menu">The text-mode menu</h2>
+<p>There&rsquo;s a text-mode menu built into Emacs. Calling <code>tmm-menubar</code> (bound to <code>M-`</code> by default) will allow menu-bar access from the minibuffer (or equivalent), helping with discoverability and organization as before:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/tab-bar-menu-demo-3.mp4" type="video/mp4">
+<p><a href="https://karthinks.com/img/tab-bar-menu-demo-3.mp4">[TMM-MENUBAR DEMO]</a></p>
+</video>
+<h2 id="the-tab-bar-menu">The tab-bar menu</h2>
+<p>The second method requires Emacs 28. You can shove the menu into the tab-bar:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/tab-bar-menu-demo-2.mp4" type="video/mp4">
+<p><a href="https://karthinks.com/img/tab-bar-menu-demo-2.mp4">[TAB-BAR MENU DEMO]</a></p>
+</video>
+<p>To do this, you add the built-in function <code>tab-bar-format-menu-bar</code> to <code>tab-bar-format</code>, which is the list of widgets to show in the tab bar.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">add-to-list</span> <span style="color:#a60;background-color:#fff0f0">&#39;tab-bar-format</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">tab-bar-format-menu-bar</span>)
+</span></span></code></pre></div><p>Contrary to its name, the tab-bar can show <a href="http://ruzkuku.com/texts/emacs-global.html">arbitrary information</a>. For example, the system time and battery information in addition to the menu and open tabs:</p>
+<figure><img src="https://karthinks.com/img/tab-bar-global-demo-1.png"/>
+</figure>
+
+<p>I use tabs (as workspaces) and the tab-bar already, so I prefer this method for accessing the menu occasionally.<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup></p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>Of course, this supposes that the relevant features are available in Emacs either as built-ins or through an installed package.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>I changed the menu button text to <code>𝞴</code> from the default to further shorten it.&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>

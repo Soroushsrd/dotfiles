@@ -1,0 +1,11 @@
+<p>
+Charlie Holland has an <a href="https://www.chiply.dev/post-emacs-carnival-may#main-content">interesting contribution</a> to <a href="https://www.emacswiki.org/emacs/CarnivalMay2026">May&rsquo;s Emacs Carnival</a>, which this month is on the topic &ldquo;If I may recommend&hellip;&rdquo; His notion is that Emacs is an effortless bloom. The &ldquo;effortless&rdquo; part is because Emacs—contra conventional wisdom—is easy to use and can, in fact, significantly simplify your work flow by providing a uniform interface to several different computer programming languages and their environments. If you&rsquo;ve ever had to negotiate such a collection, you know that this is not a trivial thing.
+</p>
+<p>
+The &ldquo;bloom&rdquo; part is more nuanced. The idea is that like a rose whose roots &ldquo;fan in&rdquo; water and nutrients and whose flower &ldquo;fans out&rdquo; its petals and beauty to encourage pollination, Emacs has its own fanning in and out. The center of this action is the text buffer. Data from various sources can be fanned into a buffer from which it can be fanned out to various functions for processing. The altered text buffer can then be fanned out to other targets.
+</p>
+<p>
+Holland&rsquo;s post is a bit lyrical so you need to read it to get the full impact of his fan in, fan out metaphor. He considers whether any other editor could achieve the same power as Emacs. He concludes that any editor could, in theory, achieve the same power but in order to do so it would have to replicate the idea of the buffer as the single important data structure on which everything else operates.
+</p>
+<p>
+It&rsquo;s an interesting post worth a few minutes of your time.</p>

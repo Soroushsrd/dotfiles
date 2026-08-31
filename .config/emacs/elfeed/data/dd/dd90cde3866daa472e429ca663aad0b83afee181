@@ -1,0 +1,20 @@
+<p>Do not use Elmo.</p>
+<figure><img src="https://karthinks.com/img/elmo.png"/>
+</figure>
+
+<p>Just making a note here. Following the release of <a href="https://protesilaos.com/emacs/mct">mct.el</a>, I <a href="https://github.com/karthink/elmo">packaged</a> some similar code I had lying around to use <a href="https://github.com/oantolin/embark#working-with-sets-of-possible-targets">Embark live collect buffers</a> as an incremental completion system for Emacs. That is, it does roughly the same thing as other completion systems: allow you to select candidates by typing in stuff at the minibuffer.</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/elmo-grid-list-demo.mp4" type="video/mp4">
+<p><a href="https://karthinks.com/img/elmo-grid-list-demo.mp4">[VIDEO]</a></p>
+</video>
+<p><strong>Elmo is idiosyncratic.</strong> It does not show completions until you type some characters. It debounces completion candidate updates. It shows certain categories of completions in a grid. <code>RET</code> behaves like in Ido: it selects the top candidate or &ldquo;enters&rdquo; directories. On the flip side, the candidate buffer is a regular read-only buffer so you can use all your navigation commands. Regions, rectangles, registers, the whole lot. It&rsquo;s also (slightly) better integrated into Embark on the whole than the others, because it <em>is</em> some glue applied to Embark.</p>
+<p><strong>Elmo is slow.</strong> Use Selectrum, or Vertico, or Ivy, or Icomplete instead.<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> My primary reason for turning it into a minor-mode from a gaggle of hooks is that I can now turn it off.</p>
+<p><strong>Do not use Elmo.</strong></p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>Or Helm, but that&rsquo;s more of a lifestyle than a completion system.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>

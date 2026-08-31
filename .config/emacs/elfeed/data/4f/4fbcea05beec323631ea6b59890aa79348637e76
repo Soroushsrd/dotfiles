@@ -1,0 +1,21 @@
+<p>
+I see a lot of blog posts recommending EWW. Sometimes I even write about them. The common theme is something along the lines of, &ldquo;No, you can&rsquo;t really replace a full-fledged browser with EWW but you <i>can</i> do a lot and a &rdquo;real&ldquo; browser is only a keystroke away.&rdquo;
+</p>
+<p>
+In another <a href="https://sachachua.com/blog/2026/05/emacs-carnival-may-2026-may-i-recommend/">May Emacs Carnival</a> entry, Omar Antolín Camarena offers <a href="https://www.matem.unam.mx/~omar/apropos-emacs.html#may-i-recommend-eww-for-emacs-innovative-ui">his reasons for using EWW</a>. He agrees with the conventional wisdom that EWW isn&rsquo;t a replacement for a normal browser but that it <i>is</i> useful in many situations and even has some advantages over your default buffer.
+</p>
+<p>
+He believes that one of the chief advantages of EWW is that it doesn&rsquo;t run JavaScript. That&rsquo;s ironic, of course, because EWW&rsquo;s lack of support for JavaScript is one of its most oft cited shortcomings. But Camarena says that lack is often an advantage because JavaScript is often used to load ads or a paywall or to reconfigure your display preferences often choosing low contrast colors that are hard for anyone but the young to read.
+</p>
+<p>
+His second reason for using EWW is that it brings the power of Emacs to your Web browsing. Among the advantages he lists are:
+</p>
+<ul class="org-ul">
+<li>You can easily resize images without changing font and other sizes.</li>
+<li>You can read the Web site content in multiple columns using <code>follow-mode</code>.</li>
+<li>You can use <code>occur</code> for a search and keep a list of results and easily navigate among them.</li>
+<li>You can evaluate ELISP directly in the EWW buffer and many other language as well with a bit of plumbing.</li>
+<li>You can use <code>eww-readable</code> to eliminate a lot of the junk that comes with many Web pages.</li>
+</ul>
+<p>
+And, as Camarena stresses, you can always escape to a normal buffer with <code>eww-browse-with-external-browser</code>, bound to <kbd>&amp;</kbd> by default.</p>

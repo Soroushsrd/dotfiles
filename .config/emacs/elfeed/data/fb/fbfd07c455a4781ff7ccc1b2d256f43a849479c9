@@ -1,0 +1,81 @@
+<p>Back when I had to run a lot of long-running simulations on Unix systems, I became an ardent user of the <a href="https://en.wikipedia.org/wiki/At_(command)">at</a> command, which lets one schedule a program to run at a future date. I also used <code>at</code> to schedule different notifications, like sending a message to a pager (yer, how quaint).</p>
+<p>Moving to macOS (nee OS X) changed that, as it disabled by default the <code>at</code> command due to battery life management. As I was unwilling to give up battery life for <code>at</code>, I learned to live without it. That was, until I learned that Emacs had <code>run-at-time</code>.</p>
+<p>The <code>run-at-time</code> command does as it says on the tin: it will run a <em>function</em> at some future specification of <em>time</em>.</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="p">(</span><span class="nv">run-at-time</span><span class="w"> </span><span class="nv">TIME</span><span class="w"> </span><span class="nv">REPEAT</span><span class="w"> </span><span class="nv">FUNCTION</span><span class="w"> </span><span class="kp">&amp;rest</span><span class="w"> </span><span class="nv">ARGS</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+
+<p>That specification of time is “natural language-like” in that multiple string representations of time can be accepted, both absolute and relative.</p>
+<p>The <em>function</em> can be anything Elisp offers, but <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Shell.html">running shell commands</a> is what makes <code>run-at-time</code> a substitute for <code>at</code>, with some caveats.</p>
+<p>Jobs that are submitted by <code>run-at-time</code> can be listed out via the <code>list-timers</code> command. You can cancel a job (actually a timer object) using the <code>c</code> key, bound to <code>timer-list-cancel</code>. Note that Emacs disables <code>list-timers</code> by default as it exposes timers that you should likely not mess with. Be forewarned.</p>
+<p>Another caveat is that using <code>run-at-time</code> presumes that your Emacs session is still running at that future time. If you have Emacs running all the time (particularly as a <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Emacs-Server.html">server</a>) then this should work without complication.</p>
+<h1>Example: Scheduling a macOS Notification</h1>
+<p>A common use I have for <code>run-at-time</code> is to send myself a notification at a future time. The way I prefer to be notified is using the <a href="https://support.apple.com/guide/mac-help/get-notifications-mchl2fb1258f/mac">macOS Notification Center</a>. Here’s an example of what a notification looks like:</p>
+<p align='center'>
+<img src='images/scheduling-future-tasks-emacs/nota-notification.png'  />
+</p>
+
+<p>The above notification was sent using a <a href="https://support.apple.com/guide/shortcuts-mac/intro-to-shortcuts-apdf22b0444c/mac">macOS Shortcut</a> I’ve defined named <em>nota</em>. Shown below is how <em>nota</em> is defined in the Shortcuts app.</p>
+<p align='center'>
+<img src='images/scheduling-future-tasks-emacs/nota-screenshot.png'  />
+</p>
+
+<p>A macOS shortcut can be invoked from the command line. We can wrap this capability in the Elisp function <code>cc/run-nota</code>.</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span>
+<span class="normal">7</span>
+<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="p">(</span><span class="nb">defun</span><span class="w"> </span><span class="nv">cc/run-nota</span><span class="w"> </span><span class="p">(</span><span class="nv">msg</span><span class="p">)</span>
+<span class="w">  </span><span class="s">&quot;Run nota shortcut with MSG.&quot;</span>
+<span class="w">  </span><span class="p">(</span><span class="nv">process-lines</span>
+<span class="w">   </span><span class="s">&quot;shortcuts&quot;</span>
+<span class="w">   </span><span class="s">&quot;run&quot;</span>
+<span class="w">   </span><span class="s">&quot;nota&quot;</span>
+<span class="w">   </span><span class="s">&quot;-i&quot;</span>
+<span class="w">   </span><span class="nv">msg</span><span class="p">))</span>
+</code></pre></div></td></tr></table></div>
+
+<p>Finally we can schedule <code>cc/run-nota</code> with <code>run-at-time</code> through the wrapper command <code>cc/notify-at</code>.</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="p">(</span><span class="nb">defun</span><span class="w"> </span><span class="nv">cc/notify-at</span><span class="w"> </span><span class="p">(</span><span class="kp">&amp;optional</span><span class="w"> </span><span class="nv">start-time</span><span class="w"> </span><span class="nv">msg</span><span class="p">)</span>
+<span class="w">  </span><span class="s">&quot;Send a nota notification with MSG at START-TIME.</span>
+
+<span class="s">This command invokes </span><span class="ss">`cc/run-nota&#39;</span><span class="s"> with MSG at START-TIME passed into</span>
+<span class="ss">`run-at-time&#39;</span><span class="s">.&quot;</span>
+<span class="w">  </span><span class="p">(</span><span class="k">interactive</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="k">let*</span><span class="w"> </span><span class="p">((</span><span class="nv">start-time</span><span class="w"> </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="nv">start-time</span>
+<span class="w">                         </span><span class="nv">start-time</span>
+<span class="w">                       </span><span class="p">(</span><span class="nf">read-string</span><span class="w"> </span><span class="s">&quot;Time: &quot;</span><span class="p">)))</span>
+<span class="w">         </span><span class="p">(</span><span class="nv">msg</span><span class="w"> </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="nv">msg</span>
+<span class="w">                  </span><span class="nv">msg</span>
+<span class="w">                </span><span class="p">(</span><span class="nf">read-string</span><span class="w"> </span><span class="s">&quot;Message: &quot;</span><span class="p">))))</span>
+<span class="w">    </span><span class="p">(</span><span class="nv">run-at-time</span><span class="w"> </span><span class="nv">start-time</span>
+<span class="w">                 </span><span class="no">nil</span>
+<span class="w">                 </span><span class="nf">#&#39;</span><span class="nv">cc/run-nota</span>
+<span class="w">                 </span><span class="nv">msg</span><span class="p">)</span>
+
+<span class="w">    </span><span class="p">(</span><span class="nf">message</span><span class="w"> </span><span class="s">&quot;Show notification “%s” in/at %s&quot;</span><span class="w"> </span><span class="nv">msg</span><span class="w"> </span><span class="nv">start-time</span><span class="p">)))</span>
+</code></pre></div></td></tr></table></div>
+
+<p>Users wishing to install the <em>nota</em> macOS shortcut can download it via the following iCloud link:</p>
+<p><a href="https://www.icloud.com/shortcuts/8e180b939daa4ab5a7f03e326577fa30">nota shortcut (via iCloud)</a></p>
+<h1>Closing Thoughts</h1>
+<p><code>run-at-time</code> is an <a href="https://rossabaker.com/blog/underappreciated-emacs-built-ins/">underappreciated built-in</a> which has given me much of what I used to use <code>at</code> for. If you use Emacs for implementing any kind of automation, you should include <code>run-at-time</code> as part of your toolbox for it.</p>

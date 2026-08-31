@@ -1,0 +1,18 @@
+
+<header>
+  <h1>Printing Lists</h1>
+  <time class="meta" datetime="2026-08-14">Aug 14, 2026</time>
+</header>
+<p>To print a comma-separated list, a concise idiom is to optionally print the comma first, before the element:</p>
+
+<figure class="code-block">
+
+
+<pre><code><span class="line"><span class="hl-keyword">for</span> (items, <span class="hl-numbers">0</span>..) <span class="hl-operator">|</span>item, item_index<span class="hl-operator">|</span> {</span>
+<span class="line">    <span class="hl-keyword">if</span> (item_index &gt; <span class="hl-numbers">0</span>) std.debug.print(<span class="hl-string">&quot;, &quot;</span>);</span>
+<span class="line">    std.debug.print(<span class="hl-string">&quot;{}&quot;</span>, .{item});</span>
+<span class="line">}</span></code></pre>
+
+</figure>
+
+    

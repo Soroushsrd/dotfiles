@@ -1,0 +1,14 @@
+<p>
+Our younger colleagues can be forgiven for viewing Microsoft as a benign company. Those of us who have been around for a while remember the old days and we haven&rsquo;t forgotten or forgiven. Despite their efforts to appear a friendly and responsible member of our community, there has been plenty of evidence that the tiger hasn&rsquo;t changed its stripes.
+</p>
+<p>
+The latest bit of evidence is a report by a security researcher that <a href="https://www.techspot.com/news/112410-security-researcher-microsoft-secretly-built-backdoor-bitlocker-releases.html">Microsoft secretly built a backdoor into BitLocker</a>, its full disk encryption system. I find the evidence a little ambiguous but the exploit definitely exists and has been verified independently. The question is whether the exploit is a bug or a purposeful backdoor.
+</p>
+<p>
+The researcher—who uses the handle &ldquo;Nightmare-Eclipse&rdquo;—has an adversarial history with Microsoft but insists that he can think of no reason for the code in question to exist except to provide a backdoor. It&rsquo;s hard to know what to think. On the one hand there&rsquo;s Microsoft&rsquo;s previous bad behavior and antipathy to any software company not named Microsoft, and especially to the free software movement. On the other hand, it may be that Nightmare-Eclipse, having found a legitimate exploit is allowing his dislike of Microsoft to impute bad motives to the company.
+</p>
+<p>
+It is, I think, hard to see what the upside of installing such a backdoor would be for Microsoft. The exploit was almost certain to become known and what, exactly, would they expect to gain from it that would be worth the bad publicity?
+</p>
+<p>
+The uncertainty is what makes it red meat. Both the Microsoft haters and supporters can grab onto part of the story and claim victory for their point of view.</p>

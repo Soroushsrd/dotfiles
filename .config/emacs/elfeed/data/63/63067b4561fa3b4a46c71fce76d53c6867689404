@@ -1,0 +1,5 @@
+<p>
+I don&rsquo;t see anything in my feed worth writing about so I offer this <a href="https://www.reddit.com/r/emacs/comments/1vkufc3/a_warning_for_new_emacs_users/">bit of humor</a> to help you get through the day. If you&rsquo;ve ever wondered why an S-expressions is called an sexp, here&rsquo;s your answer.
+</p>
+<p>
+Like all humor, there&rsquo;s a bit of truth here. Not the part about sexp, of course, but the notion that many of us come to Emacs for some particular feature, venture too close to the <code>init.el</code> event horizon, and never escape.</p>

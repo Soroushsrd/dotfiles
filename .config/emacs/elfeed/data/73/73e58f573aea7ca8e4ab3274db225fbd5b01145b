@@ -1,0 +1,156 @@
+<!-- boilerplate 
+page.assets: /assets/rip-zero-opt
+assetpath: /assets/rip-zero-opt
+tablepath: /misc/tables/rip-zero-opt
+-->
+
+<h2 id="a-strange-performance-effect">A Strange Performance Effect</h2>
+
+<p>The plot below shows the throughput of filling a region of the given size (varying on the x-axis) with zeros<sup id="fnref:stdfill" role="doc-noteref"><a href="#fn:stdfill" class="footnote" rel="footnote">1</a></sup> on Skylake (and Ice Lake in the second tab).</p>
+
+<p>The two series were generated under apparently identical conditions: the same binary on the same machine. Only the date the benchmark was run varies. That is, on Monday, June 7th, filling with zeros is substantially faster than the same benchmark on Wednesday, at least when the region no longer fits in the L2 cache<sup id="fnref:whitelie" role="doc-noteref"><a href="#fn:whitelie" class="footnote" rel="footnote">2</a></sup>.</p>
+
+<div class="tabs" id="tabs-fig1">
+    <!-- Courtesy of https://codepen.io/Merri/pen/bytea -->
+    
+    <div class="tab">
+      <input class="tab-radio" type="radio" id="tab-fig1-1" name="tab-group-fig1" checked="" />
+      <label class="tab-label" for="tab-fig1-1">Skylake</label>
+      <div class="tab-panel">
+        <div class="tab-content">
+          
+          
+          
+
+
+
+
+
+<div class="svg-fig">
+    <div class="svg-fig-links">
+        
+        
+            <a href="/misc/tables/rip-zero-opt/skl/fig1.html">[data<span class="only-large"> table</span>]</a> 
+        
+        <a href="https://github.com/travisdowns/zero-fill-bench/tree/master/results/post3/skl-combined/l2-focus.csv">[raw<span class="only-large"> data</span>]</a> 
+    </div>
+    <a href="/misc/tables/rip-zero-opt/skl/fig1.html">
+        <img class="figimg" src="/assets/rip-zero-opt/skl/fig1.svg" alt="Figure 13: A chart of region size (x-axis) versus fill throughput (y-axis) with two series, Monday and Wednesday, with the Wednesday series showing worse performance in L3 and RAM" width="648" height="432" />
+    </a>
+</div>
+
+        </div>
+      </div>
+    </div>
+    
+    <div class="tab">
+      <input class="tab-radio" type="radio" id="tab-fig1-2" name="tab-group-fig1" />
+      <label class="tab-label" for="tab-fig1-2">Ice Lake</label>
+      <div class="tab-panel">
+        <div class="tab-content">
+          
+          
+          
+
+
+
+
+
+<div class="svg-fig">
+    <div class="svg-fig-links">
+        
+        
+            <a href="/misc/tables/rip-zero-opt/icl/fig1.html">[data<span class="only-large"> table</span>]</a> 
+        
+        <a href="https://github.com/travisdowns/zero-fill-bench/tree/master/results/post3/icl-combined/l2-focus.csv">[raw<span class="only-large"> data</span>]</a> 
+    </div>
+    <a href="/misc/tables/rip-zero-opt/icl/fig1.html">
+        <img class="figimg" src="/assets/rip-zero-opt/icl/fig1.svg" alt="Figure 13: A chart of region size (x-axis) versus fill throughput (y-axis) with two series, Monday and Wednesday, with the Wednesday series showing worse performance in L3 and RAM" width="648" height="432" />
+    </a>
+</div>
+
+        </div>
+      </div>
+    </div>
+    
+</div>
+
+<h3 id="hump-day-strikes-back">Hump Day Strikes Back</h3>
+
+<p>What’s going on here? Are my Skylake and Ice Lake hosts simply work-weary by Wednesday and don’t put in as much effort? Is there a new crypto-coin based on who can store the most zeros and this is a countermeasure to avoid ballooning CPU prices in the face of this new workload?</p>
+
+<p>Believe it or not, it is none of the above!</p>
+
+<p>These hosts run Ubuntu 20.04 and on Wednesday June 9th an update to the <a href="https://launchpad.net/ubuntu/+source/intel-microcode">intel-<abbr title="Internal instructions and other logic forming part of a CPU which may be used to implement user-visible instructions and control other aspects of CPU behavior and which may be modified dynamically by vendor-provided updates.">microcode</abbr></a> OS package was released. After a reboot<sup id="fnref:reboot" role="doc-noteref"><a href="#fn:reboot" class="footnote" rel="footnote">3</a></sup>, this loads the CPU with new <em><abbr title="Internal instructions and other logic forming part of a CPU which may be used to implement user-visible instructions and control other aspects of CPU behavior and which may be modified dynamically by vendor-provided updates.">microcode</abbr></em> (released a day earlier by Intel) that causes the behavior shown above. Specifically, this <abbr title="Internal instructions and other logic forming part of a CPU which may be used to implement user-visible instructions and control other aspects of CPU behavior and which may be modified dynamically by vendor-provided updates.">microcode</abbr><sup id="fnref:versions" role="doc-noteref"><a href="#fn:versions" class="footnote" rel="footnote">4</a></sup> disables the <a href="/blog/2020/05/13/intel-zero-opt.html">hardware zero store</a> optimization we discussed in a previous post. It was disabled to mitigate <a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-24512">CVE-2020-24512</a> further described<sup id="fnref:barely" role="doc-noteref"><a href="#fn:barely" class="footnote" rel="footnote">5</a></sup> in Intel security advisory <a href="https://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-00464.html">INTEL-SA-00464</a>.</p>
+
+<p>To be clear, I don’t know <em>for sure</em> that the <abbr title="Internal instructions and other logic forming part of a CPU which may be used to implement user-visible instructions and control other aspects of CPU behavior and which may be modified dynamically by vendor-provided updates.">microcode</abbr> disables the zero store optimization – but the evidence is rather overwhelming. After the update, performance is the same when filling zeros as for any other value, and the performance counters tracking L2 evictions suggestion that substantially all evictions are now non-silent (recall from the previous posts that silent evictions were a hallmark of the optimization).</p>
+
+<p>Although I suspect the performance impact will be minuscule on average<sup id="fnref:impact" role="doc-noteref"><a href="#fn:impact" class="footnote" rel="footnote">6</a></sup>, this surprise still serves as a reminder that raw CPU performance can <em>silently</em> change due to <abbr title="Internal instructions and other logic forming part of a CPU which may be used to implement user-visible instructions and control other aspects of CPU behavior and which may be modified dynamically by vendor-provided updates.">microcode</abbr> updates and most Linux distributions and modern Windows have these updates enabled by default. We’ve <a href="/blog/2019/03/19/random-writes-and-microcode-oh-my.html">seen this before</a>. If you are trying to run reproducible benchmarks, you should always re-run your <em>entire</em> suite in order to make accurate comparisons, even on the same hardware, rather than just running the stuff you think has changed.</p>
+
+<h3 id="reproduction">Reproduction</h3>
+
+<p>The code to collect this performance data and reproduce my results is available in <a href="https://github.com/travisdowns/zero-fill-bench/tree/post3">zero-fill-bench</a>, with some <a href="https://github.com/travisdowns/zero-fill-bench#third-post-rip-zero-store-optimization">instructions</a> in the README.</p>
+
+<h3 id="mea-culpa-and-an-unsustainable-path">Mea Culpa and an Unsustainable Path</h3>
+
+<p>In writing the earlier blog entries on this topic, I was interested in the <em>performance</em> aspects of this optimization, not its potential as an attack vector. However, merely by observing (and publishing) the results, the optimization was affected: <a href="https://en.wikipedia.org/wiki/Measurement_problem">the system under measurement changed as a result of the observation</a>. Now I can’t be sure that the optimization wouldn’t have eventually been disabled anyway, but it does seem that the reason for this behavior change to occur now was my earlier post.</p>
+
+<p>I am not convinced that removing any optimization which can be used in a timing-based side channel is sustainable. I am not sure this is a thread you want to keep pulling on: practically <em>every</em> aspect of a modern CPU can vary in performance and timing based on internal state<sup id="fnref:power" role="doc-noteref"><a href="#fn:power" class="footnote" rel="footnote">7</a></sup>. Trying to draw the security boundaries tightly around co-located entities (e.g., processes on the same CPU, especially on the same core), without allowing any leaks seems destined to fail without a complete overhaul of CPU design, likely at the cost of a large amount of performance. There are just too many holes to plug.</p>
+
+<p>I hope that once the wave of vulnerabilities and disclosures that started with Meltdown and Spectre begins to recede, we can start to work on a measured approach to classifying and mitigating timing and other side-channel attacks. This could start by enumerating which performance characteristics are reasonable guaranteed to hold, and which aren’t. For example, it could be specified whether memory access timing may vary based on the <em>value</em> accessed. If it is allowed to vary, the zero store optimization would be allowed.</p>
+
+<p>In any case, I still plan to write about performance-related microarchitectural details. I just hope this outcome does not repeat itself.</p>
+
+<h3 id="thanks">Thanks</h3>
+
+<p>Thanks to JN, Chris Martin, Jonathan and m_ueberall for reporting or fixing typos in the text.</p>
+
+<p>Stone photo by Colin Watts on Unsplash.</p>
+
+<h3 id="discussion-and-feedback">Discussion and Feedback</h3>
+
+<p>You can join the discussion on <a href="https://twitter.com/trav_downs/status/1407110595761950720">Twitter</a>, <a href="https://news.ycombinator.com/item?id=27588258">Hacker News</a> or <a href="https://www.reddit.com/r/intel/comments/o5b9gg/your_intel_cpu_may_have_slowed_down_on_wednesday/">r/Intel</a>.</p>
+
+<p>If you have a question or any type of feedback, you can leave a <a href="#comment-section">comment below</a>.</p>
+
+<p class="info">If you liked this post, check out the <a href="/">homepage</a> for others you might enjoy.</p>
+
+<hr />
+<p><br /></p>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:stdfill" role="doc-endnote">
+
+      <p>Specifically, it uses <a href="https://en.cppreference.com/w/cpp/algorithm/fill"><code class="language-plaintext highlighter-rouge">std::fill</code></a> with a zero argument, with some inlining prevention, which ultimately results in a fill which uses a series of 32-byte vector loads and stores to store 256 bytes per unrolled iteration, with a loop body like this:</p>
+      <div class="language-nasm highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">vmovdqu</span> <span class="nv">YMMWORD</span> <span class="nv">PTR</span> <span class="p">[</span><span class="nb">rax</span><span class="p">],</span><span class="nv">ymm1</span>
+<span class="nf">vmovdqu</span> <span class="nv">YMMWORD</span> <span class="nv">PTR</span> <span class="p">[</span><span class="nb">rax</span><span class="o">+</span><span class="mh">0x20</span><span class="p">],</span><span class="nv">ymm1</span>
+<span class="nf">vmovdqu</span> <span class="nv">YMMWORD</span> <span class="nv">PTR</span> <span class="p">[</span><span class="nb">rax</span><span class="o">+</span><span class="mh">0x40</span><span class="p">],</span><span class="nv">ymm1</span>
+<span class="nf">vmovdqu</span> <span class="nv">YMMWORD</span> <span class="nv">PTR</span> <span class="p">[</span><span class="nb">rax</span><span class="o">+</span><span class="mh">0x60</span><span class="p">],</span><span class="nv">ymm1</span>
+<span class="nf">vmovdqu</span> <span class="nv">YMMWORD</span> <span class="nv">PTR</span> <span class="p">[</span><span class="nb">rax</span><span class="o">+</span><span class="mh">0x80</span><span class="p">],</span><span class="nv">ymm1</span>
+<span class="nf">vmovdqu</span> <span class="nv">YMMWORD</span> <span class="nv">PTR</span> <span class="p">[</span><span class="nb">rax</span><span class="o">+</span><span class="mh">0xa0</span><span class="p">],</span><span class="nv">ymm1</span>
+<span class="nf">vmovdqu</span> <span class="nv">YMMWORD</span> <span class="nv">PTR</span> <span class="p">[</span><span class="nb">rax</span><span class="o">+</span><span class="mh">0xc0</span><span class="p">],</span><span class="nv">ymm1</span>
+<span class="nf">vmovdqu</span> <span class="nv">YMMWORD</span> <span class="nv">PTR</span> <span class="p">[</span><span class="nb">rax</span><span class="o">+</span><span class="mh">0xe0</span><span class="p">],</span><span class="nv">ymm1</span>
+</code></pre></div>      </div>
+      <p>So the compiler does a good job: you can’t ask for much better than that. <a href="#fnref:stdfill" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:whitelie" role="doc-endnote">
+      <p>I’m doing a bit of a retcon here. The effect is present as described on the gates given, and I observed and benchmarked it on Wednesday myself, but the specific data series used for the plots were generated a week later when I had time to collect the data properly in a relatively noise free environment. So the two series were collected back-to-back on the same day, varying only the hidden parameter you’ll learn about two paragraphs from now. <a href="#fnref:whitelie" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:reboot" role="doc-endnote">
+      <p>To be clear, the <abbr title="Internal instructions and other logic forming part of a CPU which may be used to implement user-visible instructions and control other aspects of CPU behavior and which may be modified dynamically by vendor-provided updates.">microcode</abbr> is not persistent, so it needs to be loaded on <em>every</em> boot. If you remove or downgrade the <code class="language-plaintext highlighter-rouge">intel-microcode</code> package, you’ll be back to an older <abbr title="Internal instructions and other logic forming part of a CPU which may be used to implement user-visible instructions and control other aspects of CPU behavior and which may be modified dynamically by vendor-provided updates.">microcode</abbr> after the next boot. That is, unless you also update your BIOS which can <em>also</em> come with a <abbr title="Internal instructions and other logic forming part of a CPU which may be used to implement user-visible instructions and control other aspects of CPU behavior and which may be modified dynamically by vendor-provided updates.">microcode</abbr> update: this will be persistent unless you downgrade your BIOS. <a href="#fnref:reboot" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:versions" role="doc-endnote">
+      <p>The new June 8th <abbr title="Internal instructions and other logic forming part of a CPU which may be used to implement user-visible instructions and control other aspects of CPU behavior and which may be modified dynamically by vendor-provided updates.">microcode</abbr> versions are <code class="language-plaintext highlighter-rouge">0xea</code> for Skylake (versus <code class="language-plaintext highlighter-rouge">0xe2</code> previously) and <code class="language-plaintext highlighter-rouge">0xa6</code> for Ice Lake (versus <code class="language-plaintext highlighter-rouge">0xa0</code> previously). <a href="#fnref:versions" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:barely" role="doc-endnote">
+      <p><em>barely</em> <a href="#fnref:barely" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:impact" role="doc-endnote">
+      <p>The performance regression shown in the plots is close to a worst case: the benchmark only fills zeros and nothing else. Real code doesn’t spend <em>that much</em> time filling zeros, although zero <em>is</em> no doubt the dominant value in large block fills, at least because the OS must zero pages before returning them to user processes and memory-safe languages like Java will zero some objects and array types in bulk. <a href="#fnref:impact" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:power" role="doc-endnote">
+      <p>This observation becomes almost universal once you consider that the <em>values</em> involved in any operation affect power use (see e.g. <a href="https://arxiv.org/pdf/1905.12468.pdf">Schöne et al</a> or <a href="https://hal.inria.fr/hal-02401760/document">Cornebize and Legrand</a>). Since power use can be directly (e.g., RAPL or external measurements) or indirectly (e.g., because of heat-dependent frequency changes) observed, it means that in theory <em>any</em> operation, even those widely considered to be constant-time, may leak information. <a href="#fnref:power" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>

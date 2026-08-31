@@ -1,0 +1,14 @@
+<p>
+As most of you know, I don&rsquo;t use Gmail or anything else from Google—except YouTube—if I can help it. They have, sadly, moved from &ldquo;Don&rsquo;t be evil&rdquo; to &ldquo;Do whatever you need to do to make us money&rdquo;. For reasons that we here at the Irreal bunker have a hard time understanding, lots of people disagree and are all in on Gmail and many of the other Google offerings.
+</p>
+<p>
+If you&rsquo;re one of those Gmail users, are running on a Mac, and are an Emacs user, you may want to read your Gmail from within Emacs. The problem is that it&rsquo;s difficult to configure Gmail authentication. Yi-Ping Pan has a solution. <a href="https://thecloudlet.github.io/technical/til/mu4e-gmail-macos/">He uses the Password app instead of OAuth2 and says that you can get everything set up in about 20 minutes</a>. Take a look at his post for the details. He provides everything you need to get things running.
+</p>
+<p>
+<a href="https://www.reddit.com/r/emacs/comments/1tqv985/comment/ookvjfu/">Webframp</a> notes in a comment that Pan&rsquo;s solution might not work if you have Google&rsquo;s advance protection enabled. I can&rsquo;t comment on that because: not a Gmail user.
+</p>
+<p>
+Well, actually, I suppose that technically I <i>am</i> a Gmail user because I do have a Gmail address. I can&rsquo;t remember the last time I got any mail from it but irrational paranoia keeps me from deleting it. How, then, do <i>I</i> deal with Gmail? Simple. I forward it do my main email account so that it appears normally without having to do anything special. Like many of you, I have several email accounts and I do the same thing with all of them: I forward them to my main email account. Mu4e makes sure that my answers come from the appropriate email address.
+</p>
+<p>
+If you&rsquo;re using Gmail as a secondary account, forwarding it to your main account may make more sense than jumping through Google&rsquo;s hoops. Regardless, if you want to retrieve Gmail directly, Pan&rsquo;s post has a good solution.</p>

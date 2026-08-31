@@ -1,0 +1,45 @@
+<div ( . )='http://www.w3.org/1999/xhtml'><div><p>Today, a very quick note on dynamic instance type checks in virtual
+machines with single inheritance.</p><p>The problem is that given an object <i>o</i> whose type is <i>t</i>, you want to
+check if <i>o</i> actually is of some more specific type <i>u</i>.  To my knowledge, there are two sensible ways to implement these type checks.</p><h3>if the set of types is fixed: dfs numbering</h3><p>Consider a set of types <i>T</i> := {<i>t</i>, <i>u</i>, ...} and a set of edges <i>S</i> :=
+{&lt;<i>t</i>|ε, <i>u</i>&gt;, ...} indicating that <i>t</i> is the direct supertype of
+<i>u</i>, or ε if <i>u</i> is a top type.  <i>S</i> should not contain cycles and is
+thus a direct acyclic graph rooted at ε.</p><p>First, compute a pre-order and post-order numbering for each <i>t</i> in the
+graph by doing a depth-first search over <i>S</i> from ε.  Something like
+this:</p><pre>def visit(t, counter):
+    t.pre_order = counter
+    counter = counter + 1
+    for u in S[t]:
+        counter = visit(u, counter)
+    t.post_order = counter
+    return counter
+</pre><p>Then at run-time, when making an object of type <i>t</i>, you arrange to
+store the type’s pre-order number (its <i>tag</i>) in the object itself.  To
+test if the object is of type <i>u</i>, you extract the tag from the object
+and check if <i>tag</i>–<i>u</i>.pre_order mod 2<sup><i>n</i></sup> &lt;
+<i>u</i>.post_order–<i>u</i>.pre_order.</p><p>Two notes, probably obvious but anyway: one, you know the numbering for
+<i>u</i> at compile-time and so can embed those variables as immediates.
+Also, if the type has no subtypes, it can be a simple equality check.</p><p>Note that this approach applies only if the set of types <i>T</i> is fixed.
+This is the case when statically compiling a WebAssembly module in a
+system that doesn’t allow modules to be instantiated at run-time, like
+<a href='https://codeberg.org/andywingo/wastrel'>Wastrel</a>.  Interestingly, it
+can <a href='https://bernsteinbear.com/blog/toy-tbaa/?utm_source=rss'>also be the case in JIT compilers, when modeling types inside the
+optimizer</a>.</p><h3>if the set of types is unbounded: the display hack</h3><p>If types may be added to a system at run-time, maintaining a sorted set
+of type tags may be too much to ask.  In that case, the standard
+solution is something I learned of as the <i>display hack</i>, but whose name
+is apparently ungooglable.  It is described in a 4-page technical note
+by Norman H. Cohen, from 1991: <a href='https://dl.acm.org/doi/10.1145/115372.115297'><i>Type-Extension Type Tests Can Be
+Performed In Constant
+Time</i></a>.</p><p>The basic idea is that each type <i>t</i> should have an associated sorted
+array of supertypes, starting with its top type and ending with <i>t</i>
+itself.  Each <i>t</i> also has a <i>depth</i>, indicating the number of edges
+between it and its top type.  A type <i>u</i> is a subtype of <i>t</i> if
+<i>u</i>[<i>t</i>.depth]=<i>t</i>, if <i>u</i>.depth &lt;= <i>t</i>.depth.</p><p>There are some tricks one can do to optimize out the depth check, but
+it’s probably a wash given the check performs a memory access or two on
+the way.  But the essence of the whole thing is in Cohen’s paper; go
+take a look!</p><p>Jan Vitek notes in a followup paper (<a href='https://dl.acm.org/doi/pdf/10.1145/263700.263730'><i>Efficient Type Inclusion Tests</i></a>) that Christian
+Queinnec discovered the technique around the same time.  Vitek also mentions the DFS technique, but as prior art, apparently already deployed in DEC Modula-3 systems.
+The term “display” was bouncing around in the 80s to describe some uses of
+arrays; I learned it from Dybvig’s implementation of flat closures, who
+learned it from Cardelli.  I don’t know though where “display hack” comes from.</p><p>That’s it!  If you know of any other standard techniques for type checks
+with single-inheritance subtyping, do let me know in the comments.
+Until next time, happy hacking!</p><p><i>Addendum: Thanks to kind readers, I have some new references!  Michael Schinz refers to <a href='https://yoav-zibin.github.io/homepage/publications/my-thesis.pdf'>Yoav Zibin’s PhD thesis</a> as a good overview.  Alex Bradbury points to <a href='https://dl.acm.org/doi/10.1145/1922649.1922655'>a survey article by Roland Ducournau</a> as describing the DFS technique as “Schubert numbering”.  CF Bolz-Tereick unearthed the <a href='https://www.cs.rochester.edu/u/schubert/papers/type-part-color-and-time-relationships83.pdf'>1983 Schubert paper</a>, and <a href='https://mastodon.social/@wingo/116097769070475183'>it is a weird one</a>.  Still, I can’t but think that the DFS technique was known earlier; I have a 1979 graph theory book by Shimon Even that describes a test for “separation vertices” that is precisely the same, though it does not mention the application to type tests.  Many thanks also to fellow traveller Max Bernstein for related discussions.</i></p></div></div>

@@ -1,0 +1,14 @@
+<p>
+Bozhidar Batsov has been a writing a very nice series of posts on recent Emacs additions that are worth knowing. His latest is on <a href="https://emacsredux.com/blog/2026/07/22/dedicate-windows-with-toggle-window-dedicated/">making a window dedicated</a>. A dedicated window is one that is locked to its current buffer. That means, for instance, that if you have a particular window configuration in place and call some other function, the new function can&rsquo;t hijack the dedicated window and spoil your configuration. Batsov has an animated Gif that shows this in action.
+</p>
+<p>
+The notion of a dedicated window has been in Emacs for some time but what&rsquo;s new is a quick way of dedicating a window. That way is <code>toggle-window-dedicated</code>, which is bound to <kbd>Ctrl</kbd>+<kbd>x</kbd> <kbd>w</kbd> <kbd>d</kbd> by default. As shown in Batsov&rsquo;s Gif, that toggles the dedicated state for the current window on and off.
+</p>
+<p>
+Sadly, I have <kbd>Ctrl</kbd>+<kbd>x</kbd> <kbd>w</kbd> bound to a function that starts up elfeed. I use that several times a day and have a significant investment in muscle memory so I either have to change the <code>toggle-window-dedicated</code> binding or simply call it directly. Since I doubt I&rsquo;ll be using it that often, I&rsquo;ll probably just call it directly. With my fuzzy command completion I need only enter <kbd>Meta</kbd>+<kbd>x</kbd> <code>tog win</code> to get the desired result.
+</p>
+<p>
+There&rsquo;s one other aspect that Batsov mentions but doesn&rsquo;t explain: strongly dedicated windows. If a window is strongly dedicated, you can&rsquo;t change the buffer displayed by the window. You can make a window strongly dedicated by specifying the universal argument in the call to <code>toggle-window-dedicated</code>.
+</p>
+<p>
+If you like to set up a specific window configuration for some of your workflows and you don&rsquo;t like random commands stepping on it, <code>toggle-window-dedicated</code> is just what you need.</p>

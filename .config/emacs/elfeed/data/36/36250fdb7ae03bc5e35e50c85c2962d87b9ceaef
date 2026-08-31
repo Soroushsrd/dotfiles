@@ -1,0 +1,233 @@
+
+<p class="wp-block-paragraph">Moments ago, the ISO C++ committee completed its third meeting of C++26, held in Tokyo, Japan. Our hosts, <strong><a href="https://woven.toyota/en/">Woven by Toyota</a></strong>, arranged for high-quality facilities for our six-day meeting from Monday through Saturday. We had <strong>over 220 attendees</strong>, about two-thirds in-person and the others remote via Zoom, formally representing <strong>21 nations</strong>. That makes it roughly tied numerically for our largest meeting ever, roughly the same attendance as Prague 2020 that shipped C++20 just a few weeks before the pandemic lockdowns. — However, note that it’s not an apples-to-apples comparison, because the pre-pandemic meetings were all in-person, and since the pandemic they have been hybrid. But it is indicative of the ongoing strong participation in C++ standardization.</p>
+
+
+
+<p class="wp-block-paragraph">At each meeting we regularly have new attendees who have never attended before, and this time we welcomed <strong>over 30 new first-time attendees</strong>, mostly in-person, who were counted above. (These numbers are for technical participants, and they don&#8217;t include that we also had observers, including a class of local high school students visiting for part of a day, similarly to how a different local high school class did at our previous meeting in Kona in November. We are regularly getting high-school delegations as observers these days, and to them once again welcome!)</p>
+
+
+
+<p class="wp-block-paragraph"><a href="https://isocpp.org/std/the-committee">The committee</a> currently has 23 active subgroups, 16 of which met in parallel tracks throughout the week. Some groups ran all week, and others ran for a few days or a part of a day and/or evening, depending on their workloads. You can find a brief summary of ISO procedures <a href="https://isocpp.org/std/iso-iec-jtc1-procedures">here</a>.</p>
+
+
+
+<h2 class="wp-block-heading">This week’s meeting: Meeting #3 of C++26</h2>
+
+
+
+<p class="wp-block-paragraph">At the previous two meetings in June and November, the committee adopted the first 63 proposed changes for C++26, including many that had been ready for a couple of meetings while we were finishing C++23 and were just waiting for the C++26 train to open to be adopted. For those highlights, see the <a href="https://herbsutter.com/2023/06/16/trip-report-summer-iso-c-standards-meeting-varna-bulgaria/">June trip report</a> and <a href="https://herbsutter.com/2023/11/11/trip-report-autumn-iso-c-standards-meeting-kona-hi-usa/">November trip report</a>.</p>
+
+
+
+<p class="wp-block-paragraph">This time, the committee adopted the next set of features for C++26, and made significant progress on other features that are now expected to be complete in time for C+26.</p>
+
+
+
+<p class="wp-block-paragraph">Here are some of the highlights… note that these links are to the most recent public version of each paper, and some were tweaked at the meeting before being approved; the links track and will automatically find the updated version as soon as it’s uploaded to the public site.</p>
+
+
+
+<h2 class="wp-block-heading">Adopted for C++26: Core language changes/features</h2>
+
+
+
+<p class="wp-block-paragraph">The core language adopted 10 papers, including the following…</p>
+
+
+
+<p class="wp-block-paragraph"><a href="https://wg21.link/p2573"><strong>P2573R2 “=delete(“should have a reason”)”</strong></a> by <strong>Yihe Li</strong> does the same for =delete as we did for static_assert: It allows writing a string as the reason, which makes it easier for library developers to give high-quality compile-time error messages to users as part of the compiler’s own error message output. Thanks, Yihe!</p>
+
+
+
+<p class="wp-block-paragraph">Here is an example from the paper that will now be legal and generate an error message similar to the one shown here:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; gutter: false; highlight: [9,10,12,13,17,18]; title: ; notranslate">
+class NonCopyable
+{
+public:
+    // ...
+    NonCopyable() = default;
+
+    // copy members
+    NonCopyable(const NonCopyable&amp;)
+        = delete(&quot;Since this class manages unique resources, \
+copy is not supported; use move instead.&quot;);
+    NonCopyable&amp; operator=(const NonCopyable&amp;)
+        = delete(&quot;Since this class manages unique resources, \
+copy is not supported; use move instead.&quot;);
+    // provide move members instead
+};
+
+&lt;source&gt;:16:17: error: call to deleted
+constructor of &#039;NonCopyable&#039;: Since this class manages unique resources, copy is not supported; use move instead.
+    NonCopyable nc2 = nc;
+                ^     ~~
+</pre></div>
+
+
+<p class="wp-block-paragraph"><a href="https://wg21.link/p2795"><strong>P2795R5 “Erroneous behavior for uninitialized reads”</strong></a> by <strong>Thomas Köppe</strong> is a major change to C++ that will help us to further improve safety by providing a tool to reduce undefined behavior, especially that it removes undefined behavior for some cases of uninitialized objects.</p>
+
+
+
+<p class="wp-block-paragraph">I can’t do better than quote from the paper:</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">Summary: We propose to address the safety problems of reading a default-initialized automatic variable (an “uninitialized read”) by adding a novel kind of behaviour for C++. This new behaviour, called&nbsp;<em>erroneous behaviour</em>, allows us to formally speak about “buggy” (or “incorrect”) code, that is, code that does not mean what it should mean (in a sense we will discuss). This behaviour is both “wrong” in the sense of indicating a programming bug, and also well-defined in the sense of not posing a safety risk.</p>
+
+
+
+<p class="wp-block-paragraph">…</p>
+
+
+
+<p class="wp-block-paragraph">With increased community interest in safety, and a growing track record of exploited vulnerabilities stemming from errors such as this one, there have been calls to fix C++. The recent&nbsp;<a href="https://open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2723r1.html">P2723R1</a>&nbsp;proposes to make this fix by changing the undefined behaviour into well-defined behaviour, and specifically to well-define the initialization to be zero. We will argue below that such an expansion of well-defined behaviour would be a great detriment to the understandability of C++ code. In fact, if we want to both preserve the expressiveness of C++ and also fix the safety problems, we need a novel kind of behaviour.</p>
+
+
+
+<p class="wp-block-paragraph">…</p>
+
+
+
+<p class="wp-block-paragraph">Reading an uninitialized value is never intended and a definitive sign that the code is not written correctly and needs to be fixed. At the same time, we do give this code well-defined behaviour, and if the situation has not been diagnosed, we want the program to be stable and predictable. This is what we call&nbsp;<em>erroneous behaviour</em>.</p>
+
+
+
+<p class="wp-block-paragraph">In other words, it is still an &#8220;wrong&#8221; to read an uninitialized value, but if you do read it and the implementation does not otherwise stop you, you get some specific value. In general, implementations must exhibit the defined behaviour, at least up until a diagnostic is issued (if ever). There is no risk of running into the consequences associated with undefined behaviour (e.g. executing instructions not reflected in the source code, time-travel optimisations) when executing erroneous behaviour.</p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph">Adding the notion of “erroneous behavior” is a major change to C++’s specification, that can help not only with uninitialized reads but also can be applied to reduce other undefined behavior in the future. Thanks, Thomas!</p>
+
+
+
+<h2 class="wp-block-heading">Adopted for C++26: Standard library changes/features</h2>
+
+
+
+<p class="wp-block-paragraph">The standard library adopted 18 papers, including the following…</p>
+
+
+
+<p class="wp-block-paragraph">In the “Moar Ranges!” department, <a href="https://wg21.link/p1068"><strong>P1068R11 “Vector API for random number generation”</strong></a> by <strong>Ilya Burylov, Pavel Dyakov, Ruslan Arutyunyan, Andrey Nikolaev</strong>, and <strong>Alina Elizarova</strong> addresses the situation that, when you want one random number, you likely want more of them, and random number generators usually already generate them efficiently in batches. Thanks to their paper, this will now work:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; gutter: false; highlight: [4]; title: ; notranslate">
+std::array&lt;std::uint_fast32_t, arrayLength&gt; intArray;
+std::mt19937 g(777);
+
+std::ranges::generate_random(intArray, g);
+
+// The above line will be equivalent to this:
+for(auto&amp; e : intArray)
+    e = g();
+</pre></div>
+
+
+<p class="wp-block-paragraph">In the “if you still didn’t get enough ‘Moar Ranges!’” department, <a href="https://wg21.link/p2542">P2542 “views::concat”</a> by <strong>Hui Xie</strong> and <strong>S. Levent Yilmaz</strong> provides an easy way to efficiently concatenate an arbitrary number of ranges, via a view factory. Thanks, Hui and Levent! Here is an example from the paper:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; gutter: false; highlight: [5]; title: ; notranslate">
+std::vector&lt;int&gt; v1{1,2,3}, v2{4,5}, v3{};
+std::array  a{6,7,8};
+auto s = std::views::single(9);
+
+std::print(&quot;{}\n&quot;, std::views::concat(v1, v2, v3, a, s)); 
+// output:  &#91;1, 2, 3, 4, 5, 6, 7, 8, 9]
+</pre></div>
+
+
+<p class="wp-block-paragraph">Speaking of concatenation, have you ever wished you could write “my_string_view + my_string” and been surprised it doesn’t work? <a href="https://github.com/hsutter/cppfront/blob/main/source/common.h#L572-L596">I sure have.</a> No longer: <a href="https://wg21.link/p2591"><strong>P2591R4 “Concatenation of strings and string views”</strong></a> by <strong>Giuseppe D’Angelo</strong> adds operator+ overloads for those types. Thanks, Giuseppe, for finally getting us this feature!</p>
+
+
+
+<p class="wp-block-paragraph"><a href="https://wg21.link/p2845"><strong>P2845 “Formatting of std::filesystem::path”</strong></a> by <strong>Victor Zverovich</strong> (aka the King of Format) provides a high-quality std::format formatter for filesystem paths that addresses concerns about quoting and localization.</p>
+
+
+
+<p class="wp-block-paragraph">A group of papers by <strong>Alisdair Meredith</strong> removed some (mostly already-deprecated) features from the standard library. Thanks for the cleanup, Alisdair!</p>
+
+
+
+<ul class="wp-block-list">
+<li><a href="https://wg21.link/p2867">P2867R2 “Remove Deprecated strstreams From C++26”</a></li>
+
+
+
+<li><a href="https://wg21.link/p2869">P2869R4 “Remove Deprecated shared_ptr Atomic Access APIs from C++26”</a></li>
+
+
+
+<li><a href="https://wg21.link/p2872">P2872R3 &#8220;Remove wstring_convert From C++26”</a></li>
+</ul>
+
+
+
+<p class="wp-block-paragraph"><strong><a href="https://wg21.link/p3142">P3142R0 “Printing Blank Lines with println”</a> </strong>by <strong>Alan Talbot</strong> is small but a nice quality-of-life improvement: We can now write just println() as an equivalent of println(“”). But that’s not all: See the yummy postscript in the paper. (See, Alan, we do read the whole paper. Thanks!)</p>
+
+
+
+<p class="wp-block-paragraph">Those are some of the “bigger” or “likely of wide interest” papers as just a few highlights… this week there were 28 papers adopted in all, including other great work on extensions and fixes for the C++26 language and standard library.</p>
+
+
+
+<h2 class="wp-block-heading">Aiming for C++26 timeframe: Contracts</h2>
+
+
+
+<p class="wp-block-paragraph">The contracts proposal <a href="https://isocpp.org/files/papers/P2900R6.pdf"><strong>P2900 “Contracts for C++”</strong></a> by <strong>Joshua Berne, Timur Doumler, Andrzej Krzemieński, Gašper Ažman, Tom Honermann, Lisa Lippincott, Jens Maurer, Jason Merrill, and Ville Voutilainen</strong> progressed out of the contracts study group, SG21, and was seen for the first time in the Language (EWG) and Library (LEWG) Evolution Working Groups proper. Sessions started in LEWG right on the first day, Monday afternoon, and EWG spent the entire day Wednesday on contracts, with many of the members of the safety study group, SG23, attending the session. There was lively discussion about whether contracts should be allowed to have, or be affected by, undefined behavior; whether contracts should be used in the standard library; whether contracts should be shipped first as a Technical Specification (TS, feature branch) in the same timeframe as C++26 to gain more experience with existing libraries; and other aspects&#8230; all of these questions will be discussed again in the coming months, this was just the initial LEWG and EWG full-group design review that generated feedback to be looked at. The subgroups considered the EWG and LEWG groups’ feedback later in the week in two more sessions on Thursday and Friday, including in a joint session of SG21 and SG23.</p>
+
+
+
+<p class="wp-block-paragraph">Both SG21 and SG23 will have telecons about further improving the contracts proposal between now and our next hybrid meeting in June.</p>
+
+
+
+<h2 class="wp-block-heading">On track for targeting C++26: Reflection</h2>
+
+
+
+<p class="wp-block-paragraph">The reflection proposal <a href="https://wg21.link/p2996"><strong>P2996R2 “Reflection for C++26”</strong></a> by <strong>Wyatt Childers, Peter Dimov, Barry Revzin, Andrew Sutton, Faisal Vali,</strong> and <strong>Daveed Vandevoorde </strong>progressed out of the reflection / compile-time programming study group, SG7, and was seen by the main evolution groups EWG and LEWG for the first time on Tuesday, which started with a joint EWG+LEWG session on Tuesday, and EWG spent the bulk of Tuesday on its initial large-group review aiming for C++26. Then SG7 continued on reflection and other topics, including a presentation by Andrei Alexandrescu about making sure reflection adds a few more small things to fully support flexible generative programming.</p>
+
+
+
+<h2 class="wp-block-heading">Other progress</h2>
+
+
+
+<p class="wp-block-paragraph">All subgroups continued progress. A lot happened that other trips will no doubt cover, but I’ll call out two things.</p>
+
+
+
+<p class="wp-block-paragraph">One proposal a lot of people are watching is <a href="https://wg21.link/p2300"><strong>P2300 “std::execution”</strong></a> (aka “executors”) by <strong>Michał Dominiak, Georgy Evtushenko, Lewis Baker, Lucian Radu Teodorescu, Lee Howes, Kirk Shoop, Michael Garland, Eric Niebler</strong>, and <strong>Bryce Adelstein Lelbach</strong>, which was already design-approved for C++26. It’s a huge paper (45,000 words, of which 20,000 words is the standardese specification! that’s literally a book… my first <em>Exceptional C++</em> book was 62,000 words), so it has been taking time for the Library Wording subgroup (LWG) to do its detailed review of the specification wording, and at this meeting LWG spent a quarter of the meeting completing a first pass through the entire paper! They will continue to work in teleconferences on a second pass and are now mildly optimistic of completing P2300 wording review at our next meeting in June.</p>
+
+
+
+<p class="wp-block-paragraph">And one more fun highlight: We all probably suspected that pattern matching is a “ground-shaking” proposed addition to future C++, but in Tokyo during the pattern matching session there was a literal earthquake that briefly interrupted the session!</p>
+
+
+
+<p class="wp-block-paragraph">Thank you to all the experts who worked all week in all the subgroups to achieve so much this week!</p>
+
+
+
+<h2 class="wp-block-heading">What’s next</h2>
+
+
+
+<p class="wp-block-paragraph">Our next meeting will be in <a href="https://isocpp.org/files/papers/N4966.pdf"><strong>St. Louis, MO, USA in June</strong></a> hosted by <strong>Bill Seymour</strong>.</p>
+
+
+
+<h2 class="wp-block-heading">Wrapping up</h2>
+
+
+
+<p class="wp-block-paragraph">Thank you again to the over 210 experts who attended on-site and on-line at this week’s meeting, and the many more who participate in standardization through their national bodies!</p>
+
+
+
+<p class="wp-block-paragraph">But we’re not slowing down… we’ll continue to have subgroup Zoom meetings, and then in just three months from now we’ll be meeting again in person + Zoom to continue adding features to C++26. Thank you again to everyone reading this for your interest and support for C++ and its standardization.</p>

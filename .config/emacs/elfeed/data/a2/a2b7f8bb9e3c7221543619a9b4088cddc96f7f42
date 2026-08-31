@@ -1,0 +1,304 @@
+
+<p class="wp-block-paragraph">Today, the ISO C++ committee completed its second meeting of C++26, held in Kona, HI, USA.</p>
+
+
+
+<p class="wp-block-paragraph">Our hosts, Standard C++ Foundation and WorldQuant, arranged for high-quality facilities for our six-day meeting from Monday through Saturday. We had over 170 attendees, about two-thirds in-person and the others remote via Zoom, formally representing 21 nations. Also, at each meeting we regularly have new attendees who have never attended before, and this time there were over a dozen new first-time attendees, mostly in-person; to all of them, once again welcome!</p>
+
+
+
+<p class="wp-block-paragraph"><a href="https://isocpp.org/std/the-committee">The committee</a> currently has 23 active subgroups, most of which met in parallel tracks throughout the week. Some groups ran all week, and others ran for a few days or a part of a day and/or evening, depending on their workloads. You can find a brief summary of ISO procedures <a href="https://isocpp.org/std/iso-iec-jtc1-procedures">here</a>.</p>
+
+
+
+<h2 class="wp-block-heading">This week’s meeting: Meeting #2 of C++26</h2>
+
+
+
+<p class="wp-block-paragraph">At the previous meeting in June, the committee adopted the first 40 proposed changes for C++26, including many that had been ready for a couple of meetings and were just waiting for the C++26 train to open to be adopted. For those highlights, see the <a href="https://herbsutter.com/2023/06/16/trip-report-summer-iso-c-standards-meeting-varna-bulgaria/">previous trip report</a>.</p>
+
+
+
+<p class="wp-block-paragraph">This time, the committee adopted the next set of features for C++26. It also made significant progress on other features that are now expected to be complete in time for C++26 — including <strong>contracts</strong> and <strong>reflection</strong>.</p>
+
+
+
+<p class="wp-block-paragraph">Here are some of the highlights…</p>
+
+
+
+<h2 class="wp-block-heading">Adopted for C++26: Core language changes/features</h2>
+
+
+
+<p class="wp-block-paragraph">The core language adopted four papers, including <a href="https://wg21.link/p2662r3">P2662R3 “Pack indexing”</a> by <strong>Corentin Jabot </strong>and<strong> Pablo Halpern</strong> officially adds support for using <code>[idx]</code> subscripting into variadic parameter packs. Here is an example from the paper that will now be legal:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; gutter: false; title: ; notranslate">
+template &lt;typename... T&gt;
+constexpr auto first_plus_last(T... values) -&gt; T...&#91;0] {
+    return T...&#91;0](values...&#91;0] + values...&#91;sizeof...(values)-1]);
+}
+
+int main() {
+    static_assert( first_plus_last(1, 2, 10) == 11 );
+}
+</pre></div>
+
+
+<p class="wp-block-paragraph">For those interested in writing standards proposals, I would suggest looking at this and its two predecessors P1858 and P2632 as well written papers: The earlier papers delve into the motivating use cases, and this paper has a detailed treatment of other design alternatives considered and why this is the one chosen. Seeing only the end result of <code>T...[0]</code> would be easy to call “obvious” in hindsight, but it’s far from the only option and this paper’s analysis shows a thorough consideration of alternatives, including their effects on existing and future code and future language evolution.</p>
+
+
+
+<h2 class="wp-block-heading">Adopted for C++26: Standard library changes/features</h2>
+
+
+
+<p class="wp-block-paragraph">The standard library adopted 19 papers, including the following…</p>
+
+
+
+<p class="wp-block-paragraph">The biggest, and probably this meeting’s award for “proposal being worked on the longest,” is <a href="https://wg21.link/p1673r13">P1673R13, “A free function linear algebra interface based on the BLAS”</a> by <strong>Mark Hoemmen, Daisy Hollman, Christian Trott, Daniel Sunderland, Nevin Liber, Alicia Klinvex, Li-Ta Lo, Damien Lebrun-Grandie, Graham Lopez, Peter Caday, Sarah Knepper, Piotr Luszczek, </strong>and<strong> Timothy Costa</strong>, with the help of <strong>Bob Steagall, Guy Davidson, Andrew Lumsdaine</strong>, and <strong>Davis Herring</strong>. If you want to do efficient linear algebra, you don’t want to write your own code by hand; that would be slow. Instead, you want a library that is tuned for your target hardware architecture and ready for <code>par_unseq</code> vectorized algorithms, for blazing speed. This is that library. For detailed rationale, see in particular sections 5 “Why include dense linear algebra in the C++ Standard Library?” and 6 “Why base a C++ linear algebra library on the BLAS?”</p>
+
+
+
+<p class="wp-block-paragraph"><a href="https://wg21.link/p2905r2">P2905R2 “Runtime format strings”</a>  and <a href="https://wg21.link/p2918r2">P2918R2 “Runtime format strings II”</a> by <strong>Victor Zverovich</strong> builds on the C++20 <code>format</code> library, which already supported compile-time format strings. Now with this pair of papers, we will have direct support for format strings not known at compile time and be able to opt out of compile-time format string checks.</p>
+
+
+
+<p class="wp-block-paragraph"><a href="https://wg21.link/p2546r5">P2546R5 “Debugging support”</a> by <strong>René Ferdinand Rivera Morell</strong>, building on prior work by <strong>Isabella Muerte</strong> in <a href="https://wg21.link/p1279">P1279</a>, adds <code>std::breakpoint()</code>, <code>std::breakpoint_if_debugging()</code>, and <code>std::is_debugger_present()</code>. This standardizes prior art already available in environments from Amazon Web Services to Unreal Engine and more, under a common standard API that gives the programmer full runtime control over breakpoints, including (quoting from the paper):</p>
+
+
+
+<ul class="wp-block-list">
+<li>“allowing printing out extra output to help diagnose problems,</li>
+
+
+
+<li>executing extra test code,</li>
+
+
+
+<li>displaying an extra user interface to help in debugging, …</li>
+
+
+
+<li>… breaking when an infrequent non-critical condition is detected,</li>
+
+
+
+<li>allowing programmatic control with complex runtime sensitive conditions,</li>
+
+
+
+<li>breaking on user input to inspect context in interactive programs without needing to switch to the debugger application,</li>
+
+
+
+<li>and more.”</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">I can immediately think of times I would have used this in the past month, and probably you can too.</p>
+
+
+
+<p class="wp-block-paragraph">Those are some of the “bigger” papers as highlights… there were 16 papers other adopted too, including more extensions and fixes for the C++26 language and standard library.</p>
+
+
+
+<h2 class="wp-block-heading">On track for targeting C++26: <strong>Contracts</strong></h2>
+
+
+
+<p class="wp-block-paragraph">The contracts subgroup, SG21, decided several long-open questions that needed to be answered to land contracts in C++26. Perhaps not the most important one, but the one that’s the most visible, is the contracts syntax: This week, SG21 approved pursuing <a href="https://wg21.link/p2961r2">P2961R2 “A natural syntax for contracts”</a> by <strong>Jens Maurer</strong> and <strong>Timur Doumler</strong> as the syntax for C++26 contracts. The major visible change is that instead of writing contracts like this:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; gutter: false; title: ; notranslate">
+// previous draft syntax
+int f(int i)
+    &#91;&#91;pre: i &gt;= 0]]
+    &#91;&#91;post r: r &gt; 0]]
+{
+    &#91;&#91;assert: i &gt;= 0]]
+    return i+1;
+}
+</pre></div>
+
+
+<p class="wp-block-paragraph">we’ll write them like this, changing “assert” to “contract_assert”&#8230; pretty much everyone would prefer &#8220;assert,&#8221; if only it were backward-compatible, but in this new syntax it would hit an incompatibility with the C <code>assert</code> macro:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; gutter: false; title: ; notranslate">
+// newly adopted syntax
+int f(int i)
+    pre (i &gt;= 0)
+    post (r: r &gt; 0)
+{
+    contract_assert (i &gt;= 0);
+    return i+1;
+}
+</pre></div>
+
+
+<p class="wp-block-paragraph">I already had a contracts implementation in my <a href="https://github.com/hsutter/cppfront/blob/main/source/common.h">cppfront</a> compiler, which used the previous <code>[[</code> <code>]]</code> syntax (because, when I have nothing clearly better, I try to follow syntax in existing/proposed C++). So, once P2961 was approved in the subgroup on Tuesday morning, I decided to take Tuesday afternoon to implement the change to this syntax, except that I kept the nice word &#8220;<code>assert</code>&#8221; because I can do that without a breaking change in my experimental alternate syntax. The work ended up taking not quite an hour, including to update the repo’s own code where I’m using contracts myself in the compiler and its unit tests. You can check out the diff in <a href="https://d.docs.live.net/4e86b0cf20ef15ad/C%5eM%5eM/a812dcc2a7194353446190131355eea56ca74263">these</a> | <a href="https://github.com/hsutter/cppfront/commit/f10444ecb9a6063c944235a57c5f1bd520b953be">commits</a>. My initial personal reaction, as an early contracts user, is that I like the result.</p>
+
+
+
+<p class="wp-block-paragraph">There are a handful of design questions still to decide, notably the semantics of implicit lambda capture, <code>consteval</code>, and multiple declarations. Six contracts telecons have been scheduled between now and the next meeting in March in Tokyo. The group is aiming to have a feature-complete proposal for Tokyo to forward to other groups for review.</p>
+
+
+
+<p class="wp-block-paragraph">Today when this progress was reported to the full committee, there was applause. As there should be, because this week&#8217;s progress increases the confidence that the feature is on track for C++26!</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">Note that &#8220;for C++26&#8221; doesn&#8217;t mean &#8220;that&#8217;s still three years away, maybe my kids can use it someday.&#8221; It means the feature has to be <em>finished</em> in just the next 18 months or so, and once it&#8217;s finished that unleashes implementations to be able to confidently go implement it. It&#8217;s quite possible we may see implementations available sooner, as we do with other popular in-demand draft standard features.</p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph">Speaking of major features that made great progress this meeting to be confidently on track for C++26&#8230;</p>
+
+
+<div class="wp-block-image is-style-default wp-duotone-unset-1">
+<figure class="alignright size-medium"><a href="https://herbsutter.com/wp-content/uploads/2023/11/reflection.png"><img loading="lazy" width="300" height="196" data-attachment-id="4883" data-permalink="https://herbsutter.com/2023/11/11/trip-report-autumn-iso-c-standards-meeting-kona-hi-usa/reflection/" data-orig-file="https://herbsutter.com/wp-content/uploads/2023/11/reflection.png" data-orig-size="802,525" data-comments-opened="0" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="reflection" data-image-description="" data-image-caption="" data-large-file="https://herbsutter.com/wp-content/uploads/2023/11/reflection.png?w=802" src="https://herbsutter.com/wp-content/uploads/2023/11/reflection.png?w=300" alt="" class="wp-image-4883" srcset="https://herbsutter.com/wp-content/uploads/2023/11/reflection.png?w=300 300w, https://herbsutter.com/wp-content/uploads/2023/11/reflection.png?w=600 600w, https://herbsutter.com/wp-content/uploads/2023/11/reflection.png?w=150 150w" sizes="auto, (max-width: 300px) 100vw, 300px" /></a></figure>
+</div>
+
+
+<h2 class="wp-block-heading">On track for targeting C++26: <strong>Reflection</strong></h2>
+
+
+
+<p class="wp-block-paragraph">The reflection subgroup, SG7, saw two experience reports from people actively using the prototype implementation of P2996 by Lock3 Software: <a href="https://wg21.link/p3010">P3010R0 &#8220;Using reflection to replace a metalanguage for generating JS bindings&#8221;</a> by <strong>Dan Katz</strong>, and <a href="https://wg21.link/p2911r1">P2911R1 &#8220;Python bindings with value-based reflection&#8221;</a> by <strong>Adam Lach</strong> and <strong>Jagrut Dave</strong>. As you can see from the titles, these were serious attempts to try out reflection for major use cases. Both experience reports supported P2996R1, so&#8230;</p>
+
+
+
+<p class="wp-block-paragraph">The group then voted unanimously to adopt <a href="https://wg21.link/p2996">P2996R1 “Reflection for C++26”</a> by <strong>Wyatt Childers, Peter Dimov, Barry Revzin, Andrew Sutton, Faisal Vali,</strong> and <strong>Daveed Vandevoorde</strong> and forward it on to the main Evolution and Library Evolution subgroups targeting C++26. This is a “core” of static reflection that is useful enough to solve many important problems, while letting us also plan to continue building on it further post-C++26.</p>
+
+
+
+<p class="wp-block-paragraph">This is particularly exciting for me personally, because we desperately need reflection in C++, and based on this week&#8217;s progress now is the first time I&#8217;ve felt confident enough to mention a target ship vehicle for this super important feature.</p>
+
+
+
+<p class="wp-block-paragraph">Perhaps the most common example of reflection is “enum to string”, so here’s that example:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; gutter: false; title: ; notranslate">
+template &lt;typename E&gt;
+    requires std::is_enum_v&lt;E&gt;
+constexpr std::string enum_to_string(E value) {
+    template for (constexpr auto e : std::meta::members_of(^E)) {
+        if (value == &#91;:e:]) {
+            return std::string(std::meta::name_of(e));
+        }
+    }
+    return &quot;&lt;unnamed&gt;&quot;;
+}
+</pre></div>
+
+
+<p class="wp-block-paragraph">Note that the above uses some of the new reflection syntax, but this is just the implementation… the new syntax stays encapsulated there. The code that uses <code>enum_to_string</code> gets to not know anything about reflection, and just use the function:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; gutter: false; title: ; notranslate">
+enum Color { red, green, blue };
+static_assert(enum_to_string(Color::red) == &quot;red&quot;);
+static_assert(enum_to_string(Color(42)) == &quot;&lt;unnamed&gt;&quot;);
+</pre></div>
+
+
+<p class="wp-block-paragraph">See the paper for much more detail, including more about enum-to-string in section 2.6.</p>
+
+
+
+<p class="wp-block-paragraph">Adding to the excitement, <a href="https://www.edg.com/">Edison Design Group</a> noted that they expect to have an experimental implementation available on Godbolt Compiler Explorer by Christmas.</p>
+
+
+
+<p class="wp-block-paragraph">P2996 builds on the core of the original Reflection TS, and mainly changes the “top” and “bottom” layers that we knew we would likely change from the TS:</p>
+
+
+
+<ul class="wp-block-list">
+<li>At the “top” or programming model layer, P2996 avoids having to do <code>temp&lt;late,meta&lt;pro,gram&gt;&gt;::ming</code> to use the API and lets us write something more like ordinary C++ code instead.</li>
+
+
+
+<li>And at the “bottom” implementation layer, it uses a value-based implementation which is more efficient to implement.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">This doesn&#8217;t mean the Reflection TS wasn&#8217;t useful; it was instrumental. Progress to this point would have been slower if we hadn’t been able to do the TS first, and we deeply appreciate all the work that went into that, as well as the new progress to move forward with P2996 as the reflection feature targeting C++26.</p>
+
+
+
+<p class="wp-block-paragraph">After the unanimous approval vote to forward this paper for C++26, there was a round of applause in the subgroup.</p>
+
+
+
+<p class="wp-block-paragraph">Then today, when this progress toward targeting C++26 was reported to the whole committee in the closing plenary session, the whole room was filled with sustained applause.</p>
+
+
+
+<h2 class="wp-block-heading">Other progress</h2>
+
+
+
+<p class="wp-block-paragraph">Many other subgroups continued to make progress during the week. Here are a few highlights…</p>
+
+
+
+<p class="wp-block-paragraph">SG1 (Concurrency) will be working on out-of-thin-air issues for relaxed atomics at a face-to-face meeting or telecon between meetings. They are still on track to move forward with <code>std::execution</code> and SIMD parallelism for C++26, and SIMD was reviewed in the Library Evolution (LEWG) main subgroup; these features, in the words of the subgroup chair, will make C++26 a huge release for the concurrency and parallelism group.</p>
+
+
+
+<p class="wp-block-paragraph">SG4 (Networking) continued working on updating the networking proposal for <code>std::execution</code> senders and receivers. There is a lot of work still to be done and it is not clear on whether networking will be on track for C++26.</p>
+
+
+
+<p class="wp-block-paragraph">SG9 (Ranges) set a list of features and priorities for ranges for C++26. There are papers that need authors, including ones that would be good “first papers” for new authors, so please reach out to the Ranges chair, Daisy Hollman, if you are interested in contributing toward a Ranges paper.</p>
+
+
+
+<p class="wp-block-paragraph">SG15 (Tooling) considered papers on improving modules to enable better tooling, and work toward the first C++ Ecosystem standard.</p>
+
+
+
+<p class="wp-block-paragraph">SG23 (safety) subgroup made further progress towards safety profiles for C++ as proposed by Bjarne Stroustrup, and adopted it as the near-term direction for safety in C++. The updated paper will be available in the next mailing in mid-December.</p>
+
+
+
+<p class="wp-block-paragraph">Library Evolution (LEWG) started setting a framework for policies for new C++ libraries. The group also made progress on a number of proposals targeting C++26, including <code>std::hive</code>, SIMD (vector unit parallelism), ranges extensions, and <code>std::execution</code>, and possibly some support for physical units, all of which made good progress.</p>
+
+
+
+<p class="wp-block-paragraph">Language Evolution (EWG) worked on improving/forwarding/rejecting many proposals, including a set of discussions about improving undefined behavior in conjunction with the C committee, including eight papers about undefined behavior in the preprocessor. The group also decided to pursue doing a full audit of “ill-formed, no diagnostic required” undefined behavior that compilers currently are not required to detect and diagnose. The plan for our next meeting in Tokyo is to spend a lot of time on reflection, and prepare for focusing on contracts.</p>
+
+
+
+<p class="wp-block-paragraph">Thank you to all the experts who worked all week in all the subgroups to achieve so much this week!</p>
+
+
+
+<h2 class="wp-block-heading">What’s next</h2>
+
+
+
+<p class="wp-block-paragraph">Our next meeting will be in <a href="https://isocpp.org/files/papers/N4961.pdf">Tokyo, Japan in March</a> hosted by Woven by Toyota.</p>
+
+
+
+<h2 class="wp-block-heading">Wrapping up</h2>
+
+
+
+<p class="wp-block-paragraph">Thank you again to the over 170 experts who attended on-site and on-line at this week’s meeting, and the many more who participate in standardization through their national bodies!</p>
+
+
+
+<p class="wp-block-paragraph">But we’re not slowing down… we’ll continue to have subgroup Zoom meetings, and then in just four months from now we’ll be meeting again in person + Zoom to continue adding features to C++26. Thank you again to everyone reading this for your interest and support for C++ and its standardization.</p>

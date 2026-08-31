@@ -1,0 +1,14 @@
+<p>
+Marcin Borkowski (mbork) does a lot of writing and, of course, uses Org mode for most of it. <a href="https://mbork.pl/2026-08-10_Emphasizing_a_region_in_Org_mode">The hard part, he says, is not the writing but the editing</a>. In particular, he&rsquo;s talking about the emphasis markup. If he wants to <i>write</i> a word or region in bold, that&rsquo;s easy. He merely  starts and end it text with a star.  Making a word or region bold after the fact—in the editing phase—is more difficult. You have to locate the beginning of the text, add a star, move to the end of the text, and add another star.
+</p>
+<p>
+Mbork, of course, soon discovered the solution: <code>org-emphjasize</code>. All you need to do is highlight the text and specify the markup character. The problem is that the binding for <code>org-emphasize</code>, <kbd>Ctrl</kbd>+<kbd>c</kbd> <kbd>Ctrl</kbd>+<kbd>x</kbd> <kbd>Ctrl</kbd>+<kbd>f</kbd>, is difficult to type. Mbork solved that writing a function to call <code>org-emphasize</code> with an argument <code>*</code> to cover his most common use. But then he bound it to <kbd>Ctrl</kbd>+<kbd>c</kbd> <kbd>Ctrl</kbd>+<kbd>x</kbd> <kbd>Ctrl</kbd>+<kbd>8</kbd>, which strikes me as just as bad, although you don&rsquo;t have to specify the <code>*</code>.
+</p>
+<p>
+My solution for this is to use <a href="https://github.com/mkleehammer/surround/blob/main/README.md">surround.el</a> that I wrote about <a href="https://irreal.org/blog/?p=13683">here</a> and Bozhidar Batsov wrote about <a href="https://emacsredux.com/blog/2026/03/17/surround-el-vim-style-pair-editing-comes-to-emacs/">here</a>. I have it bound to <kbd>Hyper</kbd>+<kbd>&rsquo;</kbd> so it&rsquo;s easy to call. I suppose you could even do as mbork did and write a specialized function for a heavily applied use case.
+</p>
+<p>
+One thing for sure, mbork is right about markup being harder to deal with when editing.
+</p>
+<p>
+<b>Update</b> <span class="timestamp-wrapper"><span class="timestamp">[2026-08-19 Wed 12:21]</span></span>: Added link to mbork&rsquo;s post.</p>

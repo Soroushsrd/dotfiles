@@ -1,0 +1,19 @@
+<p>One of the first things new Emacs users learn is the <code>eval-last-sexp</code> (<code>C-x C-e</code>) command and that Emacs can interpret elisp <em>anywhere</em> it appears. Here&rsquo;s a quick tip about using this command when writing elisp that you may not have discovered.</p>
+<p>If you call it with a prefix (<code>C-u</code>) argument, it prints (or attempts to print) the result in place in the buffer. Better yet, call it with an argument of <code>0</code> (<code>C-0 C-x C-e</code>) to avoid truncating longer results.</p>
+<p>Variables evaluate to their values, so here it prints the current values of these variables:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/eval-last-sexp-demo-3.mp4" type="video/mp4">
+<p><a href="https://karthinks.com/img/eval-last-sexp-demo-3.mp4">[VIDEO]</a></p>
+</video>
+<p>This is handy when writing elisp, for example if you want to tweak the current value of a variable:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/eval-last-sexp-demo-1.mp4" type="video/mp4">
+<p><a href="https://karthinks.com/img/eval-last-sexp-demo-1.mp4">[VIDEO]</a></p>
+</video>
+<p>I replace <code>eval-last-sexp</code> everywhere with <code>pp-eval-last-sexp</code>, which produces a cleaner result:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">global-set-key</span> [<span style="color:#963">remap</span> <span style="color:#963">eval-last-sexp</span>] <span style="color:#a60;background-color:#fff0f0">&#39;pp-eval-last-sexp</span>)
+</span></span></code></pre></div><video style="center" width="700" controls>
+<source src="https://karthinks.com/img/eval-last-sexp-demo-2.mp4" type="video/mp4">
+<p><a href="https://karthinks.com/img/eval-last-sexp-demo-2.mp4">[VIDEO]</a></p>
+</video>
+<p>That is all.</p>

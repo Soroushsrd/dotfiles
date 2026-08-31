@@ -1,0 +1,5 @@
+<p>
+Ray Zeitler has <a href="https://ray-on-emacs.blogspot.com/2026/06/link-diary-event-to-org-heading.html">a useful post</a> that describes how to solve a niche problem involving Emacs diary and Org mode. The problem is you have an event scheduled in your diary and you want access to an Org heading for clocking and note taking.
+</p>
+<p>
+It turns out that it&rsquo;s pretty easy to arrange that. Take a look at Zeitler&rsquo;s post to see the exact recipe.</p>

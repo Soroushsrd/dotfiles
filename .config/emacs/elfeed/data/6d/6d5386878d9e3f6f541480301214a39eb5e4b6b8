@@ -1,0 +1,258 @@
+
+<p class="wp-block-paragraph">Over the winter and spring I spent a bunch of time building my essay <a href="https://herbsutter.com/2024/03/11/safety-in-context/">&#8220;C++ safety, in context&#8221;</a> and the related <a href="https://www.youtube.com/watch?v=EB7yR-1317k">ACCU 2024 safety keynote</a>, and on behind-the-scenes work toward improving C++ memory safety that you&#8217;ll be hearing more about in the coming months (including a lock-free data structure that&#8217;s wait-free and constant-time for nearly all operations; that was fun to develop and could be useful for making certain existing C and C++ code safer, we&#8217;ll see). Safety and simplicity are the two core things I want to try to dramatically improve in C++, and are why I&#8217;m doing my cppfront experiment, so although the above absorbed some time away from cppfront coding it all contributes to the same goal. (If you don’t know what cppfront is, please see the&nbsp;<a href="https://www.youtube.com/watch?v=ELeZAKCN4tY">CppCon 2022 talk</a>&nbsp;for an overview, and the&nbsp;<a href="https://www.youtube.com/watch?v=8U3hl8XMm8c">CppCon 2023 talk</a>&nbsp;for an update and discussion of why cppfront is pursuing this evolution strategy that&#8217;s different from other projects&#8217;. &#8220;Cpp2&#8221; is the shorthand name for my experimental &#8220;C++ syntax 2,&#8221; and cppfront is the open-source compiler that compiles it.)</p>
+
+
+
+<p class="wp-block-paragraph">So now it&#8217;s time for a <a href="https://github.com/hsutter/cppfront"><strong>cppfront</strong></a> update with some highlights of what&#8217;s been happening since the last time I posted about it here:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Wrote Cpp2 and cppfront documentation &amp; started numbered releases</li>
+
+
+
+<li>Cppfront 0.7.0 (Mar 16, 2024), new things include:
+<ul class="wp-block-list">
+<li>A &#8220;tersest&#8221; function syntax, e.g.: <code>:(x,y) x&gt;y</code></li>
+
+
+
+<li>Support all C++23 and draft C++26 headers that have feature test flags</li>
+
+
+
+<li>Tracked contracts changes in WG21 (e.g., P2661R1)</li>
+
+
+
+<li>Generate Cpp1 postfix inc/dec in term of prefix</li>
+
+
+
+<li>Allow trailing commas in lists</li>
+
+
+
+<li>More CI</li>
+</ul>
+</li>
+
+
+
+<li>Cppfront 0.7.1 (Jul 10, 2024), new things include:
+<ul class="wp-block-list">
+<li>Added <code>..</code> non-UFCS members-only call syntax</li>
+
+
+
+<li>Allow&nbsp;<code>x: const = init;</code>&nbsp;and&nbsp;<code>x: * = init;</code>&nbsp;(const and pointer deduction without explicit <code>_</code> placeholder)</li>
+
+
+
+<li>Allow concatenated string literals</li>
+
+
+
+<li>Faster compile time when doing heavy reflection and code generation</li>
+
+
+
+<li>Added <code>-quiet</code> and <code>-cwd</code></li>
+</ul>
+</li>
+
+
+
+<li>Cppfront 0.7.2 (Jul 27, 2024), new things include:
+<ul class="wp-block-list">
+<li>Added range operators&nbsp;<code>...</code>&nbsp;and&nbsp;<code>..=</code>&nbsp;</li>
+
+
+
+<li>Added a compile-time <code>@regex</code> metafunction via reflection and code generation, by Max Sagebaum</li>
+
+
+
+<li>Added support for function types (e.g., <code>std::function&lt; (i: inout int) -&gt; forward std::string &gt;</code>)</li>
+
+
+
+<li>Added support for C++23 (P2290) delimited hexadecimal escapes</li>
+</ul>
+</li>
+</ul>
+
+
+
+<h2 class="wp-block-heading">Updated acknowledgments: Thank you!</h2>
+
+
+
+<figure class="wp-block-image size-large"><a href="https://herbsutter.com/wp-content/uploads/2024/07/cppfront-thanks-2024-07-1.png"><img loading="lazy" width="1024" height="573" data-attachment-id="5276" data-permalink="https://herbsutter.com/2024/07/28/cppfront-midsummer-update/cppfront-thanks-2024-07-2/" data-orig-file="https://herbsutter.com/wp-content/uploads/2024/07/cppfront-thanks-2024-07-1.png" data-orig-size="3272,1833" data-comments-opened="0" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="cppfront-thanks-2024-07" data-image-description="" data-image-caption="" data-large-file="https://herbsutter.com/wp-content/uploads/2024/07/cppfront-thanks-2024-07-1.png?w=1024" src="https://herbsutter.com/wp-content/uploads/2024/07/cppfront-thanks-2024-07-1.png?w=1024" alt="" class="wp-image-5276" srcset="https://herbsutter.com/wp-content/uploads/2024/07/cppfront-thanks-2024-07-1.png?w=1024 1024w, https://herbsutter.com/wp-content/uploads/2024/07/cppfront-thanks-2024-07-1.png?w=2048 2048w, https://herbsutter.com/wp-content/uploads/2024/07/cppfront-thanks-2024-07-1.png?w=150 150w, https://herbsutter.com/wp-content/uploads/2024/07/cppfront-thanks-2024-07-1.png?w=300 300w, https://herbsutter.com/wp-content/uploads/2024/07/cppfront-thanks-2024-07-1.png?w=768 768w, https://herbsutter.com/wp-content/uploads/2024/07/cppfront-thanks-2024-07-1.png?w=1440 1440w" sizes="auto, (max-width: 1024px) 100vw, 1024px" /></a></figure>
+
+
+
+<p class="wp-block-paragraph"><strong>Thank you&nbsp;</strong>to all these folks who have participated in the cppfront repo by opening issues and PRs, and to many more who participated on PR reviews and comment threads! These contributors represent people from high school and undergrad students to full professors, from commercial developers to conference speakers, and from every continent (except Antarctica&#8230; I think&#8230;).</p>
+
+
+
+<h2 class="wp-block-heading">Cpp2 and cppfront documentation</h2>
+
+
+<div class="wp-block-image">
+<figure class="alignright size-large"><a href="https://hsutter.github.io/cppfront/"><img loading="lazy" width="384" height="540" data-attachment-id="5203" data-permalink="https://herbsutter.com/2024/07/28/cppfront-midsummer-update/cppfront-docs/" data-orig-file="https://herbsutter.com/wp-content/uploads/2024/07/cppfront-docs.png" data-orig-size="384,540" data-comments-opened="0" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="cppfront-docs" data-image-description="" data-image-caption="" data-large-file="https://herbsutter.com/wp-content/uploads/2024/07/cppfront-docs.png?w=384" src="https://herbsutter.com/wp-content/uploads/2024/07/cppfront-docs.png?w=384" alt="" class="wp-image-5203" srcset="https://herbsutter.com/wp-content/uploads/2024/07/cppfront-docs.png 384w, https://herbsutter.com/wp-content/uploads/2024/07/cppfront-docs.png?w=107 107w, https://herbsutter.com/wp-content/uploads/2024/07/cppfront-docs.png?w=213 213w" sizes="auto, (max-width: 384px) 100vw, 384px" /></a></figure>
+</div>
+
+
+<p class="wp-block-paragraph">As of this spring, we now have <strong><a href="https://hsutter.github.io/cppfront/">Cpp2 and cppfront documentation</a>!</strong> Last fall at CppCon 20243, the #1 cppfront request was &#8220;please write documentation!&#8221; So now that the language is stable, over the winter I got up and running with <a href="https://www.mkdocs.org/">MkDocs</a> via <a href="https://www.youtube.com/watch?v=Q-YA_dA8C20">James Willett&#8217;s wonderful YouTube tutorial</a>. Thanks to everyone who provided feedback and fixes!</p>
+
+
+
+<h2 class="wp-block-heading">Official releases</h2>
+
+
+
+<p class="wp-block-paragraph">With documentation in place and a stable language, I felt it was time to start numbering releases. There have been three releases so far&#8230; here are each one&#8217;s highlights.</p>
+
+
+
+<h2 class="wp-block-heading">Cppfront 0.7.0 (Mar 16, 2024)</h2>
+
+
+
+<p class="wp-block-paragraph">Initial feature set complete, including documentation. Here are a few highlights added since my <a href="https://herbsutter.com/2023/09/28/cppfront-autumn-update/">September 2023 update</a> blog post:</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Added a &#8220;tersest&#8221; function syntax. </strong>Functions, including unnamed function expressions (aka lambdas), that do nothing but return an expression can now omit everything between <code>)</code> and the expression. Here&#8217;s an example&#8230; note that this is a whole program, because compiling in <code>-pure-cpp2</code> mode by default makes the entire standard library is available (efficiently imported as the <code>std</code> module if your compiler supports that):</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; gutter: false; highlight: [3]; title: ; notranslate">
+main: () = {
+    vec: std::vector = (1, 3, 5, 2, 4, 6);
+    std::ranges::sort( vec, :(x,y) x&gt;y );
+    for vec do (e) std::cout &lt;&lt; e;  // prints: 654321
+}
+</pre></div>
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">If, like me, you&#8217;re quite used to UFCS, you can also write this to put <code>vec.</code> first, which means the same thing: <code>vec.std::ranges::sort( :(x,y) x&gt;y );</code></p>
+
+
+
+<p class="wp-block-paragraph">And with a <code>using namespace std::ranges</code> nearby, you can write just <code>vec.sort( :(x,y) x&gt;y );</code> &#8230; Now, that&#8217;s how I like to write clean C++20 code, and it is indeed (after lowering) just all-ordinary C++20 code.</p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph"><strong>Support all C++23 and draft C++26 headers that have feature test flags.</strong> When you use <code>-import-std</code> or <code>-include-std</code> to make the whole C++ standard library available, cppfront tracks the ever-growing list of standard headers so that you can always use cppfront with the latest Standard C++.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Tracked contracts changes in WG21 (e.g., P2661R1).</strong> As soon as the committee&#8217;s contracts subgroup decided to switch from notation like <code>[[pre: expression]]</code> to <code>pre( expression )</code>, I made the same change in cppfront. Note that cppfront still goes beyond the &#8220;minimum viable product&#8221; being proposed for C++23, because cppfront has always supported things like contract groups and customizable violation handlers. I also upgraded the contracts implementation to guarantee any contract&#8217;s expression will not be evaluated at all unless the contract is actually being checked, plus I provide an explicitly <code>unevaluated</code> group that is never evaluated to express contracts that are for static analyzers only (they can contain any grammatically valid expressions).</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Generate Cpp1 postfix increment/decrement in terms of prefix.</strong> Cpp2 allows only &#8220;increment/decrement in place&#8221; operators, but when lowering to Cpp1 it generates both that and the &#8220;increment/decrement and return old value&#8221; Cpp1 operators. You can write a type in Cpp2 syntax that provides the operator once, and both versions are available to Cpp1 code that consumes the Cpp2-authored type (which is just an ordinary C++ type anyway, just written in a different syntax).</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Allow trailing commas in lists.</strong> I got <em>lots</em> of requests for this, and Cpp2 now allows an extra redundant trailing comma at the end of any comma-delimited list. This is desirable because it lets programmers have cleaner source code diffs when adding a parameter or argument (if the source already has parameters/arguments on their own lines), and it slightly simplifies metafunctions&#8217; code generation because they don&#8217;t have to track whether to suppress the last comma (and I think it&#8217;s important to make source code generation use cases easier). For a bit more rationale, see <a href="https://github.com/hsutter/cppfront/issues/115#issuecomment-2001737077">this Issue comment</a> that goes with the commit. <em>Edited to add:</em> And the <a href="https://github.com/hsutter/cppfront/wiki/Design-note%3A-Commas"><strong>&#8220;Design note: Commas&#8221;</strong></a> that covers it in even more detail.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>More CI:</strong> Besides build tests, added regression testing scripts and workflows. Thanks to <strong>Jaroslaw Glowacki</strong> and <strong>Johel Ernesto Guerrero Peña</strong>!</p>
+
+
+
+<h2 class="wp-block-heading">Cppfront 0.7.1 (Jul 10, 2024)</h2>
+
+
+
+<p class="wp-block-paragraph"><a href="https://github.com/hsutter/cppfront/releases/tag/v0.7.1">This release</a> added several features.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Added&nbsp;<code>..</code>&nbsp;non-UFCS members-only syntax.</strong> This syntax invokes only a member function, and will not fall back to free functions. The main motivation was to provide a way to experiment if the UFCS logic noticeably added to Cpp1 compile times; I haven&#8217;t been able to verify that they cause much more compile time impact than an average-complexity line of code, but this way people can try it out. Example: <code>mystring..append("foo");</code></p>
+
+
+
+<p class="wp-block-paragraph"><strong>Allow&nbsp;<code>x: const = init;</code>&nbsp;and&nbsp;<code>x: * = init;</code></strong>&nbsp;without&nbsp;writing the <code>_</code>&nbsp;type wildcard, in cases where all we want to say is that the deduced type is const or a pointer.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Allow concatenated string literals.</strong> For example, writing <code>"Hello " "(name$)\n"</code> now works. Note in that example that one string literal doesn&#8217;t use interpolation, and one does, and that&#8217;s fine.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Faster compile time when doing heavy reflection and code generation</strong>. I haven&#8217;t had to optimize cppfront much yet because it&#8217;s been fast in all my uses, but <strong>Max Sagebaum </strong>exercised metafunctions heavily for <code>@regex</code> (covered below, in 0.7.2) and made me find another ~100x performance improvement (thanks Max!). — This is the second optimization I can recall in cppfront so far, after <strong>Johel Ernesto Guerrero Peña</strong>&#8216;s ~100x improvement last year by just changing the four uses of <code>std::regex</code> to <code>find_if</code> on a sorted <code>vector</code> of strings.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Added some command-line options:</strong> <code>-quiet</code> (thanks <strong>Marek Knápek</strong> for the suggestion!) and <code>-cwd</code> (thanks <strong>Fred Helmesjö</strong> for the PR!) command-line options.</p>
+
+
+
+<h2 class="wp-block-heading">Cppfront 0.7.2 (Jul 27, 2024)</h2>
+
+
+
+<p class="wp-block-paragraph"><a href="https://github.com/hsutter/cppfront/releases/tag/v0.7.2">This release</a> added a few features, a couple of which are major and/or long-requested.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Added range operators <code>...</code> and <code>..=</code> .</strong> . I deliberately chose to make the default syntax <code>...</code> mean a half-open range (like Rust, unlike Swift) so that it is bounds-safe by default for iterator ranges; for a &#8220;closed&#8221; range that includes the last value, use <code>..=</code> . For example: <code>iter1 ... iter2</code>&nbsp;is a range that safely doesn&#8217;t include <code>iter2</code>, as we expect for STL iterators; and <code>1 ..= 100</code>&nbsp;is a range of integer values that includes 100. For more, see the documentation here:&nbsp;<a href="https://hsutter.github.io/cppfront/cpp2/expressions/#and-range-operators"><code>...</code>&nbsp;and&nbsp;<code>..=</code>&nbsp;range operators</a>.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Added a compile-time <code>@regex</code> metafunction</strong> by <strong>Max Sagebaum</strong>. <code>@regex</code> uses compile-time reflection and source code generation via Cpp2 metafunctions to achieve compile- and run-time performance comparable to <strong>Hana Dusíková</strong>&#8216;s <a href="https://github.com/hanickadot/compile-time-regular-expressions">groundbreaking CTRE library</a> that uses today&#8217;s templates and other metaprogramming for the compile-time work. Thanks, Max! See the <a href="https://youtu.be/EB7yR-1317k?si=nt_LpqFV5KbbDpb4&amp;t=4108">last ~10 minutes</a> of my ACCU 2024 talk for an overview of CTRE and <code>@regex</code> and our initial performance results&#8230; the talk was a preview of the PR that was then merged in 0.7.2.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Add support for function types.</strong> You can now write a function signature as a type, such as to use with <code>std::function</code> (e.g.,&nbsp;<code>std::function&lt; (i: inout int) -&gt; forward std::string &gt;</code>) or to write a pointer to a function (e.g., <code>pfn: *(i: inout int) -&gt; forward std::string</code>). For more, see the documentation here: <a href="https://hsutter.github.io/cppfront/cpp2/functions/#using-function-types">Using function types</a>. Thanks to <strong>Johel Ernesto Guerrero Peña</strong> for all his contributions toward function types in particular, and for his scores of merged PRs over the past year!</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Added support for C++23 (P2290) delimited hexadecimal escapes.</strong> Didn&#8217;t notice these were in C++23? Neither did I! Thanks to <strong>Max Sagebaum</strong> for the PR to add support for escapes of the form <code>\x{62}</code>&#8230; you can now use them in Cpp2 code and they&#8217;ll work if your Cpp1 compiler understands them. Note that cppfront itself and its generated code don&#8217;t have a dependency on them; the cppfront philosophy is to &#8220;rely only on C++20 [in cppfront and its code gen requirements] for compatibility and portability, and support C++23/26 as a &#8216;light-up&#8217; [people can use those features in their own Cpp2 code and they work if their Cpp1 compiler supports them].&#8221;</p>
+
+
+
+<h2 class="wp-block-heading">What&#8217;s next</h2>
+
+
+
+<p class="wp-block-paragraph">For the rest of the year, I plan to:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Have regular cppfront releases, and post an update here for each one.</li>
+
+
+
+<li>Share some updates about the cppfront license (currently it&#8217;s a non-commercial-use-only CC license to emphasize that this has been a personal experiment).</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">But first, in just seven (7) weeks, I&#8217;ll be <strong><a href="https://cppcon.org/">at CppCon</a></strong> to give a talk that I plan to be in three equal parts:</p>
+
+
+
+<ol class="wp-block-list">
+<li>C++26 progress, and why C++26 is shaping up to be the most important C++ release since C++11.</li>
+
+
+
+<li>C++ memory safety problems and solutions (update of my ACCU talk).</li>
+
+
+
+<li>Cppfront update.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">I look forward to seeing many of you there!</p>

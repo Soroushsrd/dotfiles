@@ -1,0 +1,27 @@
+<p>
+Today was a good Emacs day. I learned something new. Over at <a href="https://ray-on-emacs.blogspot.com">Ray on Emacs</a>, Raymond Zeitler has a very nice post on <a href="https://ray-on-emacs.blogspot.com/2026/05/zap-to-char-m-z.html">using zap-to-char in reverse</a>. He—hypothetically—was typing some text, inadvertently leaned on a key, and ended up with a long string of a repeated character at the end of his text. Something like this:
+</p>
+<pre class="example" id="org2ecc5cf">
+senteeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+</pre>
+<p>
+Here&rsquo;s what I didn&rsquo;t know. You can cause <code>zap-to-char</code> to delete characters to the left by giving it negative count argument. So in Zeitler&rsquo;s example, he erases the string of <code>e</code>​s by calling zap-to-char as <kbd>Meta</kbd>+<kbd>-</kbd> <kbd>Meta</kbd>+<kbd>z</kbd> <kbd>t</kbd>.
+</p>
+<p>
+But that&rsquo;s not quite right. The problem is that it will also erase the <code>t</code>, which I assume was not his intention. Fortunately, there&rsquo;s an easy solution <a href="https://irreal.org/blog/?p=1536">that I wrote about almost 14 years ago</a>. The problem with <code>zap-to-char</code> is that it does what you want it to only about half the time. The rest of the time you don&rsquo;t want to delete the target character; you want to delete up to but not including that character. It turns out that Emacs has a command, <code>zap-up-to-char</code>, to do that but it&rsquo;s not bound to any shortcut<sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>. I have it bound to <kbd>Meta</kbd>+<kbd>Z</kbd>. It also honors the negative count argument so the correct solution for Zeitler&rsquo;s problem is <kbd>Meta</kbd>+<kbd>-</kbd> <kbd>Meta</kbd>+<kbd>Z</kbd> <kbd>t</kbd>.
+</p>
+<p>
+The mistake aside, this is a great post because it tells me—and maybe you—something I didn&rsquo;t know: you can zap backwards.
+</p>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1" role="doc-backlink">1</a></sup> </p>
+<div class="footpara" role="doc-footnote">
+<p class="footpara">
+Happily, it&rsquo;s now autoloaded by default so you no longer have to worry about that.
+</p>
+</div>
+</div>
+</div>
+</div>

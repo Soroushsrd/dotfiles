@@ -1,0 +1,8 @@
+<p>
+Álvaro Ramírez, author of <a href="https://xenodium.com/journelly-for-ios">Journelly</a> and many other useful applications—a lot of them Emacs based—has a new post about a basic Emacs operation: changing focus to another window. Ramírez and I basically agree about things like this although he stubbornly refuses to admit the superiority of my method of indicating the window that has focus.
+</p>
+<p>
+Now he has a <a href="https://lmno.lol/alvaro/focus-windows-across-emacs-frames">slightly different problem</a>. For technical reasons that you can read about in his post, he wants to be able to switch to a window in another frame. The <code>other-window</code> command, bound to <kbd>Ctrl</kbd>+<kbd>x</kbd> <kbd>o</kbd> by default, doesn&rsquo;t consider windows in other frames but, of course, there&rsquo;s a command for that: <code>next-window-any-frame</code>. That turned out to be exactly what Ramírez needed and he simply bound it to <kbd>Meta</kbd>+<kbd>o</kbd>, which is where he had <code>other-window</code> bound.
+</p>
+<p>
+Like Ramírez, I seldom use more than one frame so I didn&rsquo;t know about this command. If you often have more than one frame going, you may find it useful if you&rsquo;re not already using it. If you&rsquo;re an <a href="https://github.com/abo-abo/ace-window">ace-window</a> user, it will consider all frames by default but you can adjust this with <code>aw-scope</code>.</p>

@@ -1,0 +1,299 @@
+<p>Continuing from <a href="https://karthinks.com/software/batteries-included-with-emacs/">last time</a>, here are a dozen more tricks Emacs has up its
+sleeve that it&rsquo;s shy about telling you. We continue to chip away at Emacs'
+discoverability problem, one demo at a time.</p>
+<p>Same rules as before:</p>
+<ul>
+<li>
+<p>No packages, <strong>stock Emacs only</strong></p>
+</li>
+<li>
+<p>No steep learning curves. <strong>Learn each feature in under five minutes or bust</strong>. (Up from two minutes last time.)</p>
+</li>
+<li>
+<p><strong>No gimmicks</strong>. No doctor, tetris, snake, dunnet&hellip;</p>
+</li>
+<li>
+<p><strong>Just the deltas</strong>. No commonly mentioned packages like flymake, doc-view,
+outline-minor-mode, gnus or eww. Nothing that Emacs brings up automatically or
+a nonspecific Google search gets you.</p>
+</li>
+<li>
+<p>Assume a modern Emacs, 26.3+.</p>
+<p>Also, if you&rsquo;re new to Emacs:</p>
+<table>
+<thead>
+<tr>
+<th>Emacs jargon</th>
+<th>Modern parlance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>M-x</code></td>
+<td>Alt + x</td>
+</tr>
+<tr>
+<td><code>C-x</code></td>
+<td>Ctrl + x</td>
+</tr>
+<tr>
+<td>Frame</td>
+<td>Emacs window</td>
+</tr>
+<tr>
+<td>Window</td>
+<td>split/pane</td>
+</tr>
+<tr>
+<td>Buffer</td>
+<td>Contiguous chunk of text/data</td>
+</tr>
+<tr>
+<td>Point</td>
+<td>Cursor position in buffer</td>
+</tr>
+<tr>
+<td>Active Region</td>
+<td>Text selection</td>
+</tr>
+<tr>
+<td>Region</td>
+<td>Text selection (not highlighted)</td>
+</tr>
+<tr>
+<td>Face</td>
+<td>Font, color and display properties</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+<p>(Sorry.)</p>
+<p>Okay? Let&rsquo;s go:</p>
+<h2 id="strokes--m-x-strokes-help">Strokes (<code>M-x strokes-help</code>)</h2>
+<p>Control Emacs with mouse gestures:</p>
+<video style="center" width="700" autoplay controls loop>
+ <source src="https://karthinks.com/img/strokes-mode-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<p>Why are you using Emacs with a mouse, you ask.</p>
+<p>In this demo I used gestures to handle window management:
+<img src="https://karthinks.com/img/strokes-list.png" alt=""></p>
+<p>This is because I lack imagination. Consider: You can bind <em>any</em> gesture to <em>any</em> Emacs command.</p>
+<p>The real utility of this feature is when you find yourself going back and forth between different interaction paradigms, like a web browser and Emacs, requiring frequent context switching between full keyboard and keyboard/mouse based interaction.</p>
+<p>Want to <code>org-capture</code> or <code>org-roam-insert</code> something from your browser? Want to quickly recompile a TeX document while you&rsquo;re busy mousing through the corresponding PDF? Need to tweak some markup in your document while you work on graphics in Inkscape? <a href="http://xenodium.com/emacs-clone-git-repo-from-clipboard/">Clone a repository you found online</a>?  <code>strokes-mode</code>.</p>
+<p>The second use case for Strokes is to control Emacs during reading-centric activities, like email or RSS. Star or delete messages, pause or skip music tracks (with some elisp around <code>playerctl</code>), navigate info nodes, or cycle through Elfeed searches.</p>
+<p><code>M-x strokes-help</code> will get you started. As with most things Emacs, there&rsquo;s more to the library than meets the eye, like support for multi-part strokes you can use to edit documents in Chinese. The buffer showing the gesture being traced is for demo purposes only, you can customize <code>strokes-use-strokes-buffer</code>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">global-set-key</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;&lt;down-mouse-3&gt;&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;strokes-do-stroke</span>) <span style="color:#888">; Draw strokes with RMB</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">setq</span> <span style="color:#963">strokes-use-strokes-buffer</span> <span style="color:#036;font-weight:bold">nil</span>) <span style="color:#888">; Don&#39;t draw strokes to the screen</span>
+</span></span></code></pre></div><hr>
+<h2 id="minibuffer-completion-styles--c-h-v-completion-styles">Minibuffer completion styles (<code>C-h v completion-styles</code>)</h2>
+<p>The default minibuffer experience is annoying enough to send anyone into the
+arms of <code>ido</code>, <code>ivy</code> or <code>helm</code>. But Emacs does a lot better in the
+tab-completions department than it lets on. The minibuffer can match by
+substrings, regexps, initials and even (as of Emacs 27+) fuzzily, and it can do
+all of them at once if you don&rsquo;t mind a giant pile of matches.</p>
+<p>You can do worse than</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">setq</span> <span style="color:#963">completion-styles</span> <span style="color:#333">&#39;</span>(<span style="color:#963">initials</span> <span style="color:#963">partial-completion</span> <span style="color:#963">flex</span>)) <span style="color:#888">; &gt; Emacs 27.1</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">setq</span> <span style="color:#963">completion-cycle-threshold</span> <span style="color:#00d;font-weight:bold">10</span>)
+</span></span></code></pre></div><p>Now <code>M-x ohba</code> tab-expands to <code>org-hide-block-all</code>, <code>M-x qrr</code> to
+<code>query-replace-regexp</code> and so on, allowing you to tab-cycle between up to ten
+completions. Use tab to match file names fuzzily and expand short paths
+(<code>~/.l/sh/g</code>) to long ones (<code>~/.local/share/git</code>).</p>
+<p>Stretching the five minute rule a bit: You probably want different matching
+rules for different categories, though. Flex matching on extended commands
+(<code>M-x</code>) can dump hundreds of irrelevant matches on short input, for instance.
+You can customize <code>completion-category-overrides</code> to set the matching style by
+the category being completed.</p>
+<p>Finally, note that completion styles dictate how a candidate pool is found.
+Incremental completion systems like <code>ido</code> specify how found candidates are
+displayed and chosen. These are orthogonal functions, so any set of completion
+styles should work with any completion system. Unfortunately this isn&rsquo;t the
+case, because <code>ivy</code> and <code>helm</code> are off doing their own thing. Emacs&rsquo; built in
+completion styles do work with <code>icomplete</code>, <code>ido</code> and possibly <code>selectrum</code>
+though.</p>
+<hr>
+<h2 id="fake-ido--m-x-fido-mode">Fake Ido ( <code>M-x fido-mode</code>)</h2>
+<p>Improves the other half of the default minibuffer experience: interacting with
+selection candidates. Navigating to, from and inside the default completions
+buffer takes too many key presses. <code>fido-mode</code> brings <code>ido</code> like selection to
+every command in Emacs that uses <code>completing-read</code>, which is most of them.</p>
+<p>Of course, <code>ido</code> is also built in, but you know all about it. It also takes some
+effort to get ido to work with every command. <code>fido-mode</code> is set-and-forget, but
+it&rsquo;s Emacs 27+ only.</p>
+<hr>
+<h2 id="easier-rectangle-editing--m-x-cua-selection-mode">Easier rectangle editing (<code>M-x cua-selection-mode</code>)</h2>
+<video style="center" width="700" autoplay controls loop>
+ <source src="https://karthinks.com/img/cua-selection-mode-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<p>The default rectangle commands in Emacs (<code>C-x r</code> map) leave a little to be
+desired in terms of interactivity. Emacs has fully featured rectangle editing,
+but it&rsquo;s presented in an odd sort of way, as a subfeature of Common User Access.
+It&rsquo;s pretty nifty:</p>
+<video style="center" width="700" autoplay controls loop>
+ <source src="https://karthinks.com/img/cua-selection-mode-demo-2.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<p>Start or clear a rectangle selection with <code>C-&lt;return&gt;</code>. Cycle through rectangle
+corners with <code>&lt;return&gt;</code>. Yes, you&rsquo;ll need to rebind it if you use Org or ESS.</p>
+<p>It&rsquo;s a very handy feature, but note that <code>cua-selection-mode</code> does <em>not</em> mesh
+well with undo. If you use <code>undo-tree</code>, it can lock up trying to undo a
+<code>cua-selection</code> edit.</p>
+<hr>
+<h2 id="speedbar--m-x-speedbar">speedbar (<code>M-x speedbar</code>)</h2>
+<p>A file explorer and much, much more in Emacs. If you need the Neotree or
+dired-sidebar package to do anything in Emacs, check out speedbar.</p>
+<p>Speedbar pops up a side frame that looks like a file browser, which it is. But
+it also integrates with <code>imenu</code> to show you headings/tags inside files, and with
+<code>vc</code> to show you the status of your files:</p>
+<figure><img src="https://karthinks.com/img/speedbar-tags-demo.png"
+         alt="Figure 1: Speedbar showing tags and VC status"/><figcaption>
+            <p>Figure 1: Speedbar showing tags and VC status</p>
+        </figcaption>
+</figure>
+
+<figure><img src="https://karthinks.com/img/speedbar-org-demo.png"
+         alt="Figure 2: Speedbar showing headings in an org file"/><figcaption>
+            <p>Figure 2: Speedbar showing headings in an org file</p>
+        </figcaption>
+</figure>
+
+<p>From inside speedbar you can act on files with (frustratingly, <em>almost</em>
+dired-like) keybindings. Most regular commands run from speedbar will be run in
+the associated buffer.</p>
+<p>It tracks the active buffer to show you appropriate hierarchical information.
+Here I moved point into <code>info</code> and <code>latex-mode</code> buffers:</p>
+<p><img src="https://karthinks.com/img/speedbar-info-demo.png" alt="">
+<img src="https://karthinks.com/img/speedbar-latex-demo.png" alt=""></p>
+<p>Perhaps you&rsquo;d like a list of your buffers instead. Switch between buffer and
+file view with <code>b</code> / <code>f</code>. (You can expand a buffer entry for tag/headings.)</p>
+<figure><img src="https://karthinks.com/img/speedbar-buffers-demo.png"/>
+</figure>
+
+<hr>
+<h2 id="orgtbl-minor-mode--m-x-orgtbl-mode">Orgtbl minor mode (<code>M-x orgtbl-mode</code>)</h2>
+<p>Org-mode is its own thing, a full fledged notetaking, publishing,
+literate-programming, task tracking application with a growing ecosystem that&rsquo;s
+parallel to Emacs&rsquo;.<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup></p>
+<p>But it does provide a handy tool that&rsquo;s useful in any mode: Making tables. If
+you&rsquo;re one of the dozen Emacs users who haven&rsquo;t hopped on the Org train, this
+one&rsquo;s for you.</p>
+<p>With <code>orgtbl-mode</code>, you can make tables by starting a line with the pipe
+character and hitting tab to make a field&ndash;like you would in <code>org-mode</code>&ndash;but
+<strong>without getting in the way of your major mode</strong>. You can just leave it on and
+get on with your work.</p>
+<video style="center" width="700" autoplay controls loop>
+ <source src="https://karthinks.com/img/orgtbl-mode-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<p>Here I table some parameters in matlab-mode as a comment, but even more lazily
+than prescribed above by calling <code>orgtbl-create-or-convert-from-region</code>
+(<code>C-c |</code>) on some data.</p>
+<p>With some work, you can export the table in place to html or LaTeX, but setting
+this up would break the five minute rule. You can also use the table as a
+spreadsheet, which is beyond me.</p>
+<hr>
+<h2 id="regexp-builder--m-x-re-builder">Regexp builder (<code>M-x re-builder</code>)</h2>
+<p><img src="https://karthinks.com/img/re-builder-demo.png" alt="">
+Emacs&rsquo; regular expressions syntax can be idiosyncratic if you&rsquo;re used to <a href="https://www.pcre.org/">PCRE</a>. Are unescaped parens matched literally or do they act as capture groups? Does + need to be escaped to match multiple occurrences of a character? How do I match whitespace again?<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup></p>
+<p>I can never remember. For regularly confused users like me there is <code>re-builder</code>. Build your regular expressions interactively, one character at a time. Save it to the kill ring for later use. This is a godsend when testing regexes for non-interactive use, like when writing elisp helpers.</p>
+<p>A cleaner approach to regular expressions in Emacs, as most package maintainers will tell you, is to use the <code>rx</code> library instead. <code>rx</code> translates regular expressions in sexp form to a regexp string:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">rx</span> (<span style="color:#007020">and</span> <span style="background-color:#fff0f0">&#34;(&#34;</span>
+</span></span><span style="display:flex;"><span>         (<span style="color:#007020">or</span> <span style="background-color:#fff0f0">&#34;use-package&#34;</span> <span style="background-color:#fff0f0">&#34;require&#34;</span>)
+</span></span><span style="display:flex;"><span>         (<span style="color:#06b;font-weight:bold">+</span> <span style="color:#963">space</span>)
+</span></span><span style="display:flex;"><span>         (<span style="color:#963">group</span> (<span style="color:#963">syntax</span> <span style="color:#963">symbol</span>))))
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>(\(?:\(?:requir\|use-packag\)e\)[[:space:]]+\(\s_\)
+</span></span></code></pre></div><hr>
+<h2 id="future-history--m-n-in-prompts">Future history (<code>M-n</code> in prompts)</h2>
+<p><code>M-p</code> and <code>M-n</code> cycle through history items in minibuffer prompts. So what happens when you press <code>M-n</code> when you&rsquo;re at a blank prompt?</p>
+<p>Emacs tries to Do What You Mean. If the cursor is over a file name, for instance, <code>M-n</code> at the find-file prompt inserts the file path at point into the minibuffer. From the manual:</p>
+<blockquote>
+<p>The “future history” for file names includes several possible alternatives you may find useful, such as the file name or the URL at point in the current buffer. The defaults put into the “future history” in this case are controlled by the functions mentioned in the value of the option file-name-at-point-functions.</p>
+</blockquote>
+<p>Like the DWIM behavior of Emacs commands on regions, many utilities account for <code>future-history</code>. You can usually drag whatever relevant object point is at into the minibuffer prompt with <code>M-n</code>.</p>
+<hr>
+<h2 id="transpose-regions--m-x-transpose-region">Transpose regions (<code>M-x transpose-region</code>)</h2>
+<p>Lurking in the bevy of transposition commands in Emacs is <code>transpose-region</code>,
+which does what it says on the tin<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>:</p>
+<video style="center" width="700" autoplay controls loop>
+ <source src="https://karthinks.com/img/transpose-regions-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<p>Exchange any two non-overlapping regions in a buffer. You&rsquo;ll need to assign a
+keybinding though.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">global-set-key</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;C-x C-M-t&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;transpose-regions</span>)
+</span></span></code></pre></div><p>Also of note: <code>transpose-paragraphs</code>, which sounds like a text-mode utility but
+works pretty well on adjacent blocks of code.</p>
+<hr>
+<h2 id="view-mode-again--m-x-view-mode">View mode, again (<code>M-x view-mode</code>)</h2>
+<p>View-mode got an airing <a href="https://karthinks.com/software/batteries-included-with-emacs/#view-mode--m-x-view-mode">the last time around</a> but I like it so much I will repeat
+myself. <strong>Turn Emacs into a pager.</strong></p>
+<p>By default, pressing <code>v</code> in dired will open a file in view-mode. You can dismiss
+the window and buffer with <code>q</code>, so regular buffers can essentially function as
+info or help buffers do with <code>View</code>. You can scroll or isearch without pressing
+any modifier keys, and all advanced navigation commands (like xref) are still
+available, so this is the perfect way to explore a code repository.</p>
+<hr>
+<h2 id="newsticker--m-x-newsticker-treeview">Newsticker  (<code>M-x newsticker-treeview</code>)</h2>
+<p>AKA I&rsquo;m not brave enough to use GNUS!
+<img src="https://karthinks.com/img/newsticker-demo.png" alt=""></p>
+<p>Yes, Emacs has a traditionally styled RSS reader built in. You can organize
+feeds by folders, peruse with one button, the usual. This is the only feature in
+this list I no longer use, because Elfeed&rsquo;s design syncs with my brain much
+better. That said, Newsticker is excellent for following high volume feeds like
+subreddits since it doesn&rsquo;t maintain a database:</p>
+<blockquote>
+<p>You can mark [an item] as “old” when you have read it or – if you want to keep
+it – you can mark it as “immortal”. You can do that manually and you can define
+filters which do that automatically, see below. When a headline has vanished
+from the feed it is automatically marked as “obsolete” unless it has the status
+“immortal”. “Obsolete” headlines get removed automatically after a certain time.</p>
+</blockquote>
+<p>Another advantage over GNUS is that it needs very little configuration<sup id="fnref:4"><a href="#fn:4" class="footnote-ref" role="doc-noteref">4</a></sup>. I used
+it for a while and never read the info page. <code>newsticker-add-url</code> to add a
+source (atom/RSS feed), <code>newsticker-treeview</code> to browse.</p>
+<hr>
+<h2 id="semantic-and-semantic-decorators--m-x-semantic-decoration-mode">Semantic and Semantic decorators (<code>M-x semantic-decoration-mode</code>)</h2>
+<p>Get Emacs to decorate your python code:
+<img src="https://karthinks.com/img/semantic-decorators-demo.png" alt=""></p>
+<p>Doing this is like pointing a firehose at a matchstick: Semantic is <a href="http://alexott.net/en/writings/emacs-devenv/EmacsCedet.html#sec5">part of
+CEDET</a>, a large collection of (mostly) built-in tools to try to turn Emacs into a
+full-fledged IDE. It&hellip; doesn&rsquo;t work great on a code base of serious size or
+import, but it&rsquo;s good at analyzing exploratory code/small utilities.</p>
+<p>CEDET is written as plumbing, and unless you&rsquo;re writing a package you probably
+shouldn&rsquo;t need to do anything beyond turning on/off minor modes to use it.</p>
+<p>Ultimately Semantic is inadequate on account of the XY problem. LSP handles
+everything it&rsquo;s supposed to do and does it better, but Semantic is
+built-in and there if you just want some code-awareness in your Emacs.</p>
+<hr>
+<h2 id="next-time">Next Time</h2>
+<p>This was my attempt at covering built-in features of Emacs I use regularly that
+I don&rsquo;t see being talked about much. There are many more, like <code>project</code>,
+<code>flymake</code> and <code>outline-minor-mode</code> that have received a surge of
+interest in recent times<sup id="fnref:5"><a href="#fn:5" class="footnote-ref" role="doc-noteref">5</a></sup>. There are also features I know
+of that aren&rsquo;t talked about much, like <code>ede-mode</code>, <code>2C-two-columns</code>, <code>skeleton</code>
+and <code>tempo</code>. I don&rsquo;t bring these up since I don&rsquo;t have any experience with them.</p>
+<p>So this concludes my list.</p>
+<p>Something entirely different next time: Typing equations in Emacs faster than you
+can write on paper.</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>I hear the next major version will make you pancakes.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>Matched literally, no and &ldquo;\s-&rdquo; respectively.&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p>Vim users might be familiar with the popular <code>exchange</code> (<code>evil-exchange</code>) plugin that exchanges regions of text.&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:4">
+<p>Which doesn&rsquo;t mean it&rsquo;s not there. Let&rsquo;s say I resisted the urge to customize Newsticker because I didn&rsquo;t want to waste time while I was busy wasting time.&#160;<a href="#fnref:4" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:5">
+<p>Interest from developers and from users. Don&rsquo;t you love that the distinction is fuzzy in Emacs land?&#160;<a href="#fnref:5" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>

@@ -1,0 +1,24 @@
+<p>I’ve talked at some length about <a href="/posts/2022-11-17_continuations">continuations</a> and what they can do. In short, continuations let us manipulate the control flow programmatically. Among other things, it lets us implement generic non-deterministic backtracking search constructs, exception handlers, and cooperative threading—all without changes to the runtime or standard library!</p>
+<p>If you need a refresher, see my <a href="/posts/2022-11-17_continuations">previous post on continuations</a>. The continuations that I talked about there were <em>unbounded</em> continuations, meaning that they captured the <em>entire</em> call stack. There’s another kind of continuation called a <em>delimited</em> continuation, which can do a superset of the things that an unbounded continuation can do.</p>
+<p>To talk about continuations—delimited and regular—let’s look at a model of how a programming language get implemented. For that, we’ll talk about an abstraction of a language runtime with a thing called a CEK machine. Then we’ll realize the model with a simple implementation in Racket, and then we’ll talk about continuations.</p>
+<h2 id="the-cek-machine">The CEK machine</h2>
+<p>To understand continuations, it will be helpful to talk about an idealized machine: one that isn’t tied to any CPU architecture or memory constraints. Our machine is the CEK machine described by Felleisen et al. <sup class="footnote-reference" id="fr-fn:1-1"><a href="#fn-fn:1">1</a></sup></p>
+<p>The letters “CEK” stand for the three parts of the machine:</p>
+<dl>
+<dt>C: Control</dt>
+<dd>The <em>control</em> state of the machine. This translates to the expression currently being evaluated.</dd>
+<dt>E: Environment</dt>
+<dd>An <em>environment</em> is a mapping of <em>variables</em> to <em>values</em>.</dd>
+<dt>K: Kontinuation</dt>
+<dd>A thing that answers, “once I’m done with this bit, what do I do next?” We’ll talk about this some more. Yeah, yeah, I know that’s not how you spell continuation, but the <code>C</code> was taken by “control”, so they went with <code>K</code> instead.</dd>
+</dl>
+<p>Often times you’ll see interpreters defined in what’s called “big-step” semantics. All that means is that the interpreter takes an expression and produces a result, often calling itself recursively. It might look something like this:</p>
+<h2 id="implementing-a-cek-machine-in-racket">Implementing a CEK machine in Racket</h2>
+<h2 id="capturing-continuations">Capturing continuations</h2>
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn-fn:1">
+<p>Felleisen, Matthias, Robert Bruce Findler, and Matthew Flatt. Semantics Engineering with PLT Redex. Cambridge, Mass: MIT Press, 2009. <a href="#fr-fn:1-1">↩</a></p>
+</li>
+</ol>
+</section>

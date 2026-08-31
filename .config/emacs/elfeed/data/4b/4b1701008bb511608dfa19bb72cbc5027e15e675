@@ -1,0 +1,14 @@
+<p>
+One of the things that we Emacers hear with tiring frequency is that Emacs is moribund, old technology loved only by graybeards stuck in the last century. In fact, as actual users know, Emacs is undergoing constant development and is often the first to offer new features that the other editors copy. The most salient examples are Org mode and Magit but there are plenty of more recent examples.
+</p>
+<p>
+But don&rsquo;t take my word for it. Over at the Emacs subreddit, gonstrider has a short post relating his experience with all of this. He&rsquo;s been using an unnamed editor—you&rsquo;ll have no problem figuring out which one—that keeps having weekly updates that seem to make things worse each time. So <a href="https://www.reddit.com/r/emacs/comments/1vlhgss/it_have_been_such_a_long_time_since_i_have_a_good/">he jumped in the deep end and downloaded and built Master (Emacs 32)</a> fully expecting to find lots of broken things.
+</p>
+<p>
+It didn&rsquo;t turn out that way. He was, in fact, surprised to discover that almost everything worked well. The only problem he had was evil on Windows and he solved that by simply upgrading evil. As for the rest, he found that Emacs was super-responsive and all the functionality that seemed laggy in that other editor was snappy in Emacs.
+</p>
+<p>
+There are two lessons here. The first is that Emacs, far from being moribund, is undergoing continuing development and introducing new features. The second point is that Emacs is, unlike some of its competitors,  continuing to produce upgrades that simply work and don&rsquo;t make their users crazy.
+</p>
+<p>
+Very shortly, we should see the release of Emacs 31 but work on Emacs 32 is already ongoing and amazingly stable for what is, after all, alpha software. The next time someone tells you that Emacs is old and moribund, refer them to gonstrider&rsquo;s post.</p>

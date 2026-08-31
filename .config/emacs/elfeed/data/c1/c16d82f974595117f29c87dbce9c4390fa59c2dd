@@ -1,0 +1,8 @@
+<p>
+Sean Whitton writes to say that <a href="https://lists.gnu.org/archive/html/emacs-devel/2026-07/msg00270.html">Emacs 31.0.91, the second Emacs 31 pretest, is now available</a>. If you&rsquo;re interested in trying it out, you can get a copy from <a href="https://alpha.gnu.org/gnu/emacs/pretest/emacs-31.0.91.tar.xz">https://alpha.gnu.org/gnu/emacs/pretest/emacs-31.0.91.tar.xz</a>. It&rsquo;s signed so you should also get the signature file from <a href="https://alpha.gnu.org/gnu/emacs/pretest/emacs-31.0.91.tar.xz.sig">https://alpha.gnu.org/gnu/emacs/pretest/emacs-31.0.91.tar.xz.sig</a>.
+</p>
+<p>
+This is good news, of course, because it means that Emacs 31 is that much closer to release. There&rsquo;s some great new features coming in Emacs 31 (see the <a href="https://git.savannah.gnu.org/cgit/emacs.git/tree/etc/NEWS?h=emacs-31">NEWS file</a> for details) so I&rsquo;m looking forward to its release. On the other hand, it&rsquo;s good that the devs are being conservative and trying to wring all the bugs out before the official release.
+</p>
+<p>
+If you don&rsquo;t mind living (slightly) on the edge, try it out and let the devs know if you find any problems.</p>

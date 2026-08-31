@@ -1,0 +1,69 @@
+<p>I am building a little text editor in Haskell.<sup class="footnote-reference" id="fr-fn:1-1"><a href="#fn-fn:1">1</a></sup> Why would I do such a thing? Because I’m in a class and this fulfills the requirement, and building a text editor is the kind of thing that I’ve always wanted to take a crack at.</p>
+<p>This is part 1, and I will describe how to build a <a class="link-external" rel="external" href="https://en.wikipedia.org/wiki/Rope_(data_structure)">rope</a> data structure in Haskell. A rope is a bunch of strings (literally, and in the CS sense) and is optimized for cheap edits. You can see my implementation <a class="link-external" rel="external" href="https://codeberg.org/ashton314/ysue/src/branch/main/src/Rope.hs">on Codeberg</a>.</p>
+<h2 id="why-ropes">Why ropes?</h2>
+<p>This has probably been discussed <em>ad nauseam</em>, but I’ll throw a brief justification for using a rope here to save you a click/search. Warning: this is not going to be in-depth or anything, so if you’re not persuaded that e.g. ropes are a good idea, it’s probably because I am trying to be brief here.</p>
+<p>Here’s the problem: when you’re working in a text editor, you usually are doing edits somewhere in the <em>middle</em> of the file. If you were to store a buffer of <script type="math/tex">n</script>
+ characters in an array, inserting a character at position <script type="math/tex">i</script>
+ would mean that you have t</p>
+<p>Ropes, on the other hand, store bits of text in a balanced binary tree. Inserting some text never mutates existing nodes; instead, new nodes from the modified leaf up to the root (so, roughly <script type="math/tex">\log(n)</script>
+ nodes) need to be allocated on insertion.</p>
+<p>This comes with two benefits: first, insertion and deletion scale extremely well. Second, since the structure is immutable, you could store the last <script type="math/tex">k</script>
+ copies of the string to implement an “undo” feature in your editor.
+Moreover, all the chunks that <em>didn’t</em> get changed don’t take up any extra space, since the data structure enjoys nice structural sharing.</p>
+<p>“But what about all those nodes you need to allocate?” you might well ask. Modern garbage collectors are so good these days you won’t even notice. As soon as you’re working with a new copy of the string, or as soon as a copy of the string you’ve been holding onto in your undo buffer gets bumped out, the garbage collector is sure to swiftly reclaim any nodes no longer in use.</p>
+<h3 id="benchmarks">Benchmarks</h3>
+<p>I implemented a rope and ran some benchmarks, comparing it with a naïve string insertion algorithm. Note: reproducing these in other languages will differ based on how your language implements strings. I’m using Haskell, which represents strings as linked lists of characters. This has some trade-offs:</p>
+<ul>
+<li>Indexing into the <script type="math/tex">n</script>
+-th element takes <script type="math/tex">O(n)</script>
+ time, which isn’t great.</li>
+<li>However, joining a string onto the head of another only requires that you walk the first string to its end; you do not have to walk the entire length of the end string.</li>
+</ul>
+<div class="figure">
+  <p><img src="/img/haskell_rope_benchmarks.png" alt="" /></p>
+
+  
+  <div class="figure-caption">
+    <span class="figure-caption-text"><p>Benchmark comparing a series of random edits applied to a rope vs. a string. The rope shows minimal difference in time taken to perform 10 random edits (4.03 μs = 0.004 ms) to 10,000 edits (28.1ms). In contrast, the naïve string implementation jumps from 2.56 μs = 0.002 ms for 10 edits all the way to 3.6 s = 3600 ms for 10,000 edits.</p>
+</span>
+  </div>
+  
+</div>
+<p>I tried running the benchmarks for 100,000 random edits, and the last benchmark never finished even though I let it sit for over an hour. Arrays of characters are not sustainable for editors.</p>
+<h2 id="building-a-rope">Building a rope</h2>
+<p>The original rope paper [<a href="#citeproc_bib_item_1">1</a>] and the <a class="link-external" rel="external" href="https://en.wikipedia.org/wiki/Rope_(data_structure)">Wikipedia article on ropes</a> both do a fine job of explaining the data structure. I’ll just outline some gotchas here.</p>
+<h3 id="the-data-structure">The data structure</h3>
+<p>Here’s my definition of a rope:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="haskell"><span class="giallo-l"><span style="color: #81A1C1;">data Rope</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  =</span><span>  Concat</span><span style="color: #81A1C1;"> Int Int Rope Rope</span><span style="color: #616E88;"> -- Concat length height left right</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  |</span><span>  Leaf</span><span style="color: #81A1C1;"> Int String</span><span style="color: #616E88;">          -- Leaf length content</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  deriving</span><span style="color: #ECEFF4;"> (</span><span style="color: #81A1C1;">Show</span><span style="color: #ECEFF4;">,</span><span style="color: #81A1C1;"> Eq</span><span style="color: #ECEFF4;">)</span></span></code></pre>
+<p>A rope is either a <code>Leaf</code> node or a <code>Concat</code>​enation of two rope nodes. The <code>Leaf</code> variant contains two fields: a regular ol’ string as well as how long the string is.<sup class="footnote-reference" id="fr-fn:2-1"><a href="#fn-fn:2">2</a></sup> The <code>Concat</code> variant holds left and right subtrees, the total length of its subtrees, and how high up in the tree it is. (This is important for balancing later on.)</p>
+<p>The string gets broken up between the leaves and the concat nodes hold everything together.</p>
+<p>Why do <code>Concat</code> nodes need to hold their length? This is to speed up searching through the tree: since every node knows how long the string underneath it is, we don’t need to go all the way down to the leaves to figure out where in the string we should jump if we’re looking for, say, the 1000th character. This keeps accesses <script type="math/tex">O(\log(n))</script>
+ which is pretty fast.</p>
+<h3 id="balancing-algorithm">Balancing algorithm</h3>
+<p>The balancing algorithm is the trickiest part of implementing a rope, and it’s a bit of a shame that the paper doesn’t have better examples. I did use the paper as a reference to implement the algorithm, so it was <em>clear enough</em>, but more examples are always good!</p>
+<h2 id="alternatives-to-ropes">Alternatives to ropes</h2>
+<p>The <a class="link-external" rel="external" href="https://docs.racket-lang.org/rhombus/index.html">Rhombus</a> language uses an RRB tree [<a href="#citeproc_bib_item_2">2</a>] for it’s primary list data structure. RRB trees would probably work pretty well for text editing. You can see the Rhombus implementation <a class="link-external" rel="external" href="https://github.com/racket/rhombus-prototype/blob/master/design/treelist/treelist.rhm">on GitHub</a>.</p>
+<h2 id="references">References</h2>
+<style>.csl-left-margin{float: left; padding-right: 0em;}
+ .csl-right-inline{margin: 0 0 0 1em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>
+    <div class="csl-left-margin">[1]</div><div class="csl-right-inline">Boehm Hans‐J., Atkinson, R. and Plass, M. 1995. Ropes: An alternative to strings. <i>Software: Practice and experience</i>. 25, 12 (Dec. 1995), 1315–1330. DOI:<a href="https://doi.org/10.1002/spe.4380251203">https://doi.org/10.1002/spe.4380251203</a>.</div>
+  </div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>
+    <div class="csl-left-margin">[2]</div><div class="csl-right-inline">Stucki, N., Rompf, T., Ureche, V. and Bagwell, P. 2015. <a href="https://doi.org/10.1145/2784731.2784739">RRB vector: A practical general purpose immutable sequence</a>. <i>Proceedings of the 20th ACM SIGPLAN International Conference on Functional Programming</i> (Vancouver BC Canada, Aug. 2015), 342–354.</div>
+  </div>
+</div>
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn-fn:1">
+<p>I call it “ysue”, for <strong>Y</strong>​ou <strong>S</strong>​hould be <strong>U</strong>​sing <strong>E</strong>​macs. It actually works! I used it to edit its own source code! Get it here: <a class="link-external" rel="external" href="https://codeberg.org/ashton314/ysue">https://codeberg.org/ashton314/ysue</a> <a href="#fr-fn:1-1">↩</a></p>
+</li>
+<li id="fn-fn:2">
+<p>Haskell strings are linked lists. This is nice for all sorts of functional operations, but it means that they don’t track how long they are. (As far as I know.) If you use a language that can get the length of the string in <script type="math/tex">O(1)</script>
+ time, you might not need this. <a href="#fr-fn:2-1">↩</a></p>
+</li>
+</ol>
+</section>

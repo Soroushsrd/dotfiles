@@ -1,0 +1,40 @@
+<p>Using an RSS reader instead of visiting Youtube or other social media has many advantages, including that you have to deal with much less energy-sapping, will-eroding clickbait. Unfortunately feed entries can still have clickbaity titles that can DESTROY your patience! So I wrote a dumb-as-rocks declickbaiter for Elfeed. You WON&rsquo;T BELIEVE the results!</p>
+<p>The Before (The After will SHOCK you!):
+<img src="https://karthinks.com/img/declickbait-before-extra.png" alt=""></p>
+<p>The After:
+<img src="https://karthinks.com/img/declickbait-after-extra.png" alt=""></p>
+<p>The Code:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">add-hook</span> <span style="color:#a60;background-color:#fff0f0">&#39;elfeed-new-entry-hook</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">elfeed-declickbait-entry</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">elfeed-declickbait-entry</span> (<span style="color:#963">entry</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">title</span> (<span style="color:#963">elfeed-entry-title</span> <span style="color:#963">entry</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">setf</span> (<span style="color:#963">elfeed-meta</span> <span style="color:#963">entry</span> <span style="color:#007020">:title</span>)
+</span></span><span style="display:flex;"><span>          (<span style="color:#963">elfeed-title-transform</span> <span style="color:#963">title</span>))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">elfeed-title-transform</span> (<span style="color:#963">title</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Declickbait string TITLE.&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let*</span> ((<span style="color:#963">trim</span> <span style="background-color:#fff0f0">&#34;\\(?:\\(?:\\.\\.\\.\\|[!?]\\)+\\)&#34;</span>)
+</span></span><span style="display:flex;"><span>         (<span style="color:#963">arr</span> (<span style="color:#963">split-string</span> <span style="color:#963">title</span> <span style="color:#036;font-weight:bold">nil</span> <span style="color:#036;font-weight:bold">t</span> <span style="color:#963">trim</span>))
+</span></span><span style="display:flex;"><span>         (<span style="color:#963">s-table</span> (<span style="color:#06b;font-weight:bold">copy-syntax-table</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">modify-syntax-entry</span> <span style="color:#04d;background-color:#fff0f0">?\&#39;</span> <span style="background-color:#fff0f0">&#34;w&#34;</span> <span style="color:#963">s-table</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">with-syntax-table</span> <span style="color:#963">s-table</span>
+</span></span><span style="display:flex;"><span>      (<span style="color:#06b;font-weight:bold">mapconcat</span> (<span style="color:#007020">lambda</span> (<span style="color:#963">word</span>)
+</span></span><span style="display:flex;"><span>                   (<span style="color:#007020">cond</span>
+</span></span><span style="display:flex;"><span>                    ((<span style="color:#06b;font-weight:bold">member</span> <span style="color:#963">word</span> <span style="color:#333">&#39;</span>(<span style="background-color:#fff0f0">&#34;AND&#34;</span> <span style="background-color:#fff0f0">&#34;OR&#34;</span> <span style="background-color:#fff0f0">&#34;IF&#34;</span> <span style="background-color:#fff0f0">&#34;ON&#34;</span> <span style="background-color:#fff0f0">&#34;IT&#34;</span> <span style="background-color:#fff0f0">&#34;TO&#34;</span>
+</span></span><span style="display:flex;"><span>                                    <span style="background-color:#fff0f0">&#34;A&#34;</span> <span style="background-color:#fff0f0">&#34;OF&#34;</span> <span style="background-color:#fff0f0">&#34;VS&#34;</span> <span style="background-color:#fff0f0">&#34;IN&#34;</span> <span style="background-color:#fff0f0">&#34;FOR&#34;</span> <span style="background-color:#fff0f0">&#34;WAS&#34;</span>
+</span></span><span style="display:flex;"><span>                                    <span style="background-color:#fff0f0">&#34;IS&#34;</span> <span style="background-color:#fff0f0">&#34;BE&#34;</span>))
+</span></span><span style="display:flex;"><span>                     (<span style="color:#06b;font-weight:bold">downcase</span> <span style="color:#963">word</span>))
+</span></span><span style="display:flex;"><span>                    ((<span style="color:#06b;font-weight:bold">member</span> <span style="color:#963">word</span> <span style="color:#333">&#39;</span>(<span style="background-color:#fff0f0">&#34;WE&#34;</span> <span style="background-color:#fff0f0">&#34;DAY&#34;</span> <span style="background-color:#fff0f0">&#34;HOW&#34;</span> <span style="background-color:#fff0f0">&#34;WHY&#34;</span> <span style="background-color:#fff0f0">&#34;NOW&#34;</span> <span style="background-color:#fff0f0">&#34;OLD&#34;</span>
+</span></span><span style="display:flex;"><span>                                    <span style="background-color:#fff0f0">&#34;NEW&#34;</span> <span style="background-color:#fff0f0">&#34;MY&#34;</span> <span style="background-color:#fff0f0">&#34;TOO&#34;</span> <span style="background-color:#fff0f0">&#34;GOT&#34;</span> <span style="background-color:#fff0f0">&#34;GET&#34;</span> <span style="background-color:#fff0f0">&#34;THE&#34;</span>
+</span></span><span style="display:flex;"><span>                                    <span style="background-color:#fff0f0">&#34;ONE&#34;</span> <span style="background-color:#fff0f0">&#34;DO&#34;</span> <span style="background-color:#fff0f0">&#34;YOU&#34;</span>))
+</span></span><span style="display:flex;"><span>                     (<span style="color:#06b;font-weight:bold">capitalize</span> <span style="color:#963">word</span>))
+</span></span><span style="display:flex;"><span>                    ((<span style="color:#06b;font-weight:bold">&gt;</span> (<span style="color:#06b;font-weight:bold">length</span> <span style="color:#963">word</span>) <span style="color:#00d;font-weight:bold">3</span>) (<span style="color:#06b;font-weight:bold">capitalize</span> <span style="color:#963">word</span>))
+</span></span><span style="display:flex;"><span>                    (<span style="color:#036;font-weight:bold">t</span> <span style="color:#963">word</span>)))
+</span></span><span style="display:flex;"><span>                 <span style="color:#963">arr</span> <span style="background-color:#fff0f0">&#34; &#34;</span>))))
+</span></span></code></pre></div><p><code>elfeed-title-transform</code> can be replaced with something much better, like a grammar aware title formatter (AI or otherwise), or with information extracted from the content or video description of the entry. But I&rsquo;ll settle for this pareto solution for what was <a href="https://youtube.com/watch?v=tF4OdtSuXMg">half an hour of live coding</a> in the dark:</p>
+<iframe width="704" height="396" src="https://www.youtube.com/embed/tF4OdtSuXMg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<p>Okay, the above screenshots were chosen as a joke. Here&rsquo;s a more representative version of the declickbait effect:</p>
+<p>Before:
+<img src="https://karthinks.com/img/declickbait-before.png" alt=""></p>
+<p>After:
+<img src="https://karthinks.com/img/declickbait-after.png" alt=""></p>

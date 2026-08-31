@@ -1,0 +1,203 @@
+<div ( . )='http://www.w3.org/1999/xhtml'><div><p>Good day!  Today (tonight), some notes on the last couple months of
+<a href='https://codeberg.org/andywingo/wastrel/'>Wastrel</a>, my ahead-of-time
+WebAssembly compiler.</p><p>Back in the beginning of February, I showed <a href='https://wingolog.org/archives/2026/02/06/ahead-of-time-wasm-gc-in-wastrel'>Wastrel running programs
+that use garbage
+collection</a>,
+using an embedded copy of the <a href='https://github.com/wingo/whippet'>Whippet
+collector</a>, specialized to the types
+present in the Wasm program.  But, the two synthetic GC-using programs I
+tested on were just ported microbenchmarks, and didn’t reflect the
+output of any real toolchain.</p><p>In this cycle I worked on compiling the output from the <a href='https://spritely.institute/hoot/'>Hoot
+Scheme-to-Wasm compiler</a>.  There were
+some interesting challenges!</p><h3>bignums</h3><p>When I originally wrote the Hoot compiler, it targetted the browser,
+which already has a bignum implementation in the form of
+<a href='https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt#Browser_compatibility'>BigInt</a>,
+which <a href='https://wingolog.org/archives/2019/05/23/bigint-shipping-in-firefox'>I worked on back in the
+day</a>.
+Hoot-generated Wasm files use host bigints via <tt>externref</tt> (though
+<a href='https://wingolog.org/archives/2023/03/20/a-world-to-win-webassembly-for-the-rest-of-us#:~:text=common%20struct%20supertype'>wrapped in structs to allow for hashing and
+identity</a>).</p><p>In Wastrel, then, I implemented the imports that implement bignum
+operations: addition, multiplication, and so on.  I did so using
+<a href='https://gmplib.org/repo/gmp/file/tip/mini-gmp/README'>mini-gmp</a>, a
+stripped-down implementation of the workhorse GNU multi-precision
+library.  At some point if bignums become important, this gives me the
+option to link to the full GMP instead.</p><p>Bignums were the first managed data type in Wastrel that wasn’t defined
+as part of the Wasm module itself, instead hiding behind <tt>externref</tt>, so
+I had to add a facility to <a href='https://wingolog.org/archives/2026/02/18/two-mechanisms-for-dynamic-type-checks'>allocate type
+codes</a>
+to these “host” data types.  More types will come in time: weak maps,
+ephemerons, and so on.</p><p>I think bignums would be a great proposal for the Wasm standard, similar
+to <a href='https://github.com/WebAssembly/stringref'>stringref</a> ideally
+(<a href='https://wingolog.org/archives/2023/10/19/requiem-for-a-stringref'>sniff!</a>),
+possibly in an <a href='https://github.com/WebAssembly/js-string-builtins/blob/main/proposals/js-string-builtins/Overview.md'>attenuated
+form</a>.</p><h3>exception handling</h3><p>Hoot used to emit a <a href='https://github.com/WebAssembly/exception-handling/blob/main/proposals/exception-handling/legacy/Exceptions.md'>pre-standardization form of exception
+handling</a>,
+and hadn’t gotten around to updating to the <a href='https://wingolog.org/archives/2026/03/10/nominal-types-in-webassembly'>newer
+version</a>
+that was standardized last July.  I updated Hoot to emit the newer kind
+of exceptions, as it was easier to implement them in Wastrel that way.</p><p>Some of the problems <a href='https://cfallin.org/blog/2025/11/06/exceptions/'>Chris Fallin contended with in
+Wasmtime</a> don’t apply
+in the Wastrel case: since the set of instances is known at
+compile-time, we can statically allocate type codes for exception tags.
+Also, I didn’t really have to do the back-end: I can just use <a href='https://man7.org/linux/man-pages/man3/longjmp.3.html'><tt>setjmp</tt>
+and <tt>longjmp</tt></a>.</p><p>This whole paragraph was meant to be a bit of an aside in which I
+briefly mentioned why just using <tt>setjmp</tt> was fine.  Indeed, because
+Wastrel never re-uses a temporary, relying entirely on GCC to “re-use”
+the register / stack slot on our behalf, I had thought that I didn’t
+need to worry about the “volatile problem”.  From the C99 specification:</p><blockquote> [...] values of objects of automatic storage duration that
+are local to the function containing the invocation of the corresponding
+setjmp macro that do not have volatile-qualified type and have been
+changed between the setjmp invocation and longjmp call are
+indeterminate.  </blockquote><p>My thought was, though I might set a value between <tt>setjmp</tt> and
+<tt>longjmp</tt>, that would only be the case for values whose lifetime did
+not reach the <tt>longjmp</tt> (i.e., whose last possible use was before the
+jump).  Wastrel didn’t introduce any such cases, so I was good.</p><p>However, I forgot about <tt>local.set</tt>: mutations of locals (ahem, <i>objects
+of automatic storage duration</i>) in the source Wasm file could run afoul
+of this rule.  So, because of writing this blog post, I went back and
+did an analysis pass on each function to determine the set of locals
+which are mutated inside the body of a <tt>try_table</tt>.  Thank you, rubber duck readers!</p><h3>bugs</h3><p>Oh my goodness there were many bugs.  Lacunae, if we are being generous;
+things not implemented quite right, which resulted in errors either when
+generating C or when compiling the C.  The <a href='https://wingolog.org/archives/2026/02/09/six-thoughts-on-generating-c'>type-preserving translation
+strategy</a>
+does seem to have borne fruit, in that I have spent very little time in
+GDB: once things compile, they work.</p><h3>coevolution</h3><p>Sometimes Hoot would use a browser facility where it was convenient, but
+for which in a better world we would just do our own thing.  Such was the
+case for the <tt>number-&gt;string</tt> operation on floating-point numbers: we
+did something <a href='https://codeberg.org/spritely/hoot/src/branch/main/reflect-js/reflect.js#L817-L828'>awful but
+expedient</a>.</p><p>I didn’t have this facility in Wastrel, so instead we moved to do
+float-to-string conversions <a href='https://codeberg.org/spritely/hoot/src/branch/main/lib/hoot/write.scm#L75-L208'>in
+Scheme</a>.
+This turns out to have been a good test for bignums too; the <a href='https://doi.org/10.1145/231379.231397'>algorithm
+we use</a> is a bit dated and relies
+on bignums to do its thing.  The move to Scheme also allows for printing
+floating-point numbers in other radices.</p><p>There are a few more Hoot patches that were inspired by Wastrel, about
+which more later; it has been good for both to work on the two at the
+same time.</p><h3>tail calls</h3><p>My plan for Wasm’s
+<a href='https://webassembly.github.io/spec/core/exec/instructions.html#xref-syntax-instructions-syntax-instr-control-mathsf-return-call-x'><tt>return_call</tt></a>
+and friends was to use the new <tt>musttail</tt> annotation for calls, which
+has been in clang for a while and was recently added to GCC.  I was
+careful to <a href='https://wingolog.org/archives/2026/02/09/six-thoughts-on-generating-c#:~:text=for%20ABI%20and%20tail%20calls%2C%20perform%20manual%20register%20allocation'>limit the number of function
+parameters</a>
+such that no call should require stack allocation, and therefore a
+compiler should have no reason to reject any particular tail call.</p><p>However, there were bugs.  Funny ones, at first: <a href='https://gcc.gnu.org/bugzilla/show_bug.cgi?id=124533'>attributes applying to
+a preceding label instead of the following
+call</a>, or <a href='https://gcc.gnu.org/bugzilla/show_bug.cgi?id=124532'>the need
+to insert <tt>if (1)</tt> before the tail
+call</a>.  More dire
+ones, in which <a href='https://gcc.gnu.org/bugzilla/show_bug.cgi?id=124534'>tail callers inlined into <i>their</i> callees would cause
+the tail calls to
+fail</a>, worked
+around with judicious application of <tt>noinline</tt>.  Thanks to GCC’s Andrew
+Pinski for help debugging these and other issues; with GCC things are
+fine now.</p><p>I did have to change the code I emitted to return “top types only”: if
+you have a function returning type T, you can tail-call a function
+returning U if U is a subtype of T, but there is <a href='https://codeberg.org/andywingo/wastrel/issues/25'>no nice way to encode
+this into the C type
+system</a>.  Instead, we
+return the top type of T (or U, it’s the same), e.g. <tt>anyref</tt>, and
+insert downcasts at call sites to recover the precise types.  Not so
+nice, but it’s what we got.</p><p>Trying tail calls on clang, I ran into a funny restriction: clang not
+only requires that return types match, but requires that tail caller and
+tail callee have the same parameters as well.  I can see why they did
+this (it requires no stack shuffling and thus such a tail call is always
+possible, even with 500 arguments), but it’s not the design point that I
+need.  Fortunately there are discussions about <a href='https://discourse.llvm.org/t/experience-with-clang-musttail/89085/7'>moving to a different
+constraint</a>.</p><h3>scale</h3><p>I spent way more time that I had planned to on improving the speed of
+Wastrel itself.  My initial idea was to just emit one big C file, and
+that would provide the maximum possibility for GCC to just go and do its
+thing: it can see everything, everything is static, there are loads of
+<tt>always_inline</tt> helpers that should compile away to single instructions,
+that sort of thing.  But, this doesn’t scale, in a few ways.</p><p>In the first obvious way, consider <a href='https://mastodon.social/@wingo/115378481224538009'>whitequark’s
+<tt>llvm.wasm</tt></a>.  This
+is all of LLVM in one 70 megabyte Wasm file.  Wastrel made a huuuuuuge C
+file, then GCC chugged on it forever; 80 minutes at <tt>-O1</tt>, and I wasn’t
+aiming for <tt>-O1</tt>.</p><p>I realized that in many ways, GCC wasn’t designed to be a compiler
+target.  The shape of code that one might emit from a Wasm-to-C compiler
+like Wastrel is different from that that one would write by hand.  I
+even ran into a <a href='https://gcc.gnu.org/bugzilla/show_bug.cgi?id=124651'>segfault compiling with
+-Wall</a>, because GCC
+accidentally recursed instead of iterated in the <tt>-Winfinite-recursion</tt>
+pass.</p><p>So, I dealt with this in a few ways.  After many hours spent pleading
+and bargaining with different <tt>-O</tt> options, I bit the bullet and made
+Wastrel emit multiple C files.  It will compute a DAG forest of all the
+functions in a module, where edges are direct calls, and go through that
+forest, <a href='https://codeberg.org/andywingo/wastrel/src/branch/main/module/wastrel/partitions.scm#L436'>greedily consuming (and possibly splitting) subtrees until we
+have “enough” code to split out a partition</a>, as measured by number of
+Wasm instructions.  They say that <tt>-flto</tt> makes this a fine approach,
+but one never knows when a translation unit boundary will turn out to be
+important.  I compute needed symbol visibilities as much as I can so as
+to declare functions that don’t escape their compilation unit as
+<tt>static</tt>; who knows if this is of value.  Anyway, this partitioning
+introduced no performance regression in my limited tests so far, and
+compiles are much much much faster.</p><h3>scale, bis</h3><p>A brief observation: Wastrel used to emit indented code, because it
+could, and what does it matter, anyway.  However, consider Wasm’s
+<a href='https://webassembly.github.io/spec/core/valid/instructions.html#xref-syntax-instructions-syntax-instr-control-mathsf-br-table-l-ast-l-n'><tt>br_table</tt></a>:
+it takes an array of <i>n</i> labels and an integer operand, and will branch
+to the <i>n</i>th label, or the last if the operand is out of range.  To set
+up a label in Wasm, you make a block, of which there are a handful of
+kinds; the label is visible in the block, and for <i>n</i> labels, the
+<tt>br_table</tt> will be the most nested expression in the <i>n</i> nested blocks.</p><p>Now consider that block indentation is proportional to <i>n</i>.  This means,
+the file size of an indented C file is quadratic in the number of branch
+targets of the <tt>br_table</tt>.</p><p>Yes, this actually bit me; there are <tt>br_table</tt> instances with tens of
+thousands of targets.  No, wastrel does not indent any more.</p><h3>scale, ter</h3><p>Right now, the long pole in Wastrel is the compile-to-C phase; the
+C-to-native phase parallelises very well and is less of an issue.  So,
+one might think: OK, you have partitioned the functions in this Wasm
+module into a number of files, why not emit the files in parallel?</p><p>I gave this a go.  It did not speed up C generation.  From my cursory
+investigations, I think this is because the bottleneck is garbage
+collection in Wastrel itself; Wastrel is written in Guile, and Guile
+still uses the Boehm-Demers-Weiser collector, which does not parallelize
+well for multiple mutators.  It’s terrible but I ripped out
+parallelization and things are fine.  <a href='https://jorts.horse/@migratory/116279275172476524'>Someone on Mastodon suggested
+<tt>fork</tt></a>; they’re not
+wrong, but also not Right either.  I’ll just keep this as a nice test
+case for the Guile-on-Whippet branch I want to poke later this year.</p><h3>scale, quator</h3><p>Finally, I had another realization: GCC was having trouble compiling the
+C that Wastrel emitted, because Hoot had emitted bad WebAssembly.  Not
+bad as in “invalid”; rather, “not good”.</p><p>There were two cases in which Hoot emitted ginormous (technical term)
+functions.  One, for an odd debugging feature: Hoot does a CPS transform
+on its code, and allocates return continuations on a stack.  This is a
+gnarly technique but it gets us delimited continuations and all that
+goodness even before stack switching has landed, so it’s here for now.
+It also gives us a reified return stack of <tt>funcref</tt> values, which lets
+us print Scheme-level backtraces.</p><p>Or it would, if we could associate data with a <tt>funcref</tt>.  Unfortunately
+<tt>func</tt> is not a subtype of <tt>eq</tt>, so we can’t.  Unless... we pass the
+funcref out to the embedder (e.g. JavaScript), and the embedder checks
+the funcref for equality (e.g. using <tt>===</tt>); then we can map a funcref
+to an index, and use that index to map to other properties.</p><p>How to pass that <tt>funcref</tt>/index map to the host?  When I initially
+wrote Hoot, I didn’t want to just, you know, put the funcrefs of interet
+into a table and let the index of a function’s slot be the value in the
+key-value mapping; that would be useless memory usage.  Instead, we
+emitted functions that took an integer, and which would return a
+funcref.  Yes, these used <tt>br_table</tt>, and yes, there could be tens of
+thousands of cases, depending on what you were compiling.</p><p>Then to map the integer index to, say, a function name, likewise I
+didn’t want a table; that would force eager allocation of all strings.
+Instead I emitted a function with a <tt>br_table</tt> whose branches would
+return <tt>string.const</tt> values.</p><p>Except, of course, <a href='https://wingolog.org/archives/2023/10/19/requiem-for-a-stringref'>stringref didn’t become a
+thing</a>,
+and so instead we would end up lowering to allocate string constants as
+globals.</p><p>Except, of course, Wasm’s idea of what a “constant” is is quite
+restricted, so <a href='https://codeberg.org/spritely/hoot/src/branch/main/module/wasm/lower-globals.scm'>we have a pass that moves non-constant global
+initializers to the “start”
+function</a>.
+This results in an enormous start function.  The straightforward
+solution was to partition global initializations into separate
+functions, called by the start function.</p><p>For the <tt>funcref</tt> debugging, the solution was more intricate: firstly,
+we represent the <tt>funcref</tt>-to-index mapping just as a table.  It’s fine.
+Then for the side table mapping indices to function names and sources,
+we emit DWARF, and attach a special attribute to each “introspectable”
+function.  In this way, reading the DWARF sequentially, we reconstruct a
+mapping from index to DWARF entry, and thus to a byte range in the Wasm
+code section, and thus to source information in the <tt>.debug_line</tt>
+section.  It sounds gnarly but Guile already used DWARF as its own
+debugging representation; switching to emit it in Hoot was not a huge
+deal, and as we only need to consume the DWARF that we emit, we only
+needed some <a href='https://codeberg.org/spritely/hoot/src/branch/main/reflect-js/reflect.js#L3-L377'>400 lines of
+JS</a>
+for the web/node run-time support code.</p><p>This switch to data instead of code removed the last really long pole
+from the GCC part of Wastrel’s pipeline.  What’s more, Wastrel can now
+implement the <tt>code_name</tt> and <tt>code_source</tt> imports for Hoot programs
+ahead of time: it can parse the DWARF at compile-time, and generate
+functions that look up functions by address in a sorted array to return
+their names and source locations.  As of today, this works!</p><h3>fin</h3><p>There are still a few things that Hoot wants from a host that Wastrel
+has stubbed out: weak refs and so on.  I’ll get to this soon; my goal is
+a proper Scheme REPL.  Today’s note is a waypoint on the journey.  Until
+next time, happy hacking!</p></div></div>

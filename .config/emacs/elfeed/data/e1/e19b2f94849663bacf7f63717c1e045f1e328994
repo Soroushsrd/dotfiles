@@ -1,0 +1,8 @@
+<p>
+Yesterday I wrote that <a href="https://irreal.org/blog/">I had reconsidered my stance on Jinx and decided to give it a serious try</a>. The only problem I had was that picking the correct spelling wasn&rsquo;t working as advertised. I speculated that this was probably the result of some interaction between Jinx and Ivy and this, indeed, turned out to be the case.
+</p>
+<p>
+Embarrassingly, mbork had already pointed this out <a href="https://mbork.pl/2026-07-11_Fast_spell-checking_in_Emacs_with_Jinx">in his post about Jinx</a> that I linked to but since I wasn&rsquo;t planning on installing Jinx, I hadn&rsquo;t paid it much attention. His solution was simple: he merely disabled Ivy for Jinx by advising <code>jinx-correct</code>. That works fine but I&rsquo;m not sure that I like that behavior either. You have to press <kbd>Tab</kbd> to get the list corrections and then it isn&rsquo;t any easier choose the right one.
+</p>
+<p>
+I&rsquo;m sure there&rsquo;s something simple that I&rsquo;m missing so I&rsquo;ll continue experimenting or perhaps one of Irreal&rsquo;s more knowledgeable readers will tell me I&rsquo;m just being stupid. In any event, I&rsquo;m going back to the original behavior until I can figure out the correct way of fixing things.</p>

@@ -1,0 +1,1 @@
+<p>I just released version 1.5.0 of <a class="link-external" rel="external" href="https://codeberg.org/ashton314/emacs-bedrock">Emacs Bedrock</a>—a super minimal starter kit for Emacs. This is a minor change: I’ve fixed a few bugs and added a package or two to some of the optional config files under <code>extras/</code>.</p>

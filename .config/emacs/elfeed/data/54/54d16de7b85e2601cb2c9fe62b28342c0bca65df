@@ -1,0 +1,1 @@
+<p>Today I learned about using zero-knowledge proofs in the context of passwords. These are my rough-and-ready notes from reading. Apparently OpenSSL has an implementation of the SRP algorithm.</p>

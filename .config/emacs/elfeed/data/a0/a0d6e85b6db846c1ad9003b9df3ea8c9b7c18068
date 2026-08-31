@@ -1,0 +1,11 @@
+<p>
+In a stunning case of the <a href="https://en.wikipedia.org/wiki/Frequency_illusion">Baader–Meinhof phenomenon</a>, I&rsquo;ve been running across the <a href="https://github.com/minad/jinx">Jinx spelling corrector</a> everywhere. I had never heard of it until last week when I watched and <a href="https://irreal.org/blog/?p=13924">wrote about Prot&rsquo;s video on writing in foreign languages with Emacs</a>. Then Marcin Borkowski <a href="https://mbork.pl/2026-07-11_Fast_spell-checking_in_Emacs_with_Jinx">wrote about it</a> and I <a href="https://irreal.org/blog/?p=13939">posted about that</a>. In all those instances, I concluded that Jinx was interesting but mainly of use for those who regularly wrote in more than one language. Since I seldom do that, I decided I was going to stick with flyspell.
+</p>
+<p>
+Then <a href="https://irreal.org/blog/?p=13939#comment-6900517736">Omar</a> commented on my Borkowski post saying that Jinx was a better solution than flyspell even if you used it with only one language. I thought that perhaps I should reconsider my decision about sticking with flyspell. Finally, I saw <a href="https://emacsredux.com/blog/2026/07/13/replacing-flyspell-with-jinx/">this post by Bozhidar Batsov</a> on why he has recently switched from flyspell to Jinx and became convinced that I <i>should</i> give it a try.
+</p>
+<p>
+I installed it without difficulty and am writing this post with it as a sort of maiden voyage. So far, everything seems fine.  By default, <code>jinx-correct</code> is bound to <kbd>Meta</kbd>+<kbd>$</kbd>, which I find a little clumsy so I changed that to <kbd>Ctrl</kbd>+<kbd>;</kbd>, which is where my muscle memory thinks it should be.
+</p>
+<p>
+The only problem I&rsquo;ve had is quickly choosing the correction. The documentation says that you can do that put typing the number of the correction but that simply exits the correction leaving the old spelling in place. The problem may be some interaction with Ivy, which I&rsquo;ll investigate as soon as I get some time.</p>

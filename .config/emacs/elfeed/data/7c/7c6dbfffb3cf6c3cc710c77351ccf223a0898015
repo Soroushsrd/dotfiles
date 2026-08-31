@@ -1,0 +1,81 @@
+<p>I’m starting my third year as a PhD student. I thought it would be good to look back on some of the things that have helped me to this point. I study programming languages, but I imagine these things will help anyone in computer science—and some might have application to other STEM fields as well.</p>
+<p>There are <em>many</em> softer skills that you need as a PhD student: curiosity, good work ethic, organization, etc. These are essential and nothing can replace them. (Note: that was <em>not</em> an exhaustive list.) I’m going to focus on some of the tools and hard skills that made the ride a little more comfortable. These compliment, rather than compete with, the softer skills that one develops as a beginning researcher.</p>
+<p>This is a rough list, and not a how-to article. This is mostly just a collection of things I’ve seen other people <em>lacking</em> that have caused them to struggle. If you are considering doing a PhD, you might want to pick up some of these skills as you get ready to start to help you hit the ground running.</p>
+<h2 id="software-engineering">Software engineering</h2>
+<p>I recommend reading <em>The Pragmatic Programmer</em> (Thomas, David and Hunt, Andrew, 2019). It’s written primarily for industry programmers, but there’s a lot in there that applies to anyone in CS research. All of the things I mention in this section are covered in detail in there.</p>
+<h3 id="version-control">Version Control</h3>
+<p>You have got to know Git. If you cannot wrangle versions of your software and papers (yes, put the papers you write under version control) you will waste much time shooting yourself in the foot and trying to recover work you lost. You will also be laughed to scorn should you ever depart academia for a stint in industry if you do not know Git.</p>
+<p>In all of the papers I have worked on, we have used Git to collaborate. We’ve typically used GitHub, which is fine as forges go, but I’ve also worked with a self-hosted GitLab instance, and that was fine too.</p>
+<h3 id="scripting">Scripting</h3>
+<p>It is incredibly helpful to know a scripting language. I grew up on Perl, which makes munging large amounts of text a piece of cake. You don’t have to learn Perl; you should get really comfortable with a language that makes it easy to manipulate text and files.</p>
+<p>Makefiles are also super helpful. I like using Makefiles to simply give names to a particular workflow. A Makefile for building a paper might look like this:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="make"><span class="giallo-l"><span style="color: #88C0D0;">paper.pdf</span><span style="color: #ECEFF4;">:</span><span> paper.tex</span></span>
+<span class="giallo-l"><span>    latexmk -lualatex paper</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #88C0D0;">.PHONY</span><span style="color: #ECEFF4;">:</span><span> clean</span></span>
+<span class="giallo-l"><span style="color: #88C0D0;">clean</span><span style="color: #ECEFF4;">:</span></span>
+<span class="giallo-l"><span>    @echo Cleanup time</span></span>
+<span class="giallo-l"><span>    latexmk -c</span></span>
+<span class="giallo-l"><span>    rm -f paper.pdf</span></span></code></pre>
+<p>Now, instead of remembering all the incantations necessary to do some task, I have given that task a <em>name</em> by which I can call it.</p>
+<h3 id="command-line">Command line</h3>
+<p>You must become proficient with the command line. If you are doing research, you will likely need to run software that other researchers have produced. And more likely than not, this will be <em>rough</em> software with bugs and sharp edges that is meant to demonstrate some research concept than be some practical tool ready for developers who only know how to code through YouTube videos and ChatGPT. That this software is rough is a <a class="link-external" rel="external" href="https://matt.might.net/articles/crapl/">feature of research software</a>, not a bug. <strong>There is <em>rarely</em>, if ever, a GUI available.</strong> You are going to have to do stuff on the command line, so get used to it.</p>
+<p>Getting used to the command line helps with <a href="https://lambdaland.org/posts/2024-07-09_phd_tools/#scripting">Scripting</a> as well. Any task you do on the command line, you can write a script to automate. Building little scripts to e.g. build your paper, your homework, your experiments, etc. will save you time in the long run.</p>
+<h3 id="know-thy-editor">Know thy editor</h3>
+<p>Emacs or Vim—pick one and learn it <em>really</em> well. VS Code is flashy and all, but it doesn’t have the same depth and breadth of customizations that Emacs and Vim give you. Also, Emacs and Vim are free software. You are in control!</p>
+<p>I, of course, <a href="/tags/emacs/">love Emacs</a> and I even made a <a class="link-external" rel="external" href="https://codeberg.org/ashton314/emacs-bedrock">starter kit called Bedrock</a> to help some of my friends in my research lab get started with Emacs. I use Emacs to program, write papers, take notes, manage email, track tasks, and more. I made a list of <a href="/posts/2024-05-30_top_emacs_packages/">my top Emacs packages</a> a few weeks ago if you’d like more ideas on what is possible.</p>
+<p>Vim is fine too and I will still respect you if you choose to go that route. ;)</p>
+<h2 id="authoring-papers">Authoring papers</h2>
+<h3 id="latex">LaTeX</h3>
+<p>Familiarity with LaTeX has definitely helped me. Fighting with LaTeX is no fun, but you <em>will</em> have to do a little bit of it at some point. Lots of people like using Overleaf; I prefer the command line. Don’t get me wrong: Overleaf is awesome and makes collaborating in a Google Docs sort of way possible, but you loose some flexibility, and if something goes wrong on Overleaf right before your deadline, you’re toast.</p>
+<h3 id="bibliographies">Bibliographies</h3>
+<p>There is a lovely computer science bibliography hosted at <a class="link-external" rel="external" href="https://dblp.org/">dblp.org</a>. When I was going through the bibliography for <a href="/posts/2024-06-21_writing_a_paper/">my last paper</a> I was able to find lots of missing DOIs simply by putting in the title of the paper into the search bar; DBLP found all the bibliographic information that I needed.</p>
+<h2 id="organization-and-communication">Organization and communication</h2>
+<h3 id="note-taking">Note taking</h3>
+<p>Take notes whenever you learn how to do something that wasn’t obvious to you when you started out doing it. I like the <a class="link-external" rel="external" href="https://en.wikipedia.org/wiki/Zettelkasten">Zettelkasten</a> method for taking notes: whenever I learn how to e.g. do some complex layout in LaTeX or learn a neat Makefile trick, I write it down. You can think of it as writing your own personal <code>man</code> pages</p>
+<div class="marginnote">
+<p>If you don’t know what a <code>man</code> page is, this is the standard manual system available on UNIX-like systems (e.g. FreeBSD, macOS, and Linux). Open a terminal and run <code>man man</code> to read the manual page for <code>man</code> itself. You really need to get comfortable with the <a href="https://lambdaland.org/posts/2024-07-09_phd_tools/#command-line">Command line</a>.</p>
+</div>
+<p>Some of these notes I rarely look back at. Others I revisit regularly. But even though I might not review some notes that frequently, there are cases where something on my system will break and a years-old note comes to my rescue from the <em>last</em> time I had to solve that problem. For example, I took notes on how to upgrade my language server for Elixir. I don’t upgrade that thing very often, but there is a little tweak I need to do just because of how my system is set up that is not obvious. It took me a few hours of debugging the first time, but, because I took notes, it now only takes me a few minutes.</p>
+<h3 id="email">Email</h3>
+<p>Academics generally love email. It’s simple, robust, and doesn’t change its UI every few weeks, unlike <em>some</em> popular chat platforms. Unfortunately many universities are forcing everyone to move to Outlook. <a href="/posts/2022-08-28_keep_email_federated/">This is a very bad thing.</a> Fortunately, there are <a href="/posts/2023-05-03_email_with_outlook/">some workarounds</a> that you can use to reclaim some control over your email.</p>
+<p>I have a sweet workflow with my email. That’s right, I do it all from Emacs. Now, while I <em>do</em> recommend you learn how to use Emacs, I understand that not everyone will start using Emacs. Everyone <em>should</em> get proficient with their email client and know how to use it well. I recommend anything that you can control entirely from the keyboard.</p>
+<p>You should also get comfortable with editing replies. You know how, when you reply to an email, you usually see something like this:</p>
+<div class="marginnote">
+<p>Some mail clients will make the <code>&gt;</code> at the beginning of the line pretty with different colored lines and whatnot. It’s all angle brackets under the hood, and you can still edit it as described here.</p>
+</div>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>Hey here is my reply!</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>On Tuesday, 9 July 2024, Slartibartfast said:</span></span>
+<span class="giallo-l"><span>&gt; Hey,</span></span>
+<span class="giallo-l"><span>&gt;</span></span>
+<span class="giallo-l"><span>&gt; You were asking me where I found that elvish blade of great</span></span>
+<span class="giallo-l"><span>&gt; antiquity. Turns out it was just sitting on a shelf in the living</span></span>
+<span class="giallo-l"><span>&gt; room the whole time! I had the darndest time escaping the theif</span></span>
+<span class="giallo-l"><span>&gt; though; I think he locked me into the cellar as soon as I went down</span></span>
+<span class="giallo-l"><span>&gt; there. …</span></span></code></pre>
+<p>Just typing your reply above the email is called “top-posting”, and it’s considered bad form. You can actually edit the bit that was sent to interleave your reply with bits of the prior email. This makes it easier for people to know what you’re replying to.</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>Hey Slarti</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>&gt; Turns out it was just sitting on a shelf in the living room the</span></span>
+<span class="giallo-l"><span>&gt; whole time!</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>What!? No way! I must have missed it. I&#39;ll grab it once I figure out</span></span>
+<span class="giallo-l"><span>how to get up this chimney in the art studio.</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>&gt; I had the darndest time escaping the theif though; I think he locked</span></span>
+<span class="giallo-l"><span>&gt; me into the cellar as soon as I went down there.</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>Yeah, I cornered the guy in his hideout. I won the knife fight though.</span></span></code></pre>
+<p>When used appropriately, this makes emails much more pleasant to read. It doesn’t break the email thread either; you can still see the chain of replies.</p>
+<h3 id="task-tracking">Task tracking</h3>
+<p>You need some way to keep track of tasks. I have a workflow based off of <a class="link-external" rel="external" href="https://orgmode.org/">Org-mode</a>, which I will not detail here. The short of it is that you need to be spending at least a little time with some regularity “sharpening the saw”<sup class="footnote-reference" id="fr-fn:1-1"><a href="#fn-fn:1">1</a></sup> by making sure that whatever tool you use to keep track of tasks is working for you.</p>
+<h2 id="references">References</h2>
+<p>Thomas, David and Hunt, Andrew (2019). <em>The Pragmatic Programmer</em>, Addison-Wesley.</p>
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn-fn:1">
+<p><a class="link-external" rel="external" href="https://en.wikipedia.org/wiki/The_7_Habits_of_Highly_Effective_People">https://en.wikipedia.org/wiki/The_7_Habits_of_Highly_Effective_People</a> <a href="#fr-fn:1-1">↩</a></p>
+</li>
+</ol>
+</section>

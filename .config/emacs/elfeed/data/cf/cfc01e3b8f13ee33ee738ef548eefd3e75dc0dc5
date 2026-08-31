@@ -1,0 +1,48 @@
+
+<p class="wp-block-paragraph">In early September I had a very enjoyable technical chat with <a href="https://steveklabnik.com/">Steve Klabnik</a> of Rust fame and interviewer Kevin Ball of Software Engineering Daily, and the podcast is now available.</p>
+
+
+
+<p class="wp-block-paragraph"><em>Update: I asked them to please change the &#8220;Rust vs C++&#8221; title to &#8220;Rust and C++&#8221; and they kindly did so. Thanks!</em></p>
+
+
+
+<p class="wp-block-paragraph">Here&#8217;s the info&#8230;</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity" />
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<h2 class="wp-block-heading"><a href="https://softwareengineeringdaily.com/2024/10/23/rust-vs-c-with-steve-klabnik-herb-sutter/">Rust and C++ with Steve Klabnik and Herb Sutter</a></h2>
+
+
+<div class="wp-block-image">
+<figure class="alignright is-resized"><img src="https://i0.wp.com/softwareengineeringdaily.com/wp-content/uploads/2024/10/Rust-and-C-with-Steve-Klabnik-and-Herb-Sutter.png?resize=600%2C315&amp;ssl=1" alt="" style="width:449px;height:auto" /></figure>
+</div>
+
+
+<p class="wp-block-paragraph">In software engineering, C++ is often used in areas where low-level system access and high-performance are critical, such as operating systems, game engines, and embedded systems. Its long-standing presence and compatibility with legacy code make it a go-to language for maintaining and extending older projects. Rust, while newer, is gaining traction in roles that demand safety and concurrency, particularly in systems programming.</p>
+
+
+
+<p class="wp-block-paragraph">We wanted to explore these two languages side-by-side, so we invited&nbsp;<a href="https://herbsutter.com">Herb Sutter</a>&nbsp;and&nbsp;<a href="https://steveklabnik.com/">Steve Klabnik</a>&nbsp;to join host Kevin Ball on the show. Herb works at Microsoft and chairs the ISO&nbsp;C++&nbsp;standards committee. Steve works at Oxide Computer Company, is an alumnus of the&nbsp;<a href="https://x.com/rustlang">Rust</a>&nbsp;Core Team, and is the primary author of The Rust Programming Language book.</p>
+
+
+
+<p class="wp-block-paragraph">We hope you enjoy this deep dive into Rust and C++ on Software Engineering Daily.</p>
+
+
+<div class="wp-block-image">
+<figure class="alignleft"><a href="https://i0.wp.com/softwareengineeringdaily.com/wp-content/uploads/2020/01/KevinBall.jpg"><img src="https://i0.wp.com/softwareengineeringdaily.com/wp-content/uploads/2020/01/KevinBall.jpg?resize=218%2C258&amp;ssl=1" alt="" class="wp-image-15581" /></a></figure>
+</div>
+
+
+<p class="wp-block-paragraph"><a href="https://www.kball.llc/">Kevin Ball</a>&nbsp;or KBall, is the vice president of engineering at Mento and an independent coach for engineers and engineering leaders. He co-founded and served as CTO for two companies, founded the San Diego JavaScript meetup, and organizes the AI inaction discussion group through Latent Space.</p>
+
+
+
+<p class="wp-block-paragraph"><a href="http://softwareengineeringdaily.com/wp-content/uploads/2024/10/SED1756-Rust-vs-Cpp.txt">Please click here to see the transcript of this episode.</a></p>
+</blockquote>

@@ -1,0 +1,22 @@
+<p>Although I rarely code up HTML and CSS these days, knowing their basics have brought me compounding rewards time and time again. If you use Emacs, you’re in luck as it provides built-in editing modes for both. These modes can make short work of sculpting your web pages to be presentable to the world at large.</p>
+<p>Improving the discoverability of the features in these modes is what the latest <a href="https://github.com/kickingvegas/casual/releases/tag/2.12.0">v2.12.0 update</a> of Casual is all about. Announcing Casual menus for <a href="https://kickingvegas.github.io/casual/HTML.html">HTML</a> and <a href="https://kickingvegas.github.io/casual/CSS.html">CSS</a>, new for 2026, now available on <a href="https://melpa.org/#/casual">MELPA</a>.</p>
+<h1>Casual HTML</h1>
+<p>The main menu for HTML mode is shown below. Tag (&lt;/&gt;) operations for inserting, adding an attribute, closing, and deleting are supported.</p>
+<p align='center'>
+<img src='http://yummymelon.com/devnull/images/announcing-casual-html-css/casual-html-screenshot.png' alt='' />
+</p>
+
+<p>HTML-specific tags are given their own menu.</p>
+<p align='center'>
+<img src='http://yummymelon.com/devnull/images/announcing-casual-html-css/casual-html-tags-screenshot.png' alt='' />
+</p>
+
+<h1>Casual CSS</h1>
+<p>The main menu for CSS mode is shown below. A notable feature is the ability to lookup a CSS symbol from the Mozilla Developer Network (MDN) website using the built-in Emacs browser <a href="https://www.gnu.org/software/emacs/manual/html_mono/eww.html">EWW</a>.</p>
+<p align='center'>
+<img src='http://yummymelon.com/devnull/images/announcing-casual-html-css/casual-css-screenshot.png' alt='' />
+</p>
+
+<h1>Closing Thoughts</h1>
+<p>Both HTML and CSS modes support Tree-sitter which offers nice structural navigation features. Although at the time of this writing (Emacs 30.2), using <code>html-ts-mode</code> will break tag deletion (<code>sgml-tag-delete</code>). On the other hand, I use <code>css-ts-mode</code> without issue.</p>
+<p>If you haven't used either HTML or CSS modes yet, definitely give them a try using my Casual menus. I think you'll find them to be quite usable.</p>

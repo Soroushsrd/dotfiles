@@ -1,0 +1,24 @@
+<p><img decoding="async" src="https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/pvclogo.webp" alt="Pure Virtual C++ logo" /></p>
+<p>The talks are set for Pure Virtual C++ 2026, our free, one-day virtual conference for the whole C++ community. We&#8217;re excited to reveal the featured session lineup and the speakers bringing it to you.</p>
+<p><strong>Mark your calendar: Tuesday, July 21, 2026, starting at 16:00 UTC (9:00 AM in Seattle, 6:00 PM in Brussels, 11:00 PM in Bangkok).</strong> The conference is completely free and streamed online, so you can join from anywhere in the world.</p>
+<h2>Featured Talks</h2>
+<p>Here are the featured sessions you&#8217;ll see at Pure Virtual C++ 2026:</p>
+<ul>
+<li><strong>C++ Semantic Awareness in the CLI: From Project Load to Code Change</strong> with Sinem Akinci</li>
+<li><strong>C++/WinRT: Build Faster and Smaller with C++20 Modules</strong> with Ryan Shepherd</li>
+<li><strong>Mind the Gap: C++/Rust Interop</strong> with Victor Ciura</li>
+<li><strong>From Completions to Agents: AI-Driven C++ in Visual Studio</strong> with Augustin Popa</li>
+<li><strong>Cut Your Build Times Without Becoming a Build Expert</strong> with David Li</li>
+</ul>
+<p>More details about each featured session are coming soon in follow-up posts. We also have more surprises in the build-up to the conference, including additional on-demand content on topics like managing C++ dependencies, the status of C++23 and C++26 features in MSVC, and how to get the best out of the latest MSVC features like Sample Profile-Guided Optimizations.</p>
+<p>Can&#8217;t make it live? All sessions will be available on-demand on the <a href="https://www.youtube.com/@visualstudio">Visual Studio YouTube channel</a> after the event.</p>
+<h2>What&#8217;s Next</h2>
+<p><a href="https://aka.ms/VirtualCpp/Conf/b">Register now</a> and join your two hosts for this year&#8217;s event, Mads Kristensen and Sinem Akinci:</p>
+<ul>
+<li class="bio"><strong>Mads Kristensen</strong> is a Principal Product Manager on the Visual Studio team at Microsoft, focused on making developers more productive by improving the IDE’s performance, usability, and extensibility. He’s also a prolific open‑source contributor, known for creating popular Visual Studio extensions and tools that help both users and extension authors get more done. A frequent conference speaker, he shares practical insights with a simple goal: to make Visual Studio a fast, powerful, and enjoyable place to code.</li>
+<li class="bio"><strong>Sinem Akinci</strong> graduated from the University of Michigan, where she studied Industrial Engineering and Computer Science. Since then, she has worked across a range of domains, including engineering and consulting, and is now a Senior Product Manager at Microsoft focused on C++ developer tooling and AI-assisted workflows across Visual Studio, VS Code, and the CLI.</li>
+</ul>
+<p>Hope to see you there!</p>
+<p><div  class="d-flex justify-content-left"><a class="cta_button_link btn-primary mb-24" href="https://aka.ms/VirtualCpp/Conf/b" target="_blank">Register now for free</a></div></p>
+<p>&nbsp;</p>
+<p>The post <a href="https://devblogs.microsoft.com/cppblog/pure-virtual-cpp-2026-talks-announced/">Pure Virtual C++ 2026 Talks Announced</a> appeared first on <a href="https://devblogs.microsoft.com/cppblog">C++ Team Blog</a>.</p>

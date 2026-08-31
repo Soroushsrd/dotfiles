@@ -1,0 +1,98 @@
+<p>Here’s a nifty Emacs workflow for doing a project-wide search-and-replace on steroids. While I do use refactor tools that come with language servers,<sup class="footnote-reference" id="fr-fn:1-1"><a href="#fn-fn:1">1</a></sup> sometimes those aren’t enough. Consider the case where you not only need to change the name of a function, but also e.g. need to swap the order of two of its arguments. Or you’ve broken one function out into two that need to be chained together. Whatever—there are plenty of ways where the IDE won’t be able to do everything that you need. Enter: Emacs.</p>
+<p>Here is what it looks like in action:</p>
+<video width="730" height="458" controls>
+  <source src="/img/warp_speed_edits.mp4" type="video/mp4">
+</video>
+<p>Here’s what I did:</p>
+<ul>
+<li>I searched for lines matching <code>set_</code> and <code>_config</code> in my project, and got over 90 matches.</li>
+<li>I moved all the matches to their own buffer.</li>
+<li>I used a regex replace on the buffer to transform patterns matching <code>/set_([a-z]+)_config!/</code> into <code>config_\1!</code>.</li>
+<li>I saved those changes back into the files where the came from.</li>
+</ul>
+<p>Note that this replaced <em>two</em> symbols simultaneously: <code>set_logger_config!</code> and <code>set_injector_config!</code>. Moreover, this updated all the documentation as well, because I <em>wasn’t</em> relying on my language server to find instances of that symbol in the source code: I could look inside of doc strings and README files as well! (That can be a two-edged sword, so you’ll want to be careful with this.)</p>
+<p><strong>Here is why this workflow rocks:</strong> Once you’ve dumped the search results into a buffer, you have the <em>full power</em> of Emacs at your disposal. I have recorded keyboard macros, used regex replace from <code>evil-mode</code>, and done other zany things to effect large-scale edits with elegance and speed. You’re not limited to dumb exact-match symbol replacement—you’ve got a lot of tools that you already know at your disposal.</p>
+<h2 id="engage-the-editor">Engage the editor</h2>
+<p>You will need the following third-party packages to make this work, as well as <a class="link-external" rel="external" href="https://github.com/BurntSushi/ripgrep">ripgrep</a> installed on your system:</p>
+<ul>
+<li><a class="link-external" rel="external" href="https://github.com/minad/vertico">Vertico</a><sup class="footnote-reference" id="fr-fn:2-1"><a href="#fn-fn:2">2</a></sup></li>
+<li><a class="link-external" rel="external" href="https://github.com/minad/consult">Consult</a></li>
+<li><a class="link-external" rel="external" href="https://github.com/oantolin/embark">Embark</a> (also <code>embark-consult</code>, but that ships with Embark anyway)</li>
+<li><a class="link-external" rel="external" href="https://github.com/mhayashi1120/Emacs-wgrep">wgrep</a></li>
+</ul>
+<p>All except wgrep are available from <a class="link-external" rel="external" href="https://elpa.gnu.org/">GNU ELPA</a>, and you can get wgrep <a class="link-external" rel="external" href="https://elpa.nongnu.org/">Non-GNU ELPA</a>, so you shouldn’t have trouble finding and installing these—especially if you’re running Emacs 28 or newer.</p>
+<p>Why all the packages? That sure seems like a lot (4 whole packages!) for something that seems pretty complicated for a single feature. Well, Vertico, Consult, and Embark are <em>mostly</em> there for the slick UI. wgrep does all the heavy lifting. I’d recommend installing Vertico, Consult, and Embark<sup class="footnote-reference" id="fr-fn:3-1"><a href="#fn-fn:3">3</a></sup> anyway for how much they improve discoverability and add really useful ways of interacting with Emacs.</p>
+<p>Here’s the short of what each package contributes:</p>
+<dl>
+<dt>Vertico</dt>
+<dd>Turns the default minibuffer completion UI into an auto-updating list of candidates. This lets us interact with “candidates”—or more specifically in our case, lines matching a pattern across our entire project—in a fast and accessible way.</dd>
+<dt>Consult</dt>
+<dd>Adds a bunch of <a class="link-external" rel="external" href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Minibuffer-Completion.html"><code>completing-read</code></a>-based functions. This lets us use ripgrep with Vertico’s UI.</dd>
+<dt>Embark</dt>
+<dd>Kind of like a generalized keyboard-focused right-click on crazy steroids. This lets us export our list of matches out of Vertico’s UI and into a buffer that wgrep can use.</dd>
+<dt>wgrep</dt>
+<dd>Takes a buffer of search results, <em>lets us edit that buffer</em>, and then <em>reflect</em> those changes back into the files from the lines that they came from.</dd>
+</dl>
+<h3 id="installing-and-configuring">Installing and configuring</h3>
+<p>Here are some sample configurations you can use.</p>
+<p>If use <a class="link-external" rel="external" href="https://github.com/jwiegley/use-package">use-package</a>,<sup class="footnote-reference" id="fr-fn:4-1"><a href="#fn-fn:4">4</a></sup> here is how you can set it up to automatically install next time you evaluate your <code>init.el</code>:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="emacs-lisp"><span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">use-package</span><span> vertico</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  :</span><span>ensure t</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  :</span><span>config</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  (</span><span>vertico-mode</span><span style="color: #ECEFF4;">))</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">use-package</span><span> consult</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  :</span><span>ensure t</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  :</span><span>bind</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  ((&quot;</span><span style="color: #A3BE8C;">C-c r</span><span style="color: #ECEFF4;">&quot;</span><span style="color: #81A1C1;"> .</span><span> consult-ripgrep</span><span style="color: #ECEFF4;">)))</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">use-package</span><span> embark</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  :</span><span>ensure t</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  :</span><span>bind</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  ((&quot;</span><span style="color: #A3BE8C;">C-c a</span><span style="color: #ECEFF4;">&quot;</span><span style="color: #81A1C1;"> .</span><span> embark-act</span><span style="color: #ECEFF4;">)))</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">use-package</span><span> embark-consult</span></span>
+<span class="giallo-l"><span style="color: #616E88;">  ;; comes bundled with Embark; no `:ensure t&#39; necessary</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  :</span><span>after</span><span style="color: #ECEFF4;"> (</span><span>embark consult</span><span style="color: #ECEFF4;">))</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">use-package</span><span> wgrep</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  :</span><span>ensure t</span><span style="color: #ECEFF4;">)</span></span></code></pre>
+<p>Alternatively, you can install the packages with <code>M-x package-install-package</code>, and your config should look like this:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="emacs-lisp"><span class="giallo-l"><span style="color: #616E88;">;; make sure all your packages are installed before using these</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span>vertico-mode</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">define-key</span><span> global-map </span><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">kbd</span><span style="color: #ECEFF4;"> &quot;</span><span style="color: #A3BE8C;">C-c a</span><span style="color: #ECEFF4;">&quot;) &#39;</span><span>embark-act</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">define-key</span><span> global-map </span><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">kbd</span><span style="color: #ECEFF4;"> &quot;</span><span style="color: #A3BE8C;">C-c r</span><span style="color: #ECEFF4;">&quot;) &#39;</span><span>consult-ripgrep</span><span style="color: #ECEFF4;">)</span></span></code></pre>
+<p>If you use fancy package managers like <a class="link-external" rel="external" href="https://github.com/progfolio/elpaca">Elpaca</a> (what I use) or <a class="link-external" rel="external" href="https://github.com/quelpa/quelpa">Quelpa</a>, I trust that you know how to modify the above to suit your needs.</p>
+<h2 id="make-it-so">Make it so</h2>
+<p>Once you have the packages installed, here are the steps you take to do this:</p>
+<ol>
+<li>Invoke <code>consult-ripgrep</code>. (Bound to <code>C-c r</code> in the sample config.)</li>
+<li>Type your search query. Note that space-separated patterns can match different parts of the line in different orders.</li>
+<li>Invoke <code>embark-act</code>. (Bound to <code>C-c a</code> in the sample config.) This will open a buffer with a list of keys you can press next.</li>
+<li>Hit <code>E</code> for <code>embark-export</code>. This opens up a new buffer with all the matches. Note that you should be able to further filter results with something like <code>consult-keep-lines</code>.</li>
+<li>Hit <code>C-c C-p</code> to run <code>wgrep-change-to-wgrep-mode</code>.</li>
+<li>Make your edits.</li>
+<li>Hit <code>C-c C-c</code> to finish editing, then hit <code>q</code> to close the buffer.</li>
+<li>Hit <code>C-x s</code> to run <code>save-some-buffers</code> to make sure writes are committed.<sup class="footnote-reference" id="fr-fn:5-1"><a href="#fn-fn:5">5</a></sup></li>
+</ol>
+<p>That’s it. Happy hacking!</p>
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn-fn:1">
+<p>Julia’s language server, for instance, comes with a nice “rename symbol” feature. I know lots of other IDEs and language servers offer this sort of thing. <a href="#fr-fn:1-1">↩</a></p>
+</li>
+<li id="fn-fn:2">
+<p>This one isn’t <em>strictly</em> necessary with Emacs 28 and beyond thanks to enhancements made to the <a class="link-external" rel="external" href="https://www.masteringemacs.org/article/understanding-minibuffer-completion">default minibuffer interface</a>, but I can’t think of a good reason to <em>not</em> use Vertico: it is small, well-maintained, and it never ceases to impress me with how robust and flexible it is. <a href="#fr-fn:2-1">↩</a></p>
+</li>
+<li id="fn-fn:3">
+<p>Let’s not forget also the excellent <a class="link-external" rel="external" href="https://github.com/minad/marginalia/">Marginalia</a> and <a class="link-external" rel="external" href="https://github.com/oantolin/orderless">Orderless</a> packages too! <a href="#fr-fn:3-1">↩</a></p>
+</li>
+<li id="fn-fn:4">
+<p>Now built-in to Emacs 29! So many excellent features in Emacs 29! <a href="#fr-fn:4-1">↩</a></p>
+</li>
+<li id="fn-fn:5">
+<p>There is, of course, a way to do this automatically. Per the wgrep docs, put <code>(setq wgrep-auto-save-buffer t)</code> in your config. <a href="#fr-fn:5-1">↩</a></p>
+</li>
+</ol>
+</section>

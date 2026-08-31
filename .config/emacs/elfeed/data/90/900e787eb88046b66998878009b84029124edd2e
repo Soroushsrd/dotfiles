@@ -1,0 +1,145 @@
+<p>We would welcome people to try and report issues with the nightly-only
+<code>cargo -Zbuild-dir-new-layout</code>.
+While the layout of the <a rel="external" href="https://doc.rust-lang.org/cargo/reference/build-cache.html">build dir</a>
+is internal-only,
+many projects need to rely on the unspecified details due to missing features within Cargo.
+While we've performed a <a rel="external" href="https://github.com/rust-lang/rust/pull/149852">crater run</a>,
+that won't cover everything and we need help identifying tools and process that rely on the details,
+reporting issues to these projects so they can update to the new layout or support them both.</p>
+<h2 id="how-to-test-this"><a class="anchor" href="#how-to-test-this" aria-hidden="true"></a>
+How to test this?</h2>
+<p>With at least nightly 2026-03-10,
+run your tests, release processes, and anything else that may touch build-dir/target-dir
+with the <code>-Zbuild-dir-new-layout</code> flag.</p>
+<p>For example:</p>
+<pre class="giallo z-code"><code data-lang="shellsession"><span class="giallo-l"><span>$</span><span> cargo test -Zbuild-dir-new-layout</span></span></code></pre>
+<p>Note: if you see failures, the problem may not be isolated to just <code>-Zbuild-dir-new-layout</code>.
+With <a rel="external" href="https://doc.rust-lang.org/nightly/cargo/CHANGELOG.html#cargo-191-2025-10-30">Cargo 1.91</a>,
+users can separate where to store intermediate build artifacts (build-dir) and final artifacts (still in target-dir).
+You can verify this by running with only <code>CARGO_BUILD_BUILD_DIR=build</code> set.
+We are evaluating changing the default for build-dir in <a rel="external" href="https://github.com/rust-lang/cargo/issues/16147">#16147</a>.</p>
+<p>Outcomes may include:</p>
+<ul>
+<li>Fixing local problems</li>
+<li>Reporting problems in upstream tools with a note on the <a rel="external" href="https://github.com/rust-lang/cargo/issues/15010">the tracking issue</a> for others</li>
+<li>Providing feedback on the <a rel="external" href="https://github.com/rust-lang/cargo/issues/15010">the tracking issue</a></li>
+</ul>
+<p>Known failure modes:</p>
+<ul>
+<li>Inferring a <code>[[bin]]</code>s path from a <code>[[test]]</code>s path:
+<ul>
+<li>Use <a rel="external" href="https://doc.rust-lang.org/cargo/reference/environment-variables.html#environment-variables-cargo-sets-for-cargo-test"><code>std::env::var_os("CARGO_BIN_EXE_*")</code></a> for Cargo 1.94+, maybe keeping the inference as a fallback for older Cargo versions</li>
+<li>Use <a rel="external" href="https://doc.rust-lang.org/cargo/reference/environment-variables.html#environment-variables-cargo-sets-for-crates"><code>env!("CARGO_BIN_EXE_*")</code></a></li>
+</ul>
+</li>
+<li>Build scripts looking up target-dir from their binary or <code>OUT_DIR</code>: see <a rel="external" href="https://github.com/rust-lang/cargo/issues/13663">Issue #13663</a>
+<ul>
+<li>Update current workarounds to support the new layout</li>
+</ul>
+</li>
+<li>Looking up user-requested artifacts from rustc, see <a rel="external" href="https://github.com/rust-lang/cargo/issues/13672">Issue #13672</a>
+<ul>
+<li>Update current workarounds to support the new layout</li>
+</ul>
+</li>
+</ul>
+<p>Library support status as of publish time:</p>
+<ul>
+<li><a rel="external" href="https://crates.io/crates/assert_cmd">assert_cmd</a>: fixed</li>
+<li><a rel="external" href="https://crates.io/crates/cli_test_dir">cli_test_dir</a>: <a rel="external" href="https://github.com/emk/subtitles-rs/issues/65">Issue #65</a></li>
+<li><a rel="external" href="https://crates.io/crates/compiletest_rs">compiletest_rs</a>: <a rel="external" href="https://github.com/Manishearth/compiletest-rs/issues/309">Issue #309</a></li>
+<li><a rel="external" href="https://crates.io/crates/executable-path">executable-path</a>: fixed</li>
+<li><a rel="external" href="https://crates.io/crates/snapbox">snapbox</a>: fixed</li>
+<li><a rel="external" href="https://crates.io/crates/term-transcript">term-transcript</a>: <a rel="external" href="https://github.com/slowli/term-transcript/issues/269">Issue #269</a></li>
+<li><a rel="external" href="https://crates.io/crates/test_bin">test_bin</a>: <a rel="external" href="https://github.com/MichaelMcDonnell/test_bin/issues/13">Issue #13</a></li>
+<li><a rel="external" href="https://crates.io/crates/trycmd">trycmd</a>: fixed</li>
+</ul>
+<h2 id="what-is-not-changing"><a class="anchor" href="#what-is-not-changing" aria-hidden="true"></a>
+What is not changing?</h2>
+<p>The layout of final artifacts within <a rel="external" href="https://doc.rust-lang.org/cargo/reference/build-cache.html">target dir</a>.</p>
+<p>Nesting of build artifacts under the profile and the target tuple, if specified.</p>
+<h2 id="what-is-changing"><a class="anchor" href="#what-is-changing" aria-hidden="true"></a>
+What is changing?</h2>
+<p>We are switching from organizing by content type to scoping the content by the package name and a hash of the build unit and its inputs.</p>
+<p>Here is an example of the current layout, assuming you have a package named <code>lib</code> and a package named <code>bin</code>, and both have a build script:</p>
+<pre class="giallo z-code"><code data-lang="plain"><span class="giallo-l"><span>build-dir/</span></span>
+<span class="giallo-l"><span>├── CACHEDIR.TAG</span></span>
+<span class="giallo-l"><span>└── debug/</span></span>
+<span class="giallo-l"><span>    ├── .cargo-lock                       # file lock protecting access to this location</span></span>
+<span class="giallo-l"><span>    ├── .fingerprint/                     # build cache tracking</span></span>
+<span class="giallo-l"><span>    │   ├── bin-[BUILD_SCRIPT_RUN_HASH]/*</span></span>
+<span class="giallo-l"><span>    │   ├── bin-[BUILD_SCRIPT_BIN_HASH]/*</span></span>
+<span class="giallo-l"><span>    │   ├── bin-[HASH]/*</span></span>
+<span class="giallo-l"><span>    │   ├── lib-[BUILD_SCRIPT_RUN_HASH]/*</span></span>
+<span class="giallo-l"><span>    │   ├── lib-[BUILD_SCRIPT_BIN_HASH]/*</span></span>
+<span class="giallo-l"><span>    │   └── lib-[HASH]/*</span></span>
+<span class="giallo-l"><span>    ├── build/</span></span>
+<span class="giallo-l"><span>    │    ├── bin-[BIN_HASH]/*             # build script binary</span></span>
+<span class="giallo-l"><span>    │    ├── bin-[RUN_HASH]/out/          # build script run OUT_DIR</span></span>
+<span class="giallo-l"><span>    │    ├── bin-[RUN_HASH]/*             # build script run cache</span></span>
+<span class="giallo-l"><span>    │    ├── lib-[BIN_HASH]/*             # build script binary</span></span>
+<span class="giallo-l"><span>    │    ├── lib-[RUN_HASH]/out/          # build script run OUT_DIR</span></span>
+<span class="giallo-l"><span>    │    └── lib-[RUN_HASH]/*             # build script run cache</span></span>
+<span class="giallo-l"><span>    ├── deps/</span></span>
+<span class="giallo-l"><span>    │   ├── bin-[HASH]*                   # binary and debug information</span></span>
+<span class="giallo-l"><span>    │   ├── lib-[HASH]*                   # library and debug information</span></span>
+<span class="giallo-l"><span>    │   └── liblib-[HASH]*                # library and debug information</span></span>
+<span class="giallo-l"><span>    ├── examples/                         # unused in this case</span></span>
+<span class="giallo-l"><span>    └── incremental/...                   # managed by rustc</span></span></code></pre>
+<p>The proposed layout:</p>
+<pre class="giallo z-code"><code data-lang="plain"><span class="giallo-l"><span>build-dir/</span></span>
+<span class="giallo-l"><span>├── CACHEDIR.TAG</span></span>
+<span class="giallo-l"><span>└── debug/</span></span>
+<span class="giallo-l"><span>    ├── .cargo-lock                       # file lock protecting access to this location</span></span>
+<span class="giallo-l"><span>    ├── build/</span></span>
+<span class="giallo-l"><span>    │   ├── bin/                          # package name</span></span>
+<span class="giallo-l"><span>    │   │   ├── [BUILD_SCRIPT_BIN_HASH]/</span></span>
+<span class="giallo-l"><span>    │   │   │   ├── fingerprint/*         # build cache tracking</span></span>
+<span class="giallo-l"><span>    │   │   │   └── out/*                 # build script binary</span></span>
+<span class="giallo-l"><span>    │   │   ├── [BUILD_SCRIPT_RUN_HASH]/</span></span>
+<span class="giallo-l"><span>    │   │   │   ├── fingerprint/*         # build cache tracking</span></span>
+<span class="giallo-l"><span>    │   │   │   ├── out/*                 # build script run OUT_DIR</span></span>
+<span class="giallo-l"><span>    │   │   │   └── run/*                 # build script run cache</span></span>
+<span class="giallo-l"><span>    │   │   └── [HASH]/</span></span>
+<span class="giallo-l"><span>    │   │       ├── fingerprint/*         # build cache tracking</span></span>
+<span class="giallo-l"><span>    │   │       └── out/*                 # binary and debug information</span></span>
+<span class="giallo-l"><span>    │   └── lib/                          # package name</span></span>
+<span class="giallo-l"><span>    │       ├── [BUILD_SCRIPT_BIN_HASH]/</span></span>
+<span class="giallo-l"><span>    │       │   ├── fingerprint/*         # build cache tracking</span></span>
+<span class="giallo-l"><span>    │       │   └── out/*                 # build script binary</span></span>
+<span class="giallo-l"><span>    │       ├── [BUILD_SCRIPT_RUN_HASH]/</span></span>
+<span class="giallo-l"><span>    │       │   ├── fingerprint/*         # build cache tracking</span></span>
+<span class="giallo-l"><span>    │       │   ├── out/*                 # build script run OUT_DIR</span></span>
+<span class="giallo-l"><span>    │       │   └── run/*                 # build script run cache</span></span>
+<span class="giallo-l"><span>    │       └── [HASH]/</span></span>
+<span class="giallo-l"><span>    │           ├── fingerprint/*         # build cache tracking</span></span>
+<span class="giallo-l"><span>    │           └── out/*                 # library and debug information</span></span>
+<span class="giallo-l"><span>    └── incremental/...                   # managed by rustc</span></span></code></pre>
+<p>For more information on these Cargo internals, see the <a rel="external" href="https://doc.rust-lang.org/nightly/nightly-rustc/cargo/core/compiler/layout/index.html"><code>mod layout</code> documentation</a>.</p>
+<h2 id="why-is-this-being-done"><a class="anchor" href="#why-is-this-being-done" aria-hidden="true"></a>
+Why is this being done?</h2>
+<p><a rel="external" href="https://github.com/ranger-ross/">ranger-ross</a> has worked tirelessly on this as a stepping stone to <a rel="external" href="https://github.com/rust-lang/cargo/issues/5931">cross-workspace caching</a>
+which will be easier when we can track each cacheable unit in a self-contained directory.</p>
+<p>This also unblocks work on:</p>
+<ul>
+<li><a rel="external" href="https://github.com/rust-lang/cargo/issues/5026">Automatic cleanup of stale build units</a> to keep disks space use constant over time</li>
+<li><a rel="external" href="https://github.com/rust-lang/cargo/issues/4282">More granular locking</a> so <code>cargo test</code> and rust-analyzer don't block on each other</li>
+</ul>
+<p>Along the way, we found this helps with:</p>
+<ul>
+<li><a rel="external" href="https://github.com/rust-lang/cargo/issues/16665">Build performance</a> as the intermediate artifacts accumulate in <code>deps/</code></li>
+<li><a rel="external" href="https://github.com/rust-lang/cargo/issues/7919">Content of <code>deps/</code> polluting <code>PATH</code> during builds on Windows</a></li>
+<li><a rel="external" href="https://github.com/rust-lang/cargo/issues/16673">Avoiding file collisions among intermediate artifacts</a></li>
+</ul>
+<p>While the Cargo team does not officially endorse sharing a <code>build-dir</code> across workspaces,
+that last item should reduce the chance of encountering problems for those who choose to.</p>
+<h2 id="future-work"><a class="anchor" href="#future-work" aria-hidden="true"></a>
+Future work</h2>
+<p>We will use the experience of this layout change to help guide how and when to perform any future layout changes, including:</p>
+<ul>
+<li>Efforts to reduce path lengths to reduce risks for errors for developers on Windows</li>
+<li>Experimenting with moving artifacts out of the <code>--profile</code> and <code>--target</code> directories, allowing sharing of more artifacts where possible</li>
+</ul>
+<p>In addition to narrowing scope,
+we did not do all of the layout changes now because some are blocked on the lock change which is blocked on this layout change.</p>
+<p>We would also like to work to decouple projects from the unspecified details of build-dir.</p>

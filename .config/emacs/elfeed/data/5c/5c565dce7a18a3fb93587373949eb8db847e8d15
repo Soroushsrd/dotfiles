@@ -1,0 +1,86 @@
+<p>The features of <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html">registers</a>, <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Rectangles.html">rectangles</a>, and <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Windows.html">window management</a> in Emacs are quite powerful yet prior to building <a href="https://kickingvegas.github.io/casual/">Casual</a>, I rarely used them because of the cognitive load of remembering each feature’s command sets, much less their bindings. Using keyboard-driven menus tailored for these three features changed that. Now I only have to recall <em>three</em> key bindings to get easy access to registers, rectangles, and window management. This post demonstrates how you can as well.</p>
+<p>Provided you have <a href="https://melpa.org/#/casual">Casual installed from MELPA</a>, consider making the following global key bindings to your Emacs setup:</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;C-c r&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">casual-editkit-rectangle-tmenu</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;C-c g&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">casual-editkit-registers-tmenu</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;C-c w&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">casual-editkit-windows-tmenu</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+
+<p>As always, you can adjust these bindings to your preference.</p>
+<p>Each of these menus are detailed further below.</p>
+<h1>Rectangle Menu (<a href="https://kickingvegas.github.io/casual/Edit-commands.html#Rectangle_203a-_0028casual_002deditkit_002drectangle_002dtmenu_0029">casual-editkit-rectangle-tmenu</a>)</h1>
+<p>The rectangle feature gives you the ability to mark (select) an arbitrary rectangle region in an Emacs buffer. There are many times where if the text is shaped like a rectangle, making transformations on them is exceptionally convenient. This menu provides you this.</p>
+<p align='left'>
+<img src='http://yummymelon.com/devnull/images/casual-registers-rectangles-windows/casual-editkit-rectangle-screenshot.png' alt='Screenshot of Casual rectangle menu' />
+</p>
+
+<h1>Registers Menu (<a href="https://kickingvegas.github.io/casual/Register-commands.html">casual-editkit-registers-tmenu</a>)</h1>
+<p>Registers provide users a way to temporarily keep track of Emacs run-time state like text clippings, cursor (point) positions, macros, and arrangement of windows.</p>
+<p align='left'>
+<img src='http://yummymelon.com/devnull/images/casual-registers-rectangles-windows/casual-editkit-registers-screenshot.png' alt='Screenshot of Casual registers menu' />
+</p>
+
+<p>Registers are a distinguishing feature of Emacs from other applications that support writing. It’s definitely a feature I miss when working outside of Emacs.</p>
+<h1>Windows Menu (<a href="https://kickingvegas.github.io/casual/Window-management.html">casual-editkit-windows-tmenu</a>)</h1>
+<p>In Emacs vernacular, a <em>window</em> is a visual organization of how a buffer is displayed. Emacs windows are <em>not</em> the same as what conventional GUIs (e.g. Wayland/X11, Apple macOS, Microsoft Windows) refer to as windows. In Emacs, GUI windows are referred to as <em>frames</em>.</p>
+<p>Emacs provides a number of commands to manage windows throughout their entire life-cycle which Casual organizes into the menu shown below:</p>
+<p align='left'>
+<img src='http://yummymelon.com/devnull/images/casual-registers-rectangles-windows/casual-editkit-window-screenshot.png' alt='Screenshot of Casual window management menu' />
+</p>
+
+<p>In practice, I’ve found this menu to be most useful when using a compact/laptop-style keyboard or accessing Emacs via TTY. But if you are using GUI Emacs with a keyboard that has a number-pad, consider making the following number-pad bindings, particularly for selecting focus and swapping windows.</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="c1">;; Number pad bindings for window management.</span>
+<span class="c1">;; Requires GUI Emacs.</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;C-&lt;kp-add&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">enlarge-window</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;C-&lt;kp-subtract&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">shrink-window</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;M-&lt;kp-add&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">enlarge-window-horizontally</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;M-&lt;kp-subtract&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">shrink-window-horizontally</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;C-&lt;kp-enter&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">other-window</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;M-&lt;kp-enter&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">switch-to-buffer</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;C-&lt;return&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">other-window</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;C-&lt;kp-8&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">windmove-up</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;C-&lt;kp-5&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">windmove-down</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;C-&lt;kp-2&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">windmove-down</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;C-&lt;kp-4&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">windmove-left</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;C-&lt;kp-6&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">windmove-right</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;M-&lt;kp-8&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">windmove-swap-states-up</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;M-&lt;kp-5&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">windmove-swap-states-down</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;M-&lt;kp-2&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">windmove-swap-states-down</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;M-&lt;kp-4&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">windmove-swap-states-left</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;M-&lt;kp-6&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">windmove-swap-states-right</span><span class="p">)</span>
+
+<span class="c1">;; These require the `ace-window&#39; and `transpose-frame&#39; packages.</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;C-&lt;kp-0&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">ace-select-window</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">keymap-global-set</span><span class="w"> </span><span class="s">&quot;C-&lt;kp-divide&gt;&quot;</span><span class="w"> </span><span class="nf">#&#39;</span><span class="nv">transpose-frame</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+
+<p>Note that the bindings for <code>ace-select-window</code> and <code>transpose-frame</code> require that you have the <a href="https://melpa.org/#/ace-window">ace-window</a> and <a href="https://melpa.org/#/transpose-frame">transpose-frame</a> packages installed.</p>
+<h1>Closing Thoughts</h1>
+<p>Registers, rectangles, and managing windows in Emacs are powerful features that are made easier to use with Casual. If you haven’t explored them, consider trying them out. I think you’ll be pleasantly surprised by what they offer and over time will consider them essential to your Emacs experience.</p>

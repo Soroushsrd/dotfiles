@@ -1,0 +1,1 @@
+<p>Programming languages are too slow! I’m not talking about <em>execution</em> speed—I’m talking about <em>evolution</em> speed. Programmers are always building new libraries and embedded DSLs, but the host programming language—particularly its type system—doesn’t understand the domain-specific aspects of these things.</p>

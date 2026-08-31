@@ -1,0 +1,41 @@
+<p>The Rust Security Response Team was notified that Cargo incorrectly handled
+symlinks inside of crate tarballs downloaded from third-party registries,
+allowing a malicious crate to override the source code of another crate from the
+same registry.</p>
+<p>This vulnerability is tracked as CVE-2026-5223. The severity of the
+vulnerability is <strong>medium</strong> for users of third-party registries. Users of
+crates.io are <strong>not affected</strong>, as crates.io forbids uploading crates containing
+any symlink.</p>
+<h2 id="overview"><a class="anchor" href="#overview" aria-hidden="true"></a>
+Overview</h2>
+<p>When building a crate, Cargo extracts its source code in a local cache (stored
+within <code>~/.cargo</code>), reusing it for any future build. Cargo includes protections
+to prevent any file from being extracted outside of the crate's own cache
+directory.</p>
+<p>It was discovered that it's possible to craft a malicious tarball able to
+extract files one level below the crate's own cache directory. With the way the
+cache is structured, that allowed the malicious crate to override the cache of
+other crates belonging to the same registry.</p>
+<h2 id="mitigations"><a class="anchor" href="#mitigations" aria-hidden="true"></a>
+Mitigations</h2>
+<p>Rust 1.96.0, to be released on May 28th, 2026, will update Cargo to reject
+extracting <em>any</em> symlink within crate tarballs, regardless of whether they come
+from crates.io (which already forbids them) or third-party registries. Note that
+Cargo never added symlinks when running <code>cargo package</code> or <code>cargo publish</code>, so
+the impact of this should be minimal.</p>
+<p>Users who are not able to upgrade to the most recent Rust version are
+recommended to audit the contents of their registry for the presence of any
+symlink, and to configure their registry to reject symlink (if such option is
+available).</p>
+<h2 id="affected-versions"><a class="anchor" href="#affected-versions" aria-hidden="true"></a>
+Affected versions</h2>
+<p>All versions of Cargo shipped before Rust 1.96.0 are affected.</p>
+<h2 id="acknowledgements"><a class="anchor" href="#acknowledgements" aria-hidden="true"></a>
+Acknowledgements</h2>
+<p>We'd like to thank Christos Papakonstantinou for reporting this to us according
+to the <a rel="external" href="https://rust-lang.org/policies/security">Rust security policy</a>.</p>
+<p>We also want to thank the members of the Rust project who helped us address the
+vulnerability: Josh Triplett for developing the fix; Arlo Siemsen for reviewing
+the fix; Emily Albini for writing this advisory; Emily Albini, Josh Stone and
+Manish Goregaokar for coordinating the disclosure; Ed Page and Eric Huss for
+advising during the disclosure.</p>

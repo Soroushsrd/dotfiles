@@ -1,0 +1,656 @@
+<div class="subtitle">
+<p><strong>TL;DR</strong>: Sometimes Emacs needs a <a href="https://github.com/karthink/timeout">timeout</a></p>
+</div>
+<blockquote>
+<p>A diamond is very pretty.  But it is very hard to add to a diamond.  A ball of mud is not so pretty.  But you can always add more mud to a ball of mud.</p>
+<div class="attribution">
+<p>&ndash; Gerald Sussman, paraphrasing Joel Moses</p>
+</div>
+</blockquote>
+<p>A common problem with Emacs&rsquo; giant ball of shared state: Any code can step on the feet of any other &ndash; including yours.  There are conventions in place to keep this from being too much of an issue: Code included in Emacs is tested extensively for edge cases by the tireless maintainers, and third-party package authors are generally careful these days about stepping on too many toes.</p>
+<p>In practice the casualty here is not <em>correctness</em>, it&rsquo;s <em>performance</em>.  Emacs can, as of today, only do one thing at a time.  So every &ldquo;background&rdquo; task must, at some point, surface to the foreground and block Emacs for a bit
+<span class="sidenote-number"><small class="sidenote">
+Many types of &ldquo;background&rdquo; processing are interruptible by signalling a <code>quit</code> with <code>keyboard-quit</code>, but then the task isn&rsquo;t done!  This doesn&rsquo;t help the situation beyond giving you control of Emacs again.
+</small></span>
+.</p>
+<p>The resultant hitching is experienced both with commands you initiate (&quot;<a class="org-gls" href="#gls-8">push operations</a>&quot;, let&rsquo;s say) and timers that run code without your involvement (&quot;<a class="org-gls" href="#gls-9">pull operations</a>&quot;).  Every hook and timer installed by packages to dazzle you with real-time updates or feedback is another fraction of a second for which Emacs is blocked.  Ideally these run when Emacs is idle and you don&rsquo;t notice them.  In practice there are many cases, especially with &ldquo;<a class="org-gls" href="#gls-8">push operations</a>&rdquo;, that involve significant chunks of synchronous auxiliary processing.</p>
+<p>Under these limitations, a few obvious solutions present themselves.</p>
+<h2 id="as-a-package-author-you-can">As a package author, you can</h2>
+<h3 id="use-conservative-defaults">Use conservative defaults</h3>
+<p>&hellip;or provide user options to selectively turn off or extend these timers.  Packages for which responsiveness is a marquee feature generally do a good job of this.</p>
+<h3 id="account-for-as-many-contexts-as-possible">Account for as many contexts as possible</h3>
+<p>&hellip;when writing packages.</p>
+<p>Elisp code doesn&rsquo;t always run in the context that the author intends.  A <a class="org-gls" href="#gls-11">mode-line</a> update in one window can stagger image display in another.  In-buffer completion can slow down keyboard macro execution.  The more overarching the mode, the larger the surface area for these kinds of interactions.  The list of ways in which a sprawling library like Org+plugins can slow down Emacs (and vice-versa) is long and convoluted.  Few Emacs packages can afford the foresight to be, essentially, paranoid defensive drivers that guard against this unpredictable traffic.</p>
+<details>
+<summary>These examples are not hypothetical</summary>
+<div class="details">
+<ul>
+<li><a class="org-gls" href="#gls-11">mode-line</a> update affecting image display: The first example was <code>pdf-tools</code>&rsquo;s <code>pdf-misc-size-indication-minor-mode</code> freezing Emacs when updating LaTeX preview images in an unrelated buffer/window.</li>
+<li>The second is a completion-at-point front-end like Company slowing down playback when using <a href="https://github.com/corytertel/macrursors">Macrursors</a>, a multiple-cursors emulator that uses keyboard macros.</li>
+</ul>
+</div>
+</details>
+<h2 id="as-a-user-you-can">As a user, you can:</h2>
+<h3 id="report-slowdowns">Report slowdowns</h3>
+<p>&hellip;so package maintainer(s) can fix them.</p>
+<p>This is easier said than done.  Binary-searching your way by toggling active modes is tedious.  Profiler output can be mysterious without a good sense for how Emacs&rsquo; command loop works.  A package like <a href="https://github.com/lastquestion/explain-pause-mode">explain-pause-mode</a> does some of this work for you, but the causes can be subtle interactions.  Generally &ndash; but not always &ndash; if you are at the point where you can pinpoint causes of slowdowns, you can also avoid them without much trouble.</p>
+<h3 id="use-fewer-packages">Use fewer packages</h3>
+<p>Turn down the bling. Use less mud.</p>
+<p>The saner option.  Emacs&rsquo; first-class extensibility, one of its biggest strengths, is also an inherent limitation.  A significant fraction of complaints I read about Emacs being too slow are usually the result of installing packages with wild abandon.  This results in busy, full-fat hooks (<code>post-command-hook</code>, <code>post-self-insert-hook</code>, <code>window-state-change-hook</code>, …)
+<span class="sidenote-number"><small class="sidenote">
+Among many others, like major-mode hooks.  These hooks contain functions that run after every Emacs command, after typing in text, after window changes&hellip; <em>i.e. all the time</em>.
+</small></span>
+that bring things to a crawl before long.</p>
+<hr>
+<p>All right!  That was the preamble.  Now that we&rsquo;ve exhausted the <em>good</em> options, we&rsquo;re free to ignore the less-is-more approach to code today.  It&rsquo;s time to be irresponsible and fix the giant mud ball by&hellip; <strong>adding more mud</strong>.</p>
+<h2 id="timeouts-and-delays">Timeouts and Delays</h2>
+<p>The problem common to both &ldquo;push&rdquo; and &ldquo;pull&rdquo; slowdowns is non-critical code running more often than it should.  Our no-context, no-Chesterton&rsquo;s-fence solution is to force such code into a timeout.  There are two common ways of doing this, with different use patterns, and we&rsquo;re going to implement both.</p>
+<h3 id="first-up-throttle">First up: <strong>Throttle</strong></h3>
+<figure><img src="https://karthinks.com/img/throttle_description.svg" width="700px"/>
+</figure>
+
+<p>Throttled code (<code>foo</code>) is placed in a timeout after it runs once.  Attempts to run again for the duration of the timeout (the &ldquo;Throttle time&rdquo; above) are ignored.  See <a href="https://redd.one/blog/debounce-vs-throttle">this resource</a> for an interactive explanation.</p>
+<p>In the context of Emacs, throttling works well for &ldquo;<a class="org-gls" href="#gls-9">pull operations</a>&rdquo;, i.e. code that runs non-interactively and independent of user input
+<span class="sidenote-number"><small class="sidenote">
+Typically this means messing with timers, which is generally <em>a bad idea</em>&hellip; but we covered all the good solutions already, didn&rsquo;t we?
+</small></span>
+.  Throttling user commands (or their consequents) leads to state changes being completely ignored, which is rarely what we want.</p>
+<p>Of course, if packages with over-eager timers allow for customizable eagerness, then the simpler solution is to tweak the frequency directly.  Packages that implement &ldquo;<a class="org-gls" href="#gls-9">pull operations</a>&rdquo; are generally conscientious about this.  If something is running far more often than it should, searching for the variable(s) <code>&lt;package-name&gt;-*-delay</code> or  <code>&lt;package-name&gt;-*-timer</code> is a good start to fixing it.  Further, these actions typically run on <a class="org-gls" href="#gls-6">idle timers</a>, which is like a built-in debounce and unlikely to block Emacs in a perceptible way.</p>
+<p>But there are many exceptions.  What we&rsquo;d like, in the absence of a provided dial for tuning this, is an elisp function or macro that can easily &ndash; and generically &ndash; <em>throttle</em> any other elisp function.</p>
+<h3 id="second-debounce">Second: <strong>Debounce</strong></h3>
+<figure><img src="https://karthinks.com/img/debounce-description.svg" width="700px"/>
+</figure>
+
+<p>Debounced code (<code>foo</code>) runs after a pre-specified delay from when it is called (the &ldquo;Debounce time&rdquo; above).  If the command is called again before the delay ends, it resets to its full duration.  See <a href="https://redd.one/blog/debounce-vs-throttle">this resource</a> for an interactive explanation.</p>
+<p>In the context of Emacs, debouncing makes more sense with &ldquo;<a class="org-gls" href="#gls-8">push operations</a>&rdquo;.  Debounced user commands are ignored when there are too many calls in quick succession, except for the last one.  This is typically what we want in an interactive context, since the intermediate states from running each call would have been invalidated by the next call anyway.</p>
+<p>Again, we want an elisp function or macro that can easily &ndash; and generically &ndash; <em>debounce</em> any other elisp function.</p>
+<h3 id="aside-memoize">Aside: <strong>Memoize</strong></h3>
+<p><em>i.e.</em> just caching &ndash; store the results of expensive calculations and use a look-up table instead.
+<span class="sidenote-number"><small class="sidenote">
+Emacs 29+ includes a handy <code>with-memoization</code> macro to facilitate this for any chunk of code.
+</small></span>
+We do a bit of caching with the throttle implementation below.  But in general this doesn&rsquo;t work for our purposes because the functions we want to use this with are rarely pure &ndash; they work by side-effect using (and on) Emacs&rsquo; current state as a potential input.  So there&rsquo;s no way to provide a generic memoization routine without knowing what the specific code in question is doing.</p>
+<h2 id="throttle-and-debounce"><code>throttle!</code> and <code>debounce!</code></h2>
+<p>What we&rsquo;d like: given a command or plain function <code>foo</code>, modify it so that</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">throttle!</span> <span style="color:#a60;background-color:#fff0f0">&#39;foo</span> <span style="color:#60e;font-weight:bold">2.0</span>)
+</span></span></code></pre></div><p>throttles it to run no more than once every 2 seconds, and</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">debounce!</span> <span style="color:#a60;background-color:#fff0f0">&#39;foo</span> <span style="color:#60e;font-weight:bold">0.5</span>)
+</span></span></code></pre></div><p>debounces it to run with a delay of 0.5 seconds.</p>
+<p>We can also envision the safer, &ldquo;non-destructive&rdquo; versions
+<span class="sidenote-number"><small class="sidenote">
+Although our versions of <code>throttle!</code> (etc) won&rsquo;t be destructive because of Emacs&rsquo; robust advice system.
+</small></span>
+that return new functions, so we could do</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">fset</span> <span style="color:#a60;background-color:#fff0f0">&#39;foo-throttled</span> (<span style="color:#963">timeout</span> <span style="color:#a60;background-color:#fff0f0">&#39;foo</span> <span style="color:#60e;font-weight:bold">2.0</span>))
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">fset</span> <span style="color:#a60;background-color:#fff0f0">&#39;foo-debounced</span> (<span style="color:#963">debounce</span> <span style="color:#a60;background-color:#fff0f0">&#39;foo</span> <span style="color:#60e;font-weight:bold">0.5</span>))
+</span></span></code></pre></div><p>This turns out to actually be trickier to do well (<a href="#throttle-and-debounce-non-destructive-finagling">see below</a>).  For the in-place versions, we can rely on Emacs&rsquo; advice system to do most of the work for us.</p>
+<p>Before we implement <code>throttle!</code> and <code>debounce!</code>, let&rsquo;s look at the kinds of thing we&rsquo;d like to do with them.</p>
+<h3 id="example-throttle-smart-mode-line-updates">Example: throttle <code>smart-mode-line</code> updates</h3>
+<p>Updating the <a class="org-gls" href="#gls-11">mode-line</a> display is one of the exceptions I mentioned in the <a href="#first-up-throttle">throttle description</a>.  Typically the <a class="org-gls" href="#gls-11">mode-line</a> is updated along with <a class="org-gls" href="#gls-10">redisplay</a>, and Emacs is quite fast at handling all display elements that Emacs has C-level support for (typically the <code>%</code>-prefixed <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/_0025_002dConstructs.html">format specifiers</a>).</p>
+<blockquote>
+<p>For efficiency, Emacs does not continuously recompute each window’s mode line and header line.  It does so when circumstances appear to call for it—for instance, if you change the window configuration, switch buffers, narrow or widen the buffer, scroll, or modify the buffer.</p>
+<div class="attribution">
+<p>&ndash;<a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Mode-Line-Basics.html"> Mode Line Basics</a>, elisp manual.</p>
+</div>
+</blockquote>
+<ol>
+<li>The problem is that it appears to compute <em>every</em> element on the <a class="org-gls" href="#gls-11">mode-line</a> under <em>any</em> of these circumstances.</li>
+<li>You can evaluate arbitrary Lisp code during a <a class="org-gls" href="#gls-11">mode-line</a> update, and we sure do like to stuff the Emacs <a class="org-gls" href="#gls-11">mode-line</a> with fancy widgets in <code>:eval</code> blocks.</li>
+</ol>
+<p>The combination of these two facts is a recipe for slowdown.</p>
+<p>Case in point: the <code>smart-mode-line</code> package uses the function <code>sml/generate-minor-modes</code> to display active minor-modes in the <a class="org-gls" href="#gls-11">mode-line</a> with rich formatting.  Generating this string
+<span class="sidenote-number"><small class="sidenote">
+A rather plain one too, despite support for rich text.
+</small></span>
+takes up to 10% of Emacs&rsquo; time during routine text-editing.</p>
+<figure><img src="https://karthinks.com/img/sml-minor-mode-string-annotated.png"/>
+</figure>
+
+<p>As the Emacs profiler illustrates:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Samples   %    Function
+</span></span><span style="display:flex;"><span>---------------------------------------------
+</span></span><span style="display:flex;"><span>   1076  65% - redisplay_internal (C function)
+</span></span><span style="display:flex;"><span>    705  43%  + jit-lock-function
+</span></span><span style="display:flex;"><span>    404  22%  - eval
+</span></span><span style="display:flex;"><span>    220  13%   + and-let*
+</span></span><span style="display:flex;"><span>--&gt; 166   9%   + sml/generate-minor-modes   &lt;-- PRE-THROTTLE
+</span></span><span style="display:flex;"><span>      4   0%     sml/generate-modified-status
+</span></span><span style="display:flex;"><span>     52   3% - ...
+</span></span><span style="display:flex;"><span>     52   3%    Automatic GC
+</span></span></code></pre></div><p>Recomputing the minor-modes string after every buffer insertion or window scroll is a waste.  We&rsquo;re actually fine so long as it&rsquo;s updated soon after a minor-mode is enabled or disabled.  So we throttle this function:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span><span style="color:#888">;; only allowed to run once every 4 seconds.</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#963">throttle!</span> <span style="color:#a60;background-color:#fff0f0">&#39;sml/generate-minor-modes</span> <span style="color:#60e;font-weight:bold">4.0</span>)
+</span></span></code></pre></div><p>This frees up Emacs to do other things.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Samples    %   Function
+</span></span><span style="display:flex;"><span>----------------------------------------
+</span></span><span style="display:flex;"><span>   1482  66% - redisplay_internal (C function)
+</span></span><span style="display:flex;"><span>    733  33%  - eval
+</span></span><span style="display:flex;"><span>    681  30%   + and-let*
+</span></span><span style="display:flex;"><span>     17   0%     sml/generate-modified-status
+</span></span><span style="display:flex;"><span>--&gt;   9   0%   + sml/generate-minor-modes   &lt;-- POST-THROTTLE
+</span></span><span style="display:flex;"><span>      6   0%   + format
+</span></span><span style="display:flex;"><span>    700  31%  + jit-lock-function
+</span></span><span style="display:flex;"><span>    117   5% - ...
+</span></span><span style="display:flex;"><span>    117   5%    Automatic GC
+</span></span></code></pre></div><p>Throttling lets us work around, in a coarse way, our lack of control over the <a class="org-gls" href="#gls-11">mode-line</a> update logic.</p>
+<details>
+<summary>Throttle vs Debounce</summary>
+<div class="details">
+<p>In this example, using a debounce would have worked too&hellip; for the most part.  There would be scenarios where it wouldn&rsquo;t work well, though, such as turning on/off a minor mode and then immediately scrolling the window or typing.  If we can tolerate slightly-out-of-date reports of Emacs&rsquo; state, throttling is generally the better option.</p>
+</div>
+</details>
+<h3 id="example-debounce-org-agenda-follow-mode">Example: debounce <code>org-agenda-follow-mode</code></h3>
+<p>An example of an Org-mode feature that&rsquo;s too eager for its own good:  when following along entries with a preview in the Org Agenda, running down the list to the next item you&rsquo;re interested in causes previews to be generated for each intermediate item (first video).  Org does a fair bit of work &ndash; relative to the cursor movement speed - to set up the preview display, causing Emacs to hitch.</p>
+<div class="wide">
+<div class="column">
+<video preload="metadata" style="center" width="700" controls>
+<source src="https://karthinks.com/img/org-agenda-no-debounce.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/org-agenda-no-debounce.mp4">[Video: org-agenda without a debounce]</a></video>
+</div>
+<div class="column">
+<video preload="metadata" style="center" width="700" controls>
+<source src="https://karthinks.com/img/org-agenda-debounce.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/org-agenda-debounce.mp4">[Video: org-agenda with a debounce]</a></video>
+</div>
+</div>
+<p>Let&rsquo;s debounce this feature:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span><span style="color:#888">;; run after a resettable delay of 0.3 seconds.</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#963">debounce!</span> <span style="color:#a60;background-color:#fff0f0">&#39;org-agenda-do-context-action</span> <span style="color:#60e;font-weight:bold">0.3</span>)
+</span></span></code></pre></div><p>Throwing in a debounce causes the intermediate cursor positions to be ignored (second video), making the process smoother and less visually noisy while keeping Emacs responsive.</p>
+<p>Debouncing lets us work around, in a coarse way, user input that&rsquo;s coming too fast to be smoothly acted on.</p>
+<h3 id="an-inside-out-implementation">An inside-out implementation</h3>
+<p>To implement <code>throttle!</code> and <code>debounce!</code>, we can work our way outwards from the specification of what throttles and debounces should do.</p>
+<details>
+<summary>But before we dig in&#x2026;</summary>
+<div class="details">
+<p>This is primarily a fun elisp exercise.</p>
+<p>If you are considering throttling elisp from outside of packages as an actual solution to addressing performance issues, you should have already tried the better options listed at the start of this write-up.  We don&rsquo;t play with mud balls without getting our hands dirty.</p>
+</div>
+</details>
+<p>A throttled function will:</p>
+<ol>
+<li>Run when first called,</li>
+<li>and start keeping time.</li>
+<li>If called again within the timeout period,</li>
+<li>it refuses to run or returns immediately.</li>
+</ol>
+<p>The core of this idea is captured in this thunk:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span><span style="color:#888">;; FUNC is the function to be throttled, called with arguments ARGS</span>
+</span></span><span style="display:flex;"><span><span style="color:#888">;; TIMEOUT is the throttle duration</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#888">;; If the timer is running</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">if</span> (<span style="color:#007020">and</span> <span style="color:#963">throttle-timer</span> (<span style="color:#963">timerp</span> <span style="color:#963">throttle-timer</span>))
+</span></span><span style="display:flex;"><span>    <span style="color:#888">;; do nothing, return nil</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#888">;; else run and start the timer</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">prog1</span> (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">func</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span>
+</span></span><span style="display:flex;"><span>          (<span style="color:#963">run-with-timer</span>
+</span></span><span style="display:flex;"><span>           <span style="color:#963">timeout</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>           (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>             <span style="color:#888">;; clear the timer</span>
+</span></span><span style="display:flex;"><span>             (<span style="color:#963">cancel-timer</span> <span style="color:#963">throttle-timer</span>)
+</span></span><span style="display:flex;"><span>             (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span> <span style="color:#036;font-weight:bold">nil</span>))))))
+</span></span></code></pre></div><p>where <code>throttle-timer</code> and <code>timeout</code> need to be persistent between calls to this function.</p>
+<p>The debounce version is built similarly.  A debounced function will:</p>
+<ol>
+<li>Not run immediately, and start a timer when first called.</li>
+<li>If called again before the timer expires,</li>
+<li>the timer is reset and starts over.</li>
+<li>If the timer ends, the function finally runs.</li>
+</ol>
+<p>The core of this process is captured in the following thunk:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span><span style="color:#888">;; FUNC is the function to be throttled, called with arguments ARGS</span>
+</span></span><span style="display:flex;"><span><span style="color:#888">;; DELAY is the debounce period</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#888">;; If the timer is running</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">if</span> (<span style="color:#963">timerp</span> <span style="color:#963">debounce-timer</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#888">;; Do not run the function, reset the timer instead</span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">timer-set-idle-time</span> <span style="color:#963">debounce-timer</span> <span style="color:#963">delay</span>)
+</span></span><span style="display:flex;"><span>  <span style="color:#888">;; start the timer over</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">setq</span> <span style="color:#963">debounce-timer</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">run-with-idle-timer</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#963">delay</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>         (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>           (<span style="color:#007020">setq</span> <span style="color:#963">debounce-timer</span> <span style="color:#036;font-weight:bold">nil</span>)
+</span></span><span style="display:flex;"><span>           <span style="color:#888">;; Timer ran, finally run the function</span>
+</span></span><span style="display:flex;"><span>           (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">func</span> <span style="color:#963">args</span>)))))
+</span></span></code></pre></div><p>where <code>debounce-timer</code> and <code>delay</code> need to be persistent between calls to this function.  We use an idle-timer when debouncing, and a regular timer for the throttle.  Using an <a class="org-gls" href="#gls-6">idle timer</a> here is technically incorrect, but the better choice since <code>func</code> is presumably an expensive call.  The throttle timer only has to clear itself, which is cheap.</p>
+<p>Next, we need to wrap these in a function that effectively acts as the throttled/debounced <code>func</code>.</p>
+<div class="warning">
+<p>If you are trying this in Emacs, be sure to <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Lexical-Binding.html">turn on</a> <code>lexical-binding</code> first.</p>
+</div>
+<p><a id="code-snippet--throttled-closure"></a></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">let</span> ((<span style="color:#963">throttle-timer</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#963">timeout</span> <span style="color:#60e;font-weight:bold">1.0</span>))
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">lambda</span> (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>    <span style="background-color:#fff0f0">&#34;Run with a throttle.&#34;</span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">if</span> (<span style="color:#007020">and</span> <span style="color:#963">throttle-timer</span> (<span style="color:#963">timerp</span> <span style="color:#963">throttle-timer</span>))
+</span></span><span style="display:flex;"><span>        <span style="color:#888">;; do nothing, return nil</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#888">;; else run and start the timer</span>
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">prog1</span> (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">func</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span>
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">run-with-timer</span>
+</span></span><span style="display:flex;"><span>               <span style="color:#963">timeout</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>               (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>                 <span style="color:#888">;; clear the timer</span>
+</span></span><span style="display:flex;"><span>                 (<span style="color:#963">cancel-timer</span> <span style="color:#963">throttle-timer</span>)
+</span></span><span style="display:flex;"><span>                 (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span> <span style="color:#036;font-weight:bold">nil</span>))))))))
+</span></span></code></pre></div><p><code>throttle-timer</code> and <code>timeout</code> are now defined in the enclosing environment.  Provided <code>lexical-binding</code> is turned on, the inner lambda is a closure and these two objects will be persistent across calls to this closure.</p>
+<p><code>func</code> is still undefined/free.  We place the above code into a &ldquo;throttle-maker&rdquo; function that &ldquo;closes over&rdquo; <code>func</code>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">throttle</span> (<span style="color:#963">func</span> <span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">timeout</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Return a throttled version of FUNC.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">It runs at most once every TIMEOUT seconds (default 1.0).&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">throttle-timer</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">timeout</span> (<span style="color:#007020">or</span> <span style="color:#963">timeout</span> <span style="color:#60e;font-weight:bold">1.0</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">lambda</span> (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">if</span> (<span style="color:#007020">and</span> <span style="color:#963">throttle-timer</span> (<span style="color:#963">timerp</span> <span style="color:#963">throttle-timer</span>))
+</span></span><span style="display:flex;"><span>          <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">prog1</span> (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">func</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>          (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span>
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">run-with-timer</span>
+</span></span><span style="display:flex;"><span>                 <span style="color:#963">timeout</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>                 (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>                   (<span style="color:#963">cancel-timer</span> <span style="color:#963">throttle-timer</span>)
+</span></span><span style="display:flex;"><span>                   (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span> <span style="color:#036;font-weight:bold">nil</span>)))))))))
+</span></span></code></pre></div><p>Note that this is the &ldquo;non-destructive&rdquo; version, it returns a new function instead of modifying <code>func</code>.</p>
+<p>While we&rsquo;re at it, we can return the previous result instead of <code>nil</code> during the throttle duration.  This is unimportant for top-level interactive commands, but might at least help avoid type errors if this is a pure function, or if we&rsquo;re monkey-patching something deep inside an elisp library.</p>
+<p>We effectively memoize the <code>result</code> of calling <code>func</code>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">throttle</span> (<span style="color:#963">func</span> <span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">timeout</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Return a throttled version of FUNC.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">It runs at most once every TIMEOUT seconds (default 1.0).&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">throttle-timer</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">timeout</span> (<span style="color:#007020">or</span> <span style="color:#963">timeout</span> <span style="color:#60e;font-weight:bold">1.0</span>))
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">result</span>))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">lambda</span> (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">if</span> (<span style="color:#007020">and</span> <span style="color:#963">throttle-timer</span> (<span style="color:#963">timerp</span> <span style="color:#963">throttle-timer</span>))
+</span></span><span style="display:flex;"><span>          <span style="color:#963">result</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">prog1</span> (<span style="color:#007020">setq</span> <span style="color:#963">result</span> (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">func</span> <span style="color:#963">args</span>))
+</span></span><span style="display:flex;"><span>          (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span>
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">run-with-timer</span>
+</span></span><span style="display:flex;"><span>                 <span style="color:#963">timeout</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>                 (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>                   (<span style="color:#963">cancel-timer</span> <span style="color:#963">throttle-timer</span>)
+</span></span><span style="display:flex;"><span>                   (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span> <span style="color:#036;font-weight:bold">nil</span>)))))))))
+</span></span></code></pre></div><p>The debounce version is similar, but there&rsquo;s nowhere to return the <code>result</code> to this time.  <code>func</code> may be called from anywhere in the code but runs (eventually, via the timer) at top-level, so it doesn&rsquo;t make sense to store its return value.
+<span class="sidenote-number"><small class="sidenote">
+We also couldn&rsquo;t if we wanted to, since the return value doesn&rsquo;t exist yet.
+</small></span>
+To satisfy the calling code, we can prespecify a constant return value when constructing the function.</p>
+<p>There&rsquo;s a new wrinkle as well: the throttled <code>func</code> runs immediately or not at all.  The debounced <code>func</code>, however, runs at a later time when the environment can be different &ndash; or invalid.  So we need to capture as much of the current context as we can and restore it when <code>func</code> runs.  Capturing the full context at call time is not possible (it could be anything)
+<span class="sidenote-number"><small class="sidenote">
+As far as I know.  This might be possible in other Lisps with continuations, etc.
+</small></span>
+, but we can set the active buffer at least.</p>
+<p>Adding a <code>default</code> &ldquo;immediate-return&rdquo; value and the calling context, we get</p>
+<p><a id="code-snippet--debounced-closure"></a></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">debounce</span> (<span style="color:#963">func</span> <span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">delay</span> <span style="color:#963">default</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Return a debounced version of FUNC.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">It runs with a delay of DELAY seconds (default 0.5).
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">DEFAULT is the immediate return value of the function when
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">called.&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">debounce-timer</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">delay</span> (<span style="color:#007020">or</span> <span style="color:#963">delay</span> <span style="color:#60e;font-weight:bold">0.5</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">lambda</span> (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">if</span> (<span style="color:#963">timerp</span> <span style="color:#963">debounce-timer</span>)
+</span></span><span style="display:flex;"><span>          (<span style="color:#963">timer-set-idle-time</span> <span style="color:#963">debounce-timer</span> <span style="color:#963">delay</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">prog1</span> <span style="color:#963">default</span>
+</span></span><span style="display:flex;"><span>          (<span style="color:#007020">setq</span> <span style="color:#963">debounce-timer</span>
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">run-with-idle-timer</span>
+</span></span><span style="display:flex;"><span>                 <span style="color:#963">delay</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>                 (<span style="color:#007020">lambda</span> (<span style="color:#963">buf</span>)
+</span></span><span style="display:flex;"><span>                   (<span style="color:#007020">setq</span> <span style="color:#963">debounce-timer</span> <span style="color:#036;font-weight:bold">nil</span>)
+</span></span><span style="display:flex;"><span>                   (<span style="color:#007020">with-current-buffer</span> <span style="color:#963">buf</span> <span style="color:#888">;set buffer when running</span>
+</span></span><span style="display:flex;"><span>                     (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">func</span> <span style="color:#963">args</span>)))
+</span></span><span style="display:flex;"><span>                 (<span style="color:#06b;font-weight:bold">current-buffer</span>))))))))
+</span></span></code></pre></div><p>We&rsquo;re on the right track, but there are many issues with <code>throttle</code> and <code>debounce</code> above:</p>
+<ol>
+<li>The generated closures don&rsquo;t have <code>interactive</code> forms, so they cannot be run as commands.  We can&rsquo;t add interactive forms unconditionally, since we might want to throttle/debounce non-interactive functions too.</li>
+<li>The generated closures don&rsquo;t have any documentation.  Assigning them to variables with <code>fset</code> will leave them (mostly) non-introspectable.</li>
+<li>Most importantly, we wanted a <code>throttle!</code> and <code>debounce!</code> to corral existing errant elisp code, not generate new, quieter variants.</li>
+</ol>
+<p>It turns out most of these issues can be resolved in one go, with some&hellip;</p>
+<h3 id="advising-around">Advising around</h3>
+<p>We have on hand our throttled and debounced versions of <code>func</code>, albeit lacking some niceties.  To replace <code>func</code> with these variants, we will depend on Emacs&rsquo; advice system.  We&rsquo;re specifically looking for a recipe that routes around <code>func</code> while letting us call it when necessary.  The <code>:around</code> advice combinator fits the bill:</p>
+<blockquote>
+<p><code>‘:around’</code></p>
+<p>Call <code>FUNCTION</code> instead of the old function, but provide the old function as an extra argument to <code>FUNCTION</code>. This is the most flexible composition. For example, it lets you call the old function with different arguments, or many times, or within a let-binding, or <strong>you can sometimes delegate the work to the old function and sometimes override it completely</strong>. More specifically, the composition of the two functions behaves like:
+<code>(lambda (&amp;rest r) (apply FUNCTION OLDFUN r))</code></p>
+<p>-Manual section on Advice Combinators (emphasis mine)</p>
+</blockquote>
+<p>This time let&rsquo;s work our way outside-in.  The basic idea is:</p>
+<ol>
+<li>Define a function that accepts as arguments the original function (<code>oldfun</code>) and <em>its</em> arguments.</li>
+<li>Add this as <code>:around</code> advice to <code>oldfun</code></li>
+<li>Emacs runs this function instead of <code>oldfun</code>.</li>
+</ol>
+<!--listend-->
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">newfun</span> (<span style="color:#963">oldfun</span> <span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>  <span style="color:#888">;; do stuff</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">if</span> <span style="color:#963">predicate</span>
+</span></span><span style="display:flex;"><span>      (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">oldfun</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#888">;; do something else</span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">foo</span> <span style="color:#963">args</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#963">advice-add</span> <span style="color:#a60;background-color:#fff0f0">&#39;oldfun</span> <span style="color:#007020">:around</span> <span style="color:#a60;background-color:#fff0f0">&#39;newfun</span>)
+</span></span></code></pre></div><p>Our <code>newfun</code> is the generated closure (<a href="#code-snippet--throttled-closure">throttled</a> or <a href="#code-snippet--debounced-closure">debounced</a>) from the previous section.  Here&rsquo;s the same throttled closure as before, but following the above pattern instead:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">let</span> ((<span style="color:#963">throttle-timer</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#963">timeout</span> <span style="color:#60e;font-weight:bold">1.0</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#963">result</span>))
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">lambda</span> (<span style="color:#963">oldfun</span> <span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>    <span style="background-color:#fff0f0">&#34;Throttle this function.&#34;</span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">if</span> (<span style="color:#007020">and</span> <span style="color:#963">throttle-timer</span> (<span style="color:#963">timerp</span> <span style="color:#963">throttle-timer</span>))
+</span></span><span style="display:flex;"><span>        <span style="color:#963">result</span>
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">prog1</span> (<span style="color:#007020">setq</span> <span style="color:#963">result</span> (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">oldfun</span> <span style="color:#963">args</span>))
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span>
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">run-with-timer</span>
+</span></span><span style="display:flex;"><span>               <span style="color:#963">timeout</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>               (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>                 (<span style="color:#963">cancel-timer</span> <span style="color:#963">throttle-timer</span>)
+</span></span><span style="display:flex;"><span>                 (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span> <span style="color:#036;font-weight:bold">nil</span>))))))))
+</span></span></code></pre></div><p>This closure, intended as <code>:around</code> advice, accepts <code>oldfun</code> as an argument along with <code>args</code>.</p>
+<p>This time there&rsquo;s nothing to &ldquo;close over&rdquo; save the (customizable) <code>timeout</code>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">throttle--advice</span> (<span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">timeout</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">throttle-timer</span> <span style="color:#036;font-weight:bold">nil</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">timeout</span> (<span style="color:#007020">or</span> <span style="color:#963">timeout</span> <span style="color:#60e;font-weight:bold">1.0</span>))
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">result</span>))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">lambda</span> (<span style="color:#963">oldfun</span> <span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>      <span style="background-color:#fff0f0">&#34;Throttle this function.&#34;</span>
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">if</span> (<span style="color:#007020">and</span> <span style="color:#963">throttle-timer</span> (<span style="color:#963">timerp</span> <span style="color:#963">throttle-timer</span>))
+</span></span><span style="display:flex;"><span>          <span style="color:#963">result</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">prog1</span> (<span style="color:#007020">setq</span> <span style="color:#963">result</span> (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">oldfun</span> <span style="color:#963">args</span>))
+</span></span><span style="display:flex;"><span>          (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span>
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">run-with-timer</span>
+</span></span><span style="display:flex;"><span>                 <span style="color:#963">timeout</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>                 (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>                   (<span style="color:#963">cancel-timer</span> <span style="color:#963">throttle-timer</span>)
+</span></span><span style="display:flex;"><span>                   (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span> <span style="color:#036;font-weight:bold">nil</span>)))))))))
+</span></span></code></pre></div><p><code>throttle--advice</code> is an &ldquo;advice maker&rdquo; that, when called with a timeout, returns an &ldquo;advice function&rdquo; that throttles the function it advises. Phew!</p>
+<p>Of course, we need to actually add this advice:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">advice-add</span> <span style="color:#a60;background-color:#fff0f0">&#39;foo</span> <span style="color:#007020">:around</span> (<span style="color:#963">throttle--advice</span> <span style="color:#60e;font-weight:bold">1.0</span>))
+</span></span></code></pre></div><p>This advice (closure) is nameless &ndash; we require a way to refer to it so that we can restore <code>foo</code> to its un-throttled, over-eager, Emacs-blocking state.  We should also add this advice <em>last</em>, in that any other advice placed on <code>foo</code> should take precedence &ndash; the result of throttling the function would be unpredictable otherwise.</p>
+<p><code>advice-add</code> provides the machinery to do both these things:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">advice-add</span> <span style="color:#a60;background-color:#fff0f0">&#39;foo</span> <span style="color:#007020">:around</span> (<span style="color:#963">throttle--advice</span> <span style="color:#60e;font-weight:bold">1.0</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#333">&#39;</span>((<span style="color:#963">name</span> <span style="color:#333">.</span> <span style="color:#963">throttle</span>)
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">depth</span> <span style="color:#333">.</span> <span style="color:#00d;font-weight:bold">-99</span>)))
+</span></span></code></pre></div><p>Wrapping up this action in a function (finally) gives us the <code>throttle!</code> we are looking for:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">throttle!</span> (<span style="color:#963">func</span> <span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">timeout</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">if</span> (<span style="color:#06b;font-weight:bold">=</span> <span style="color:#963">timeout</span> <span style="color:#00d;font-weight:bold">0</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#963">advice-remove</span> <span style="color:#a60;background-color:#fff0f0">&#39;func</span> <span style="color:#a60;background-color:#fff0f0">&#39;throttle</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">advice-add</span> <span style="color:#963">func</span> <span style="color:#007020">:around</span> (<span style="color:#963">throttle--advice</span> <span style="color:#963">timeout</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#333">&#39;</span>((<span style="color:#963">name</span> <span style="color:#333">.</span> <span style="color:#963">throttle</span>)
+</span></span><span style="display:flex;"><span>                  (<span style="color:#963">depth</span> <span style="color:#333">.</span> <span style="color:#00d;font-weight:bold">-99</span>)))))
+</span></span></code></pre></div><p>Instead of defining an <code>unthrottle!</code>, we make it so passing a <code>timeout</code> of <code>0</code> to <code>throttle!</code> restores the original function.</p>
+<p><code>debounce!</code> works the exact same way:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span><span style="color:#888">;; advice-maker</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">debounce--advice</span> (<span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">delay</span> <span style="color:#963">default</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">debounce-timer</span> <span style="color:#036;font-weight:bold">nil</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">delay</span> (<span style="color:#007020">or</span> <span style="color:#963">delay</span> <span style="color:#60e;font-weight:bold">0.5</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">lambda</span> (<span style="color:#963">oldfun</span> <span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>      <span style="background-color:#fff0f0">&#34;Debounce this function.&#34;</span>
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">if</span> (<span style="color:#963">timerp</span> <span style="color:#963">debounce-timer</span>)
+</span></span><span style="display:flex;"><span>          (<span style="color:#963">timer-set-idle-time</span> <span style="color:#963">debounce-timer</span> <span style="color:#963">delay</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">prog1</span> <span style="color:#963">default</span>
+</span></span><span style="display:flex;"><span>          (<span style="color:#007020">setq</span> <span style="color:#963">debounce-timer</span>
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">run-with-idle-timer</span>
+</span></span><span style="display:flex;"><span>                 <span style="color:#963">delay</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>                 (<span style="color:#007020">lambda</span> (<span style="color:#963">buf</span>)
+</span></span><span style="display:flex;"><span>                   (<span style="color:#007020">setq</span> <span style="color:#963">debounce-timer</span> <span style="color:#036;font-weight:bold">nil</span>)
+</span></span><span style="display:flex;"><span>                   (<span style="color:#007020">with-current-buffer</span> <span style="color:#963">buf</span>
+</span></span><span style="display:flex;"><span>                     (<span style="color:#007020">setq</span> <span style="color:#963">result</span> (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">oldfun</span> <span style="color:#963">args</span>))))
+</span></span><span style="display:flex;"><span>                 (<span style="color:#06b;font-weight:bold">current-buffer</span>))))))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#888">;; advice-adder or remover</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">debounce!</span> (<span style="color:#963">func</span> <span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">delay</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">if</span> (<span style="color:#06b;font-weight:bold">=</span> <span style="color:#963">delay</span> <span style="color:#00d;font-weight:bold">0</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#963">advice-remove</span> <span style="color:#963">func</span> <span style="color:#a60;background-color:#fff0f0">&#39;debounce</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">advice-add</span> <span style="color:#963">func</span> <span style="color:#007020">:around</span> (<span style="color:#963">debounce--advice</span> <span style="color:#963">delay</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#333">&#39;</span>((<span style="color:#963">name</span> <span style="color:#333">.</span> <span style="color:#963">debounce</span>)
+</span></span><span style="display:flex;"><span>                  (<span style="color:#963">depth</span> <span style="color:#333">.</span> <span style="color:#00d;font-weight:bold">-98</span>)))))
+</span></span></code></pre></div><p><code>debounce--advice</code> is an &ldquo;advice maker&rdquo; that, when called with a delay, returns an &ldquo;advice function&rdquo; that debounces the function it advises.  <code>debounce!</code> can then add or remove this advice function to its argument.</p>
+<hr>
+<p>Fortuitously, the other two problems &ndash; mirroring the interactive spec and adding function documentation &ndash; have worked themselves out.</p>
+<ul>
+<li>Advice functions that don&rsquo;t have an interactive spec <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Core-Advising-Primitives.html">will reuse</a> that of the function they are advising.</li>
+<li>The documentation of the original function is still available, with a note about the advice at the end.  This note is the documentation of the advice function itself, <em>i.e.</em> &ldquo;Throttle this function&rdquo;.</li>
+</ul>
+<h2 id="top-level-vs-nested-calls-what-can-we-timeout">Top-level vs nested calls: what can we timeout?</h2>
+<p>A short digression on Emacs&rsquo; command loop.</p>
+<p>Throttling or debouncing code that runs at top-level, such as user commands or timers, is simple.  Since there&rsquo;s nothing for them to &ldquo;return to&rdquo;, introducing delays or (effectively) refusing to run code has no consequences beyond a delay in the corresponding library&rsquo;s understanding of Emacs&rsquo; current state.</p>
+<p>Things get tricky when we mess with &ldquo;internal&rdquo; code.  Often it&rsquo;s not user commands themselves that need debouncing, but something heavy lurking well inside a hook that runs as a result of the command.  Our throttle example above (<code>sml/generate-minor-modes</code>) is a &ldquo;hook function&rdquo; triggered by <a class="org-gls" href="#gls-11">mode-line</a> updates.  Our debounce example (<code>org-agenda-do-context-action</code>) is a function called from deep inside the <code>org-agenda</code> machinery when the cursor moves.  Since</p>
+<ul>
+<li>throttled functions can return <code>nil</code> or repeat a previous result, and</li>
+<li>debounced functions always return <code>nil</code> immediately,</li>
+</ul>
+<p>we require <code>nil</code> to be (at minimum) a valid return value wherever they are called, and (better) a value that stops further processing in the moment.</p>
+<details>
+<summary>Picking a different return value</summary>
+<div class="details">
+<p>The same is true for any other <code>non-nil</code> value we choose to return (<a href="#code-snippet--debounced-closure">see implementation</a>).  Reusing return values from past calls to debounced functions is not possible without setting up global variables&hellip;  which is a project for another time.</p>
+</div>
+</details>
+<p>Having throttled and debounced a bunch of internal functions now, I can report that this is generally true of elisp code that needs a timeout, so long as a little care is exercised in picking them.</p>
+<h2 id="throttle-and-debounce-non-destructive-finagling"><code>throttle</code> and <code>debounce</code>: Non-destructive finagling</h2>
+<p>So why is:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">fset</span> <span style="color:#a60;background-color:#fff0f0">&#39;foo-debounced</span> (<span style="color:#963">debounce</span> <span style="color:#a60;background-color:#fff0f0">&#39;foo</span> <span style="color:#60e;font-weight:bold">0.5</span>))
+</span></span></code></pre></div><p>difficult to pull off well?</p>
+<p>We have the basic skeleton in place <a href="#code-snippet--debounced-closure">from before</a>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">debounce</span> (<span style="color:#963">func</span> <span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">delay</span> <span style="color:#963">default</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Return a debounced version of FUNC.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">It runs with a delay of DELAY seconds (default 0.5).
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">DEFAULT is the immediate return value of the function when
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">called.&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">debounce-timer</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">delay</span> (<span style="color:#007020">or</span> <span style="color:#963">delay</span> <span style="color:#60e;font-weight:bold">0.5</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">lambda</span> (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">if</span> (<span style="color:#963">timerp</span> <span style="color:#963">debounce-timer</span>)
+</span></span><span style="display:flex;"><span>          (<span style="color:#963">timer-set-idle-time</span> <span style="color:#963">debounce-timer</span> <span style="color:#963">delay</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">prog1</span> <span style="color:#963">default</span>
+</span></span><span style="display:flex;"><span>          (<span style="color:#007020">setq</span> <span style="color:#963">debounce-timer</span>
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">run-with-idle-timer</span>
+</span></span><span style="display:flex;"><span>                 <span style="color:#963">delay</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>                 (<span style="color:#007020">lambda</span> (<span style="color:#963">buf</span>)
+</span></span><span style="display:flex;"><span>                   (<span style="color:#007020">setq</span> <span style="color:#963">debounce-timer</span> <span style="color:#036;font-weight:bold">nil</span>)
+</span></span><span style="display:flex;"><span>                   (<span style="color:#007020">with-current-buffer</span> <span style="color:#963">buf</span> <span style="color:#888">;set buffer when running</span>
+</span></span><span style="display:flex;"><span>                     (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">func</span> <span style="color:#963">args</span>)))
+</span></span><span style="display:flex;"><span>                 (<span style="color:#06b;font-weight:bold">current-buffer</span>))))))))
+</span></span></code></pre></div><p>The problems are:</p>
+<ol>
+<li>Mirroring the interactive form of <code>func</code>.</li>
+<li>Documenting the unnamed closure that <code>debounce</code> returns.</li>
+</ol>
+<h4 id="mirroring-interactive-forms">Mirroring <code>interactive</code> forms</h4>
+<p>We can lean on the advice system again for the former, but it&rsquo;s ugly.  We essentially write both versions of the function and pick one.  Here&rsquo;s <code>throttle</code>:</p>
+<details>
+<summary>Mirroring interactive forms: <code>throttle</code></summary>
+<div class="details">
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">throttle</span> (<span style="color:#963">func</span> <span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">throttle</span> <span style="color:#963">default</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Return a throttled version of function FUNC.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">THROTTLE defaults to 1 second.&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">throttle-timer</span> <span style="color:#036;font-weight:bold">nil</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">throttle</span> (<span style="color:#007020">or</span> <span style="color:#963">throttle</span> <span style="color:#00d;font-weight:bold">1</span>))
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">iform</span> (<span style="color:#06b;font-weight:bold">interactive-form</span> <span style="color:#963">func</span>))
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">result</span> <span style="color:#963">default</span>))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">if</span> <span style="color:#963">iform</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#888">;; INTERACTIVE version</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">lambda</span> (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>          (<span style="color:#007020">interactive</span> (<span style="color:#963">advice-eval-interactive-spec</span>
+</span></span><span style="display:flex;"><span>                     (<span style="color:#963">cadr</span> <span style="color:#963">iform</span>)))
+</span></span><span style="display:flex;"><span>          (<span style="color:#007020">if</span> (<span style="color:#007020">and</span> <span style="color:#963">throttle-timer</span> (<span style="color:#963">timerp</span> <span style="color:#963">throttle-timer</span>))
+</span></span><span style="display:flex;"><span>              <span style="color:#963">result</span>
+</span></span><span style="display:flex;"><span>            (<span style="color:#007020">setq</span> <span style="color:#963">result</span> (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">func</span> <span style="color:#963">args</span>))
+</span></span><span style="display:flex;"><span>            (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span>
+</span></span><span style="display:flex;"><span>                  (<span style="color:#963">run-with-timer</span>
+</span></span><span style="display:flex;"><span>                   <span style="color:#963">throttle</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>                   (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>                     (<span style="color:#963">cancel-timer</span> <span style="color:#963">throttle-timer</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span> <span style="color:#036;font-weight:bold">nil</span>))))))
+</span></span><span style="display:flex;"><span>      <span style="color:#888">;; NON-INTERACTIVE version</span>
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">lambda</span> (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>          (<span style="color:#007020">if</span> (<span style="color:#007020">and</span> <span style="color:#963">throttle-timer</span> (<span style="color:#963">timerp</span> <span style="color:#963">throttle-timer</span>))
+</span></span><span style="display:flex;"><span>              <span style="color:#963">result</span>
+</span></span><span style="display:flex;"><span>            (<span style="color:#007020">setq</span> <span style="color:#963">result</span> (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">func</span> <span style="color:#963">args</span>))
+</span></span><span style="display:flex;"><span>            (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span>
+</span></span><span style="display:flex;"><span>                  (<span style="color:#963">run-with-timer</span>
+</span></span><span style="display:flex;"><span>                   <span style="color:#963">throttle</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>                   (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>                     (<span style="color:#963">cancel-timer</span> <span style="color:#963">throttle-timer</span>)
+</span></span><span style="display:flex;"><span>                     (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span> <span style="color:#036;font-weight:bold">nil</span>)))))))))
+</span></span></code></pre></div></div>
+</details>
+<p><code>debounce</code> is similar.</p>
+<h4 id="inserting-function-documentation">Inserting function documentation</h4>
+<p>Named symbols can have function documentation inserted directly into their <code>function-documentation</code> <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Standard-Properties.html">symbol property</a>.  Documenting unnamed closures programmatically is beyond me at this point &ndash; unless of course, we embrace the idea that we&rsquo;re writing code that writes code&hellip;</p>
+<h3 id="it-s-macrotime">It&rsquo;s macrotime!</h3>
+<p>At this point it would actually be easier to get Emacs to write the code for us.  This process is much more accessible (if not simpler) with a macro.  We can fetch the relevant interactive form and documentation and shove them verbatim into the closure definition:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span><span style="color:#333">`</span>(<span style="color:#007020">lambda</span> (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>   <span style="color:#888">;; Add the documentation from FUNC with an extra note</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#333">,</span>(<span style="color:#06b;font-weight:bold">concat</span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">documentation</span> <span style="color:#963">func</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">format</span> <span style="background-color:#fff0f0">&#34;\n\nThis function is debounced -- it runs after a delay of %.3f seconds.&#34;</span> <span style="color:#963">delay</span>))
+</span></span><span style="display:flex;"><span>  <span style="color:#888">;; Add the interactive form from FUNC</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#333">,</span>(<span style="color:#06b;font-weight:bold">interactive-form</span> <span style="color:#963">func</span>)
+</span></span><span style="display:flex;"><span>  <span style="color:#888">;; Rest of the debounce code from above</span>
+</span></span><span style="display:flex;"><span>  )
+</span></span></code></pre></div><p>While we&rsquo;re at it, we can even skip the <code>fset</code> step and just define the new function <code>func--debounced</code> directly:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span><span style="color:#333">`</span>(<span style="color:#007020">defun</span> <span style="color:#333">,</span>(<span style="color:#06b;font-weight:bold">intern</span> (<span style="color:#06b;font-weight:bold">concat</span> (<span style="color:#06b;font-weight:bold">symbol-name</span> <span style="color:#963">func</span>) <span style="background-color:#fff0f0">&#34;--debounced&#34;</span>)) (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>   <span style="color:#888">;; Add the documentation from FUNC with an extra note</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#333">,</span>(<span style="color:#06b;font-weight:bold">concat</span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">documentation</span> <span style="color:#963">func</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">format</span> <span style="background-color:#fff0f0">&#34;\n\nThis function is debounced -- it runs after a delay of %.3f seconds.&#34;</span> <span style="color:#963">delay</span>))
+</span></span><span style="display:flex;"><span>  <span style="color:#888">;; Add the interactive form from FUNC</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#333">,</span>(<span style="color:#06b;font-weight:bold">interactive-form</span> <span style="color:#963">func</span>)
+</span></span><span style="display:flex;"><span>  <span style="color:#888">;; Rest of the debounce code from above</span>
+</span></span><span style="display:flex;"><span>  )
+</span></span></code></pre></div><p>Adding the lexical environment (for <code>debounce-timer</code> etc) and the rest of the macro definition, we get</p>
+<div class="warning">
+<p>If you are trying this in Emacs, be sure to <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Lexical-Binding.html">turn on</a> <code>lexical-binding</code> first.</p>
+</div>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defmacro</span> <span style="color:#963">debounce</span> (<span style="color:#963">func</span> <span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">delay</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Return a debounced version of function FUNC.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">DELAY defaults to 0.5 seconds.&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#333">`</span>(<span style="color:#007020">let</span> ((<span style="color:#963">debounce-timer</span> <span style="color:#036;font-weight:bold">nil</span>)
+</span></span><span style="display:flex;"><span>         (<span style="color:#963">delay</span> (<span style="color:#007020">or</span> <span style="color:#333">,</span><span style="color:#963">delay</span> <span style="color:#60e;font-weight:bold">0.5</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">defun</span> <span style="color:#333">,</span>(<span style="color:#06b;font-weight:bold">intern</span> (<span style="color:#06b;font-weight:bold">concat</span> (<span style="color:#06b;font-weight:bold">symbol-name</span> <span style="color:#963">func</span>) <span style="background-color:#fff0f0">&#34;--debounced&#34;</span>)) (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>      <span style="color:#888">;; Add the documentation from FUNC with an extra note</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#333">,</span>(<span style="color:#06b;font-weight:bold">concat</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#06b;font-weight:bold">documentation</span> <span style="color:#963">func</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#06b;font-weight:bold">format</span> <span style="background-color:#fff0f0">&#34;\n\nThis function is debounced -- it runs after a delay of %.3f seconds.&#34;</span> <span style="color:#963">delay</span>))
+</span></span><span style="display:flex;"><span>      <span style="color:#888">;; Add the interactive form from FUNC</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#333">,</span>(<span style="color:#06b;font-weight:bold">interactive-form</span> <span style="color:#963">func</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">if</span> (<span style="color:#963">timerp</span> <span style="color:#963">debounce-timer</span>)
+</span></span><span style="display:flex;"><span>          (<span style="color:#963">timer-set-idle-time</span> <span style="color:#963">debounce-timer</span> <span style="color:#963">delay</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">let</span> ((<span style="color:#963">buf</span> (<span style="color:#06b;font-weight:bold">current-buffer</span>)))
+</span></span><span style="display:flex;"><span>         (<span style="color:#007020">setq</span> <span style="color:#963">debounce-timer</span>
+</span></span><span style="display:flex;"><span>          (<span style="color:#963">run-with-idle-timer</span>
+</span></span><span style="display:flex;"><span>           <span style="color:#963">delay</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>           (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>             (<span style="color:#963">cancel-timer</span> <span style="color:#963">debounce-timer</span>)
+</span></span><span style="display:flex;"><span>             (<span style="color:#007020">setq</span> <span style="color:#963">debounce-timer</span> <span style="color:#036;font-weight:bold">nil</span>)
+</span></span><span style="display:flex;"><span>             (<span style="color:#007020">with-current-buffer</span> <span style="color:#963">buf</span>
+</span></span><span style="display:flex;"><span>              (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#333">,</span><span style="color:#963">func</span> <span style="color:#963">args</span>))))))))))
+</span></span></code></pre></div><p>This works as we intended, only the function name should no longer be quoted. The following code</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">debounce</span> <span style="color:#963">next-line</span> <span style="color:#60e;font-weight:bold">0.4</span>)
+</span></span></code></pre></div><p>expands to a definition for <code>next-line--debounced</code>, replete with the correct documentation and <code>interactive</code> behavior
+<span class="sidenote-number"><small class="sidenote">
+Or we could stick to the anonymous closure version and run <code>(fset 'next-line--debounced (debounce next-line))</code>
+</small></span>
+.</p>
+<p>For completeness, here is <code>throttle</code> as a macro:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defmacro</span> <span style="color:#963">throttle</span> (<span style="color:#963">func</span> <span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">timeout</span> <span style="color:#963">default</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Return a throttled version of function FUNC.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">TIMEOUT defaults to 1 second.&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#333">`</span>(<span style="color:#007020">let</span> ((<span style="color:#963">throttle-timer</span> <span style="color:#036;font-weight:bold">nil</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">timeout</span> (<span style="color:#007020">or</span> <span style="color:#333">,</span><span style="color:#963">timeout</span> <span style="color:#60e;font-weight:bold">1.0</span>))
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">result</span> <span style="color:#333">,</span><span style="color:#963">default</span>))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">defun</span> <span style="color:#333">,</span>(<span style="color:#06b;font-weight:bold">intern</span> (<span style="color:#06b;font-weight:bold">concat</span> (<span style="color:#06b;font-weight:bold">symbol-name</span> <span style="color:#963">func</span>) <span style="background-color:#fff0f0">&#34;--debounced&#34;</span>)) (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>      <span style="color:#333">,</span>(<span style="color:#06b;font-weight:bold">concat</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#06b;font-weight:bold">documentation</span> <span style="color:#963">func</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#06b;font-weight:bold">format</span> <span style="background-color:#fff0f0">&#34;\n\nThis function is throttled -- it runs at most once every %.3f seconds.&#34;</span> <span style="color:#963">timeout</span>))
+</span></span><span style="display:flex;"><span>      <span style="color:#333">,</span>(<span style="color:#06b;font-weight:bold">interactive-form</span> <span style="color:#963">func</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">if</span> (<span style="color:#007020">and</span> <span style="color:#963">throttle-timer</span> (<span style="color:#963">timerp</span> <span style="color:#963">throttle-timer</span>))
+</span></span><span style="display:flex;"><span>          <span style="color:#963">result</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">setq</span> <span style="color:#963">result</span> (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#333">,</span><span style="color:#963">func</span> <span style="color:#963">args</span>))
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span>
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">run-with-timer</span>
+</span></span><span style="display:flex;"><span>               <span style="color:#963">timeout</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>               (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>                 (<span style="color:#963">cancel-timer</span> <span style="color:#963">throttle-timer</span>)
+</span></span><span style="display:flex;"><span>                 (<span style="color:#007020">setq</span> <span style="color:#963">throttle-timer</span> <span style="color:#036;font-weight:bold">nil</span>))))))))
+</span></span></code></pre></div><h2 id="questions">Questions</h2>
+<p>A few concerns bubbled up on this excursion, and I don&rsquo;t know how to address them:</p>
+<ol>
+<li>
+<p>Debouncing a function a few hundred times is easy to do just by holding down a key.  <del>This creates and destroys many timers &ndash; I don&rsquo;t know if the ensuing garbage is worth worrying about, and whether it can be avoided.</del>
+<span class="sidenote-number"><small class="sidenote">
+This is now avoided in the code, see acknowledgments.
+</small></span>
+Here is the <code>atimer</code> struct that Emacs uses:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>   <span style="color:#080;font-weight:bold">struct</span> atimer
+</span></span><span style="display:flex;"><span>   {
+</span></span><span style="display:flex;"><span>     <span style="color:#888">/* The type of this timer.  */</span>
+</span></span><span style="display:flex;"><span>     <span style="color:#080;font-weight:bold">enum</span> atimer_type type;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>     <span style="color:#888">/* Time when this timer is ripe.  */</span>
+</span></span><span style="display:flex;"><span>     <span style="color:#080;font-weight:bold">struct</span> timespec expiration;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>     <span style="color:#888">/* Interval of this timer.  */</span>
+</span></span><span style="display:flex;"><span>     <span style="color:#080;font-weight:bold">struct</span> timespec interval;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>     <span style="color:#888">/* Function to call when timer is ripe.  Interrupt input is
+</span></span></span><span style="display:flex;"><span><span style="color:#888">        guaranteed to not be blocked when this function is called.  */</span>
+</span></span><span style="display:flex;"><span>     atimer_callback fn;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>     <span style="color:#888">/* Additional user-specified data to pass to FN.  */</span>
+</span></span><span style="display:flex;"><span>     <span style="color:#339;font-weight:bold">void</span> <span style="color:#333">*</span>client_data;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>     <span style="color:#888">/* Next in list of active or free atimers.  */</span>
+</span></span><span style="display:flex;"><span>     <span style="color:#080;font-weight:bold">struct</span> atimer <span style="color:#333">*</span>next;
+</span></span><span style="display:flex;"><span>   };
+</span></span></code></pre></div><p>This is&hellip; about 48 bytes of memory?  <del>Debouncing a command 200 times &ndash; not an uncommon occurrence &ndash; then creates at least 10KB of garbage.  How does this compare with the regular rate of garbage creation in Emacs?</del></p>
+</li>
+<li>
+<p>How long does it take, realistically speaking, to create and clear timers?  Some testing suggests that this is not an insignificant number when done in bulk, especially coupled with garbage collection.</p>
+</li>
+<li>
+<p>Using a macro to implement the &ldquo;non-destructive&rdquo; versions of <code>throttle!</code> and <code>debounce!</code> does not pair well with our functions &ndash; the call signatures are different.  Perhaps there is a way to do this with functions that isn&rsquo;t janky?</p>
+</li>
+</ol>
+<h2 id="the-timeout-library">The <code>timeout</code> library</h2>
+<p>This functionality is available as an elisp package: <a href="https://github.com/karthink/timeout">timeout</a>.  So far it&rsquo;s exactly the code developed above, and just a couple of helper functions.</p>
+<p>Writing debouncers and throttlers this way wasn&rsquo;t a careful design process on my part.  In fact, I have no idea how else I could write them in elisp.  This suggests that I don&rsquo;t understand the problem very well, or don&rsquo;t understand elisp well, or (more likely) both.  If you have corrections, suggestions or answers for me, please get in touch.</p>
+<p>All right then &ndash; that&rsquo;s it for me.  Gotta debounce!</p>
+<details class="details apinote" open style="font-size:0.8rem;margin-top:18px">
+<summary>Glossary</summary>
+<div class="details">
+<dl>
+<dt><a name="gls-6">Idle timer</a></dt>
+<dd>An idle timer is some Lisp code scheduled to run when Emacs is idle for a specified period.  What it means for Emacs to be idle is complicated: at minimum, this means no user input, no subprocess communication and no non-idle timers that need running. [2 uses]</dd>
+<dt><a name="gls-11">Mode-line</a></dt>
+<dd>This is the &ldquo;status bar&rdquo; at the bottom of Emacs windows.  There are dozens of Emacs packages that prettify the mode-line, adding widgets and status reports.  I&rsquo;ve found many of these to be too aggressive in how often they update. [10 uses]</dd>
+<dt><a name="gls-8">Push operations</a></dt>
+<dd>Slow elisp code that runs as a direct result of user input.  Example: an html preview of a markdown buffer that updates with each keystroke.  Less exreme examples: sending data to an LSP server when some code is yanked into a buffer, or a header-line update because the cursor moved into a new function.  So named because control of Emacs is &ldquo;pushed&rdquo; away as a result of the input action. [3 uses]</dd>
+<dt><a name="gls-9">Pull operations</a></dt>
+<dd>Slow elisp code that runs independent of user input, although it might be interrupted by it.  So named because control of Emacs is &ldquo;pulled&rdquo; away by this code irrespective of user input.  Examples: any idle timer not tied to user input, like RefTeX&rsquo;s periodic scans of the LaTeX buffer.  Of course, ultimately everything that happens in Emacs is user-driven and thus a &ldquo;push operation&rdquo;.  This distinction is only one of proximity to the user. [3 uses]</dd>
+<dt><a name="gls-10">Redisplay</a></dt>
+<dd>This is the process of redrawing the screen, or more often parts of it, in Emacs.  Considering Emacs&rsquo; terminal user interface and support for every platform under the sun, displaying is a complicated affair. [1 uses]</dd>
+</dl>
+</div>
+</details>
+<details open style="font-size:0.8rem;margin-top:12px">
+<summary>Acknowledgments</summary>
+<div class="details">
+<p>Joseph Turner points out that <code>timerp</code> handles the case when its argument is <code>nil</code>, so there is no need to check explicitly, as in <code>(if (and debounce-timer (timerp debounce-timer)))</code>.</p>
+<p>Ihor Radchenko points out that timer attributes (such as the remaining time) can be modified in place with the <code>timer-set-*</code> functions.  This completely fixes the problem of debounce timers generating a lot of garbage.</p>
+</div>
+</details>

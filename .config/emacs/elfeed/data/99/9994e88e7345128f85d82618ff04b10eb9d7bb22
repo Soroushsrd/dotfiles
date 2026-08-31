@@ -1,0 +1,11 @@
+<p>
+Over at <a href="https://ray-on-emacs.blogspot.com">Ray on Emacs</a>, Raymond Zeitler <a href="https://ray-on-emacs.blogspot.com/2026/06/emacs-carnival-diary-part-1.html">writes about the Emacs Diary</a> for the <a href="https://rossabaker.com/blog/underappreciated-emacs-built-ins/">June Emacs Carnival</a>. The June topic is underappreciated Emacs built-ins and for Zeitler that&rsquo;s Emacs Diary. He was a little disconcerted at first by being offered a blank screen for each entry. He wondered where his previous material went but he came to appreciate the fresh start that that blank buffer gave him. He goes on to describes some of the functions and capabilities of Diary.
+</p>
+<p>
+I recently started keeping a personal journal too and considered using Diary—it was, of course, going to be written in Emacs in any event—but decided to simply use Org mode instead. I have an Org capture template to start a new entry—just like Zeitler&rsquo;s method—but I can, of course, just bring up the journal Org file directly to see or edit anything.
+</p>
+<p>
+I&rsquo;ve found that this works well for me. I don&rsquo;t write in my journal everyday, just when something worth recording happens, so I don&rsquo;t care about things like when the sun rose or set, what the temperature was on that day; just what happened that I felt was worth remembering. Of course, if I <i>did</i> care about such things it would be easy to arrange to add them.
+</p>
+<p>
+Or I could just use Diary. That&rsquo;s the beauty of Emacs: you can make it do pretty much whatever you need it to and very often what you need is already there.</p>

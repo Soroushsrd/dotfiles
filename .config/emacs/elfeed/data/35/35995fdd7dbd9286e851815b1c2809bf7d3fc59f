@@ -1,0 +1,58 @@
+
+<p class="wp-block-paragraph">Back in October, I wrote <a href="https://herbsutter.com/2025/10/23/schneier-on-llm-vulnerabilities-agentic-ai-and-trusting-trust/">&#8220;Schneier on LLM vulnerabilities, agentic AI, and &#8216;trusting&nbsp;trust'&#8221;</a> about fundamental architectural weaknesses in current LLMs and agents, and why I personally don&#8217;t yet trust AI agents with my credentials. At the end, I wrote:</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">I love AI and LLMs. I use them every day. I look forward to letting an AI generate and commit more code on my behalf, just not quite yet — I’ll wait until the AI wizards deliver new generations of LLMs with improved architectures that let the defenders catch up again in the security arms race. I’m sure they’ll get there&#8230;</p>
+</blockquote>
+
+
+
+<p class="wp-block-paragraph">Since then, I&#8217;ve been regularly hearing reports across companies and industries about experiences with various AI agent products (not picking on any one vendor), where a top-shelf AI agent or LLM:</p>
+
+
+
+<ul class="wp-block-list">
+<li>escaped its vendor-provided sandbox</li>
+
+
+
+<li>performed actions (e.g., tool calls) when explicitly told not to take any action</li>
+
+
+
+<li>unexpectedly deleted production data (e.g., database, git repo, files)</li>
+
+
+
+<li>caused other production outage (e.g., exceeding resources)</li>
+
+
+
+<li>generated excessively insecure code (far more vulnerabilities than a junior human developer)</li>
+
+
+
+<li>and/or multiple of the above</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Here&#8217;s another one this week, now making the rounds: <a href="https://x.com/lifeof_jer/status/2048103471019434248?s=12">&#8220;An AI Agent Just Destroyed Our Production Data. It Confessed in Writing&#8221; (x.com)</a></p>
+
+
+
+<p class="wp-block-paragraph">So I was curious enough to write the following anonymous poll &#8212; please share your experience of any (or no) harm by an AI agent that you&#8217;ve personally observed or heard about directly from someone who did personally observe it. After you vote, you should be able to see the current poll results.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity" />
+
+
+
+<p class="wp-block-paragraph"><em>Update:</em> Here is a snapshot of the poll results.</p>
+
+
+
+<figure class="wp-block-image size-large"><a href="https://herbsutter.com/wp-content/uploads/2026/04/image-2.png"><img loading="lazy" width="1024" height="616" data-attachment-id="6239" data-permalink="https://herbsutter.com/2026/04/30/poll-ai-agents/image-24/" data-orig-file="https://herbsutter.com/wp-content/uploads/2026/04/image-2.png" data-orig-size="1159,698" data-comments-opened="0" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;,&quot;alt&quot;:&quot;&quot;}" data-image-title="image" data-image-description="" data-image-caption="" data-large-file="https://herbsutter.com/wp-content/uploads/2026/04/image-2.png?w=1024" src="https://herbsutter.com/wp-content/uploads/2026/04/image-2.png?w=1024" alt="" class="wp-image-6239" srcset="https://herbsutter.com/wp-content/uploads/2026/04/image-2.png?w=1024 1024w, https://herbsutter.com/wp-content/uploads/2026/04/image-2.png?w=150 150w, https://herbsutter.com/wp-content/uploads/2026/04/image-2.png?w=300 300w, https://herbsutter.com/wp-content/uploads/2026/04/image-2.png?w=768 768w, https://herbsutter.com/wp-content/uploads/2026/04/image-2.png 1159w" sizes="auto, (max-width: 1024px) 100vw, 1024px" /></a></figure>

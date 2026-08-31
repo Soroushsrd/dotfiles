@@ -1,0 +1,616 @@
+<p>Ever since Gilles Castel documented his <a href="https://castel.dev/post/lecture-notes-1/">method for taking math notes in real-time in Vim</a>, I&rsquo;ve noticed Emacs users asking if it&rsquo;s possible to replicate this level of speed and convenience typing \(\LaTeX\) in Emacs<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>. Well, it&rsquo;s Emacs. Of course all of this&ndash;and more&ndash;is possible. I write LaTeX all day, and I&rsquo;m about as fast as when writing equations on paper. Sometimes a smidge faster. In this write-up I explain how, but first here&rsquo;s what I mean:</p>
+<p>Math input for the impatient:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-full-demo-1.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-full-demo-1.mp4">[VIDEO]</a>
+</video>
+<p>Matrices in a hurry:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-matrix-demo-1.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-matrix-demo-1.mp4">[VIDEO]</a>
+</video>
+<p>A typical statement:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-statement-demo-1.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-statement-demo-1.mp4">[VIDEO]</a>
+</video>
+<style>
+.detail-icon {
+float: right;
+max-width: 25px;
+}
+.Task {
+text-align: center;
+background: #bb90b7;
+padding-left: 2px;
+padding-right: 3px;
+border-radius: 4px;
+color: black;
+}
+.tabbox {
+background: #E8E9EB;
+display: table;
+border-radius: 6px;
+padding: 6px;
+}
+</style>
+<h2 id="tl-dr-just-give-me-the-code">TL;DR: Just give me the code</h2>
+<p>The rest of this article outlines the components involved in LaTeX editing in Emacs and breaks down the features that are used to speed up text input specifically. <strong>The objective is to enable Emacs to let you type LaTeX, including math, as fast as you can type regular text or write math on paper</strong>. Fast enough to take live notes, at least.</p>
+<p>You can use the TOC (to the right or below) to gain an overview of the tools involved. The demos might be helpful too.</p>
+<p>The configuration code is available as a single file <a href="https://gist.github.com/karthink/7d89df35ee9b7ac0c93d0177b862dadb">here</a>. It will install three Emacs packages: AucTeX, CDLaTeX and YaSnippet. It does not install any YaS snippets. The snippets I use are <a href="https://github.com/karthink/yasnippets/tree/master/latex-mode">here</a>, but I recommend writing ones that suit your needs instead.</p>
+<p>One of the features included in this code, used to rapidly input LaTeX tables or arrays, is available as a separate package here: <a href="https://github.com/karthink/lazytab">Lazytab</a>.</p>
+<h2 id="the-state-of-latex-editing-in-emacs">The state of LaTeX editing in Emacs</h2>
+<p>This is my rough understanding of LaTeX editing in Emacs:</p>
+<p><a href="https://karthinks.com/img/latex_editing_overview.svg"><img src="https://karthinks.com/img/latex-editing-overview.png" style="max-width:110%;"></a></p>
+<p><em>Click to embiggen. Also every block is a link to the corresponding package.</em></p>
+<p>At the core is the TeX document structure: the document tree, text and floats, the document class and style, cross-references and citations, other metadata and doc versions<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup>. Surrounding it are the islands of concern when using a text editor to create this document: text input and text editing, document navigation, appearance, linting and compilation. The spokes leading into these islands are Emacs packages, libraries or library features that enable or hasten these tasks.</p>
+<p>I&rsquo;m not qualified to comment on most aspects of this map. Ask an Emacs user who&rsquo;s written a book or two. This article is intended to be a collection of tips to speed up LaTeX editing to the point where you can take live notes, <em>not</em> a comprehensive guide to editing LaTeX in Emacs. Thus we&rsquo;re mostly looking at the <span class="Task">Text Input</span> block, with quick dips into the Appearance and Text Editing sections. If you&rsquo;re interested in the full picture I recommend starting with the AucTeX manual (<code>C-h i m auctex</code> in Emacs). It&rsquo;s quite readable, and if you have the rare gene that lets you tolerate manuals, quite pleasant too!</p>
+<p>On account of my ignorance, there are atleast a couple of big omissions in this chart. These are worth mentioning:</p>
+<ul>
+<li><a href="https://github.com/astoff/digestif">Digestif</a>: The Language Server for LaTeX in combination with <a href="https://github.com/joaotavora/eglot">Eglot</a> or <a href="https://github.com/emacs-lsp/lsp-mode">LSP</a> should handle many of these tasks: cross-references, citations, linting, autocompletion etc.</li>
+<li><a href="https://github.com/dandavison/xenops">Xenops</a>: Xenops is a full suite of tools built on top of the venerable AucTeX that collects the above features into a single package that you can install and use with no configuration. It also adds literate programming support.</li>
+</ul>
+<p>If you want faster or more convenient ways to do the other tasks, check out the links in the chart above.</p>
+<p>In a future post in this series I plan to cover the Text Editing block, which is different from Input in that it deals primarily with manipulating existing document structure without adding significantly to it. We will end up using a different set of tools from the ones I cover below.</p>
+<h2 id="the-basic-ingredients">The basic ingredients</h2>
+<figure><img src="https://karthinks.com/img/latex-input-block-overview.png"/>
+</figure>
+
+<p>Of this bunch, we only need a few ingredients (plus Emacs itself). We build the text input environment we need in three stages of laziness:</p>
+<ul>
+<li>
+<p>AucTeX, which is the foundation for LaTeX (and ConText) editing in Emacs. It provides commands and minor-modes for all the aspects of document creation above. It provides all the ingredients we need. You could live with just AucTeX and be completely satisfied with your speed of text input and convenience of editing, as I was for many years.</p>
+</li>
+<li>
+<p>CDLaTeX, which is a collection of commands and convenience features mostly intended to reduce how much you need to type. This is one of Emacs&rsquo; best kept secrets, and the secret sauce in our recipe.</p>
+</li>
+<li>
+<p>YaSnippet, which is a package for Emacs to insert text snippets, <em>i.e.</em> templates with placeholder fields that you can fill in. Of course, we bend it into doing a lot more. This overlaps in functionality with CDLaTeX in an inconvenient way, but them&rsquo;s the breaks.</p>
+<p>Let&rsquo;s get this out of the way now: A google search for faster LaTeX input in Emacs usually leads people straight to <code>Yasnippet</code> and the more contemporary <code>auto-activating-snippets</code> packages. While I make some use of <code>Yasnippet</code> in the demos above (and below), I think heavy use of expanding snippets is the <strong>wrong</strong> approach to speed up your LaTeX editing. More on this <a href="#snippets-snap-easy">in a bit</a>.</p>
+</li>
+</ul>
+<p>The remaining packages in the Text input block above mostly overlap in function with the above:</p>
+<ul>
+<li><code>tempo</code>, <code>skeleton</code> and <code>abbrev</code> all offer some flavor of template insertion or expansion. YaSnippet and CDLaTeX handle this and do a lot more besides.</li>
+<li><code>capfs</code>, or the <code>completion-at-point</code> functionality is provided by AucTeX, but we will seldom need it because of how we enter text. If you need it to complete a keyword for whatever reason, you can call <code>completion-at-point</code> or use one of many packages that act as frontends for it, such as <code>company-mode</code> or <code>corfu</code>.</li>
+<li><code>auto-activating-snippets</code> and its add-on <code>LaTeX-auto-activating-snippets</code>: This is a cleaner and faster implementation of the specific functionality that we use YaSnippet for. If I was to start over I would probably use these, so do check them out.</li>
+<li><code>LaTeX-math-mode</code>, part of AucTeX. This is a method to insert mathematical symbols efficiently. CDLaTeX does it better though.</li>
+</ul>
+<hr>
+<p>So we begin with AucTeX, then add CDLaTeX and pile on YaSnippet at the end. With each addition we gain a boost in the speed of LaTeX input, but also introduce a little more jank and make the tower teeter a bit. I&rsquo;ve been using the former two for decades and added YaS a few years ago, and I think I&rsquo;ve worked most bugs out of the system by now. Still, <em>caveat emptor</em>.</p>
+<p>All set? OK, let&rsquo;s go.</p>
+<details>
+<summary>A note for org-mode users <span><img src="https://karthinks.com/img/org-mode-icon.png" class=detail-icon></span></summary>
+<div class="details">
+<p>Org-mode has very good support for LaTeX input out of the box, so you can use the tips in this article with minimal modifications. When necessary, I add org-mode specific details below.</p>
+</div>
+</details>
+<h2 id="step-1-auctex">Step 1: AucTeX</h2>
+<p>AucTeX does most of the work of creating a full fledged LaTeX editing environment, leaving us with the task of adding time-saving convenience features.</p>
+<p>AucTeX is generally responsible for providing completions when typing. The most general, always available options for text input are:</p>
+<ul>
+<li>Insert an arbitrary environment with <code>LaTeX-environment</code> (<code>C-c C-e</code>),</li>
+<li>or a macro with <code>TeX-insert-macro</code> (<code>C-c C-m</code>), which it will do so after prompting you for arguments.</li>
+<li>Insert a section header with <code>LaTeX-section</code> (<code>C-c C-s</code>).</li>
+</ul>
+<p>Further below I describe much faster ways to do this, however, so treat this as a fallback option that&rsquo;s always available.</p>
+<p>A couple of AucTeX&rsquo;s convenience features I use that do not pertain to text input:</p>
+<h3 id="outlines">Outlines</h3>
+<p>I turn on <code>outline-minor-mode</code> in TeX buffers so I can fold sections, jump across section headings and so on. If you use Emacs 28 or higher this enables the <code>outline-cycle</code> command that you can use to cycle section visibility with a single key like in Org-mode. I bind it to <code>TAB</code> like in Org-mode<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>.</p>
+<p><span class="tabbox">TAB&rsquo;ometer count: 2 (<code>outline-cycle</code> and <code>LaTeX-indent-line</code>)</span></p>
+<p>Here are a couple of useful appearance-related AucTeX features that inject a bit of WYSIWYG into the document:</p>
+<h3 id="pretty-symbols--m-x-prettify-symbols-mode">Pretty symbols (<code>M-x prettify-symbols-mode</code>)</h3>
+<p><code>prettify-symbols-mode</code> in LaTeX buffers will replace math symbols with more readable unicode equivalents. This makes parsing equations much easier:</p>
+<figure><img src="https://karthinks.com/img/latex-prettify-symbols-1.png"/>
+</figure>
+
+<p>This is for display only, the underlying text does <em>not</em> change. You can still search for the text in these symbols, for instance.</p>
+<p>There&rsquo;s nothing to set up, AucTeX defines these replacements for you. Just turn on <code>prettify-symbols-mode</code>:</p>
+<details>
+<summary>Turning on <code>prettify-symbols</code> <span><img src="https://karthinks.com/img/term-logo.png" class=detail-icon></span></summary>
+<div class="details">
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">add-hook</span> <span style="color:#a60;background-color:#fff0f0">&#39;LaTeX-mode-hook</span> <span style="color:#a60;background-color:#fff0f0">&#39;prettify-symbols-mode</span>)
+</span></span></code></pre></div></div>
+</details>
+<details>
+<summary>Pretty symbols in org-mode <span><img src="https://karthinks.com/img/org-mode-icon.png" class=detail-icon></span></summary>
+<div class="details">
+<p>Org has its own version of <code>prettify-symbols-mode</code>. Use <code>M-x org-toggle-pretty-entities</code> instead. It&rsquo;s bound to <code>C-c C-x \</code> by default.</p>
+</div>
+</details>
+<h3 id="in-buffer-previews--m-x-preview-buffer">In-buffer previews (<code>M-x preview-buffer</code>)</h3>
+<p>What&rsquo;s better than replacing individual symbols with unicode characters? Replacing entire equations and figures with compiled previews:</p>
+<figure><img src="https://karthinks.com/img/latex-preview-equation-1.png"/>
+</figure>
+
+<p>Moving the cursor over the equation will temporarily remove the image overlay and allow you to edit the environment:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-preview-edit-1.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-preview-edit-1.mp4">[VIDEO]</a>
+</video>
+<p>You can preview the environment at point, active region, section or the entire buffer, they&rsquo;re all bound under the preview map (<code>C-c C-p</code>). A common practice is to auto-preview math environments whenever you move out of one, and many packages provide this feature. Over the decades I&rsquo;ve found this more jarring than convenient. I prefer to edit freely (with the pretty symbols turned on) and call <code>preview-section</code> when I&rsquo;m done.</p>
+<p>I use both appearance enhancements in the demos in this write-up.</p>
+<details>
+<summary>Optional: Changing the preview image size <span><img src="https://karthinks.com/img/term-logo.png" class=detail-icon></span></summary>
+<div class="details">
+<p>One thing you may want is change the size of the preview images as displayed. Replace the number here with whatever works best for you:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">add-hook</span> <span style="color:#a60;background-color:#fff0f0">&#39;LaTeX-mode-hook</span>
+</span></span><span style="display:flex;"><span>          (<span style="color:#007020">defun</span> <span style="color:#963">preview-larger-previews</span> ()
+</span></span><span style="display:flex;"><span>            (<span style="color:#007020">setq</span> <span style="color:#963">preview-scale-function</span>
+</span></span><span style="display:flex;"><span>                  (<span style="color:#007020">lambda</span> () (<span style="color:#06b;font-weight:bold">*</span> <span style="color:#60e;font-weight:bold">1.25</span>
+</span></span><span style="display:flex;"><span>                           (<span style="color:#06b;font-weight:bold">funcall</span> (<span style="color:#963">preview-scale-from-face</span>)))))))
+</span></span></code></pre></div></div>
+</details>
+<details>
+<summary>In-buffer previews in Org-mode <span><img src="https://karthinks.com/img/org-mode-icon.png" class=detail-icon></span></summary>
+<div class="details">
+<p>Org has its own version of in-buffer LaTeX previews too. Instead of <code>preview-region</code>, you would do <code>M-x org-latex-preview</code>. (Bound to <code>C-c C-x C-l</code>)</p>
+</div>
+</details>
+<h3 id="the-rest-of-auctex">The rest of AucTeX</h3>
+<p>AucTeX is comprehensive: For example, <code>TeX-fold-mode</code> adds another way to hide some of the visual noise when looking at a document, while allowing you to step into the noisy bits seamlessly:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-tex-fold-demo-1.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-tex-fold-demo-1.mp4">[VIDEO]</a>
+</video>
+<p><code>TeX-error-</code> and <code>TeX-command-</code> deal with compilation and debugging, <code>TeX-view</code> with viewing output PDFs, <code>TeX-master</code> with multi-file documents, <code>TeX-documentation</code> with help and so on. These are beyond the scope of this article.</p>
+<h2 id="step-2-cdlatex">Step 2: CDLaTeX</h2>
+<p>CDLaTeX provides a collection of convenience functions that speed up editing LaTeX documents.</p>
+<p>This is an understatement. A more accurate assessment would be that after a couple of days of practice, CDLaTeX lets you type in and navigate LaTeX chunks like a motorcyclist weaving through traffic.</p>
+<p>Technically AucTeX already does most of this, but in a stodgy 90s sort of way. Do you want to type <code>C-c C-o C-o</code> after filling in every math environment? Me neither.</p>
+<details>
+<summary>CDLaTeX in org-mode <span><img src="https://karthinks.com/img/org-mode-icon.png" class=detail-icon></span></summary>
+<div class="details">
+<p>Instead of installing CDLaTeX you&rsquo;d turn on <code>org-cdlatex-mode</code>. You don&rsquo;t even need to install CDLaTeX, it&rsquo;s already on your system! Org-cdlatex-mode is part of Org.</p>
+<p>This is not a coincidence. CDLaTeX was written by Carsten Dominik (hence the CD), who was also the primary author of Org-mode.</p>
+</div>
+</details>
+<h3 id="the-tabinator">The TABinator</h3>
+<p>CDLaTeX&rsquo;s best trick is its heavy overloading of the <code>TAB</code> key. Pressing <code>TAB</code> jumps you to the next &ldquo;point of interest&rdquo;, placing your cursor at convenient spots for text input. This is much simpler to watch than to explain. Here I navigate through a chunk of my document with a hundred presses of the <code>TAB</code> key and nothing else:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-cdlatex-tab-demo-1.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-cdlatex-tab-demo-1.mp4">[VIDEO]</a>
+</video>
+<p>The heuristic it uses for where <code>TAB</code> should jump to next is generally pretty good, and handles delimiters and LaTeX macros adroitly:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-cdlatex-tab-demo-2.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-cdlatex-tab-demo-2.mp4">[VIDEO]</a>
+</video>
+<p>In this example, it jumps from outside the <code>\left(</code> to before the integral, then to the integrand, then the variable of integration, and finally past the <code>\right)</code>. As the manual helpfully summarizes:</p>
+<blockquote>
+<p>When in doubt, press TAB.</p>
+</blockquote>
+<p><span class="tabbox">TAB&rsquo;ometer count: 3 (Jumping around with <code>cdlatex-tab</code>)</span></p>
+<h3 id="entering-symbols">Entering symbols</h3>
+<p>Typing in the grave key (<code>`</code>) and a letter inserts symbols into the buffer, automatically adding inline math dollars if necessary:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-cdlatex-symbol-demo-1.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-cdlatex-symbol-demo-1.mp4">[VIDEO]</a>
+</video>
+<p>The keys are chosen to be mnemonic:</p>
+<ul>
+<li><code>`</code> and a-z (A-Z) insert greek letters (uppercase), so <code>`a</code> gives <code>\alpha</code>, <code>`L</code> gives <code>\Lambda</code> etc</li>
+<li><code>`</code> plus keys to insert arrows:
+<table>
+<thead>
+<tr>
+<th>key</th>
+<th>grave <code>`</code> + key</th>
+<th>two graves <code>` `</code> + key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&gt;</code> or <code>&lt;</code></td>
+<td>\(\rightarrow\) or \(\leftarrow\)</td>
+<td>\(\longrightarrow\) or \(\longleftarrow\)</td>
+</tr>
+<tr>
+<td><code>]</code> or <code>[</code></td>
+<td>\(\Rightarrow\) or \(\Leftarrow\)</td>
+<td>\(\Longrightarrow\) or \(\Longleftarrow\)</td>
+</tr>
+<tr>
+<td><code>^</code> or <code>_</code></td>
+<td>\(\uparrow\) or \(\downarrow\)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>=</code></td>
+<td>\(\Leftrightarrow\)</td>
+<td>\(\Longleftrightarrow\)</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+<p>There are mappings for symbols for other operations, such as on sets etc. But you don&rsquo;t need to remember any of this: a menu with hints pops up if you wait for a second. There are actually three layers of symbols, with less common ones accessed via repeated presses of the grave key: <code>` `&lt;key&gt;</code> and <code>` ` `&lt;key&gt;</code>:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-cdlatex-symbol-demo-2.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-cdlatex-symbol-demo-2.mp4">[VIDEO]</a>
+</video>
+<p>I found myself typing the first layer of symbols (single <code>`</code>) automatically after a couple of days of using CDLaTeX, and usually waiting for the hints to pop up for the less common symbols in the double <code>` `</code> and triple grave menu.</p>
+<p>You can change or add to this list of symbols by customizing <code>cdlatex-math-symbol-alist</code>. Lastly, if you need to type in a literal grave key in your document you can prefix it with <code>C-q</code>.</p>
+<p>Note: There is also <code>TeX-math-mode</code>, provided by AucTeX that does something very similar.</p>
+<details>
+<summary>Symbol entry in Org-mode <span><img src="https://karthinks.com/img/org-mode-icon.png" class=detail-icon></span></summary>
+<div class="details">
+<p><code>org-cdlatex</code> inserts symbols in org-mode without the math delimiters. This is because it&rsquo;s less visually distracting this way and Org&rsquo;s LaTeX export backend automatically adds the delimiters.</p>
+</div>
+</details>
+<h3 id="math-and-text-modifiers">Math and Text modifiers</h3>
+<p>You can add modifiers to typed in text with the single quote (<code>'</code>). This includes things like hats, dots, tildes and graves and over/underlines on symbols, as well as font style changes in both math and text modes:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-cdlatex-symbol-demo-3.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<p>As before, typing in a quote <code>'</code> and waiting pops up a window with hints. (There are many more modifiers available here, I use only a few.)</p>
+<p>This works the other way too. You can start with the modifier and type in the symbol or text after:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-cdlatex-symbol-demo-4.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-cdlatex-symbol-demo-4.mp4">[VIDEO]</a>
+</video>
+<p>You can change or add to this list by customizing <code>cdlatex-math-modify-alist</code>. To type in a literal quote you can use <code>''</code>.</p>
+<p>The live help feature of CDLaTeX used to be a revelation ten years ago. These days <code>which-key</code> and other packages have brought this to all of Emacs.</p>
+<h3 id="environments-and-math-templates">Environments and Math templates</h3>
+<p>CDLaTeX defines a collections of templates that expand into environments with <code>TAB</code>. You can then <code>TAB</code> your way across text fields in that expansion. In text mode, for example, you can type in <code>equ&lt;tab&gt;</code> to generate an equation environment or <code>sn&lt;tab&gt;</code> for a section, <code>fg&lt;tab&gt;</code> for a figure and <code>inc&lt;tab&gt;</code> for an <code>\includegraphics</code> macro. <code>env&lt;tab&gt;</code> or <code>beg&lt;tab&gt;</code> will insert any environment with prompting. Here are a few examples:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-cdlatex-templates-demo-1.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-cdlatex-templates-demo-1.mp4">[VIDEO]</a>
+</video>
+<p>(Note that I used <code>TAB</code> to both insert the template templates and navigate the document here.)</p>
+<p>There are similar shortcuts for common delimiters and macros inside math environments. For example, it modifies caret (<code>^</code>) and underscore (<code>_</code>) to insert <code>^{}</code> and <code>_{}</code>, and gracefully handles the braces. Here are more examples:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-cdlatex-templates-demo-2.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-cdlatex-templates-demo-2.mp4">[VIDEO]</a>
+</video>
+<p>You can, of course, add your own. I added a few environments to enter AMSMath style matrices by customizing <code>cdlatex-command-alist</code>. (Demo of matrix/array input <a href="#table-matrix-or-array-entry">below</a>.)</p>
+<p>This is familiar, expected stuff: these appear to be snippets like those provided by other packages. But there&rsquo;s one crucial difference. The text fields in a template/snippet inserter like YaSnippet lose their special meaning once the insertion is complete. CDLaTeX&rsquo;s <code>TAB</code> does <em>not</em> use special markers in the template, but a heuristic method to jump forward instead. So you can revisit these fields (and intermediate ones) in the same order at any time. See <a href="#snippets-snap-easy">Snippets snap easy</a>.</p>
+<p><span class="tabbox">TAB&rsquo;ometer count: 4 (Expand CDLaTeX templates with <code>cdlatex-tab</code>)</span></p>
+<h3 id="we-could-stop-here-and-things-would-be-good-dot">We could stop here, and things would be Good.</h3>
+<p>With fast symbol, modifier and environment insertion AucTeX and CDLaTeX together offer a stable and speedy LaTeX input and editing experience. The complete customizability of these features usually puts them well ahead of an online suite (like Overleaf) or LaTeX IDE (like TeXStudio) for most editing tasks<sup id="fnref:4"><a href="#fn:4" class="footnote-ref" role="doc-noteref">4</a></sup>.</p>
+<p>You can skip to the section on <a href="#putting-it-into-practice">Putting it into practice</a> now if this covers what you need.</p>
+<p>But our laziness and impatience knows no bounds. Hitting <code>TAB</code> every other second is too much work, as is typing arcane modifiers like <code>'^</code> or <code>'}</code>. That <code>Shift</code> key can really tire out the pinkies, especially if you type LaTeX all day. So it&rsquo;s time for&hellip;</p>
+<h2 id="step-3-yasnippet-and-automatic-snippets">Step 3: Yasnippet &amp; automatic snippets</h2>
+<p>We use Yasnippet primarily for auto-expansion of snippets. Auto-expansion implies that there&rsquo;s no need to hit <code>TAB</code>. This is useful when trying to take notes and keep up with a speaker, for instance. In my experience this can get quite annoying if you&rsquo;re not expecting it, so I use it for only a select few cases<sup id="fnref:5"><a href="#fn:5" class="footnote-ref" role="doc-noteref">5</a></sup>.</p>
+<p>If AucTeX and CDLaTeX are the soup, think of YaSnippet as the garnish added at the end for some extra flavor.</p>
+<p>To make YaSnippet expand snippets automatically, we&rsquo;re going to bend it into shape.</p>
+<details>
+<summary>Auto-expansion with YaSnippet <span><img src="https://karthinks.com/img/term-logo.png" class=detail-icon></span></summary>
+<div class="details">
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span><span style="color:#888">;; Function that tries to autoexpand YaSnippets</span>
+</span></span><span style="display:flex;"><span><span style="color:#888">;; The double quoting is NOT a typo!</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">my/yas-try-expanding-auto-snippets</span> ()
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">when</span> (<span style="color:#963">bound-and-true-p</span> <span style="color:#a60;background-color:#fff0f0">&#39;yas-minor-mode</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">let</span> ((<span style="color:#963">yas-buffer-local-condition</span> <span style="color:#333">&#39;&#39;</span>(<span style="color:#963">require-snippet-condition</span> <span style="color:#333">.</span> <span style="color:#963">auto</span>)))
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">yas-expand</span>))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#888">;; Try after every insertion</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#963">add-hook</span> <span style="color:#a60;background-color:#fff0f0">&#39;post-self-insert-hook</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">my/yas-try-expanding-auto-snippets</span>)
+</span></span></code></pre></div><p>Elisp note: Adding this check to <code>post-self-insert-hook</code> might seem crazy, but it does not cause any slowdown that I&rsquo;ve noticed. Check out the <a href="https://github.com/ymarco/auto-activating-snippets">auto-activating-snippets</a> package or <code>abbrev-mode</code> (Emacs built-in) for a different approach if this bothers you.</p>
+<p>The next step is to declare a snippet as auto-expanding. To do this you add the <code># condition:</code> line to snippet definitions. For example, this is the snippet for auto-expanding left and right curly braces:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cfg" data-lang="cfg"><span style="display:flex;"><span><span style="color:#888"># key: set</span>
+</span></span><span style="display:flex;"><span><span style="color:#888"># name: set</span>
+</span></span><span style="display:flex;"><span><span style="color:#888"># condition: (and (texmathp) &#39;auto)</span>
+</span></span><span style="display:flex;"><span><span style="color:#888"># group: math</span>
+</span></span><span style="display:flex;"><span><span style="color:#888"># --</span>
+</span></span><span style="display:flex;"><span><span style="color:#00c">\\left\\{ $0 \\right\\}</span>
+</span></span></code></pre></div><p>See the YaSnippet docs for more details on writing snippets.</p>
+</div>
+</details>
+<details>
+<summary>Reusing LaTeX YaSnippets in org-mode <span><img src="https://karthinks.com/img/org-mode-icon.png" class=detail-icon></span></summary>
+<div class="details">
+<p>To use your LaTeX Yasnippets in Org, you can copy them to the org section of your snippets directory, or better yet, add a file named <code>.yas-parents</code> in the org snippets folder with the contents</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>latex-mode
+</span></span></code></pre></div><p>This makes all the <code>latex-mode</code> snippets available in Org as well.</p>
+</div>
+</details>
+<p>My snippets are <a href="https://github.com/karthink/yasnippets/tree/master/latex-mode">here</a>, but these are tailored to the kind of math I use (mostly Calculus and  Linear Algebra). I straight up stole most of these <a href="https://github.com/gillescastel/latex-snippets">from Gilles Castel</a>. There are many snippets here for historical reasons. I only use a few.</p>
+<p>Consider the auto-expanding examples below as examples to inspire you to write ones more suited to your needs.</p>
+<h3 id="create-math-environments">Create math environments</h3>
+<p><code>mk</code> and <code>dm</code> create inline and equation environments. There&rsquo;s nothing special about these shortcuts, they&rsquo;re easier to type than <code>$</code>, <code>$$</code> or <code>\[ \]</code> and not words by themselves. (YaSnippet expands only at word boundaries, so Words like &ldquo;admin&rdquo; or &ldquo;gymkhana&rdquo; will not trigger these snippets.)</p>
+<p>Here&rsquo;s a demo (where I also use the CDLaTeX symbols, math modifiers and templates from above):</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-yasnippet-math-demo-1.mp4" type="">
+<a href="https://karthinks.com/img/latex-yasnippet-math-demo-1.mp4">[VIDEO]</a>
+</video>
+<h3 id="faster-math-modifiers">Faster math modifiers</h3>
+<p>Replace cdlatex&rsquo;s <code>'^</code> → <code>\hat{}</code> with just typing &ldquo;hat&rdquo; after a symbol. This way I can type how I read or hear math: <code>a hat</code> gives me \(\hat{a}\), and so on:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-yasnippet-hat-demo-1.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-yasnippet-hat-demo-1.mp4">[VIDEO]</a>
+</video>
+<p>I make a few more such automatic translations:</p>
+<table>
+<thead>
+<tr>
+<th>I type</th>
+<th>Becomes</th>
+<th>Mnemonic</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x sr</code></td>
+<td>\(x²\)</td>
+<td>x squared</td>
+</tr>
+<tr>
+<td><code>x cb</code></td>
+<td>\(x³\)</td>
+<td>x cubed</td>
+</tr>
+<tr>
+<td><code>x td</code></td>
+<td>\(x^{\{\}}\)</td>
+<td>x to the</td>
+</tr>
+<tr>
+<td><code>x conj</code></td>
+<td>\(x^{\star} \)</td>
+<td>x conjugate</td>
+</tr>
+<tr>
+<td><code>x adj</code></td>
+<td>\(x^{\dagger} \)</td>
+<td>x adjoint</td>
+</tr>
+</tbody>
+</table>
+<p>Where <code>x</code> is any symbol or s-expression (i.e. delimited expression). Check <a href="#putting-it-into-practice">Putting it into practice</a> to see these in action.</p>
+<p>Note that this behavior involves editing the buffer prior to the point, and is not possible with Emacs&rsquo; built-in <code>abbrev</code> library. In most other cases <code>abbrev-mode</code> can suffice for auto-expansion.</p>
+<details>
+<summary>Suppressing Yasnippet warnings <span><img src="https://karthinks.com/img/term-logo.png" class=detail-icon></span></summary>
+<div class="details">
+<p>YaSnippet complains if we use a snippet to edit the buffer directly, as we do with the above examples of wrapping symbols in <code>\hat{}</code>, etc. This is probably bad practice, but I haven&rsquo;t had an issue yet. I suppress these warnings with</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">with-eval-after-load</span> <span style="color:#a60;background-color:#fff0f0">&#39;warnings</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">cl-pushnew</span> <span style="color:#333">&#39;</span>(<span style="color:#963">yasnippet</span> <span style="color:#963">backquote-change</span>) <span style="color:#963">warning-suppress-types</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#007020">:test</span> <span style="color:#a60;background-color:#fff0f0">&#39;equal</span>))
+</span></span></code></pre></div></div>
+</details>
+<h3 id="faster-frac">Faster <code>\frac</code></h3>
+<p>Make <code>//</code> set up a <code>\frac</code> expression:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-yasnippet-frac-demo-1.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-yasnippet-frac-demo-1.mp4">[VIDEO]</a>
+</video>
+<h3 id="useful-simple-replacements">Useful simple replacements</h3>
+<p>These are simple but useful auto-replacements for my purposes:</p>
+<table>
+<thead>
+<tr>
+<th>I type</th>
+<th>Becomes</th>
+<th>Which is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>neq</code>, <code>leq</code> or <code>geq</code></td>
+<td>\(\ne \), \(\le \) or \(\ge \)</td>
+<td><code>\ne</code>, <code>\le</code> or <code>\ge</code></td>
+</tr>
+<tr>
+<td><code>~~</code></td>
+<td>\(\sim \)</td>
+<td><code>\sim</code></td>
+</tr>
+<tr>
+<td><code>-&gt;</code> and <code>=&gt;</code></td>
+<td>\( \to \) and \( \implies \)</td>
+<td><code>\to</code> and <code>\implies</code></td>
+</tr>
+<tr>
+<td><code>inn</code></td>
+<td>\(\in \)</td>
+<td><code>\in</code></td>
+</tr>
+<tr>
+<td><code>set</code></td>
+<td>\(\{ \} \)</td>
+<td><code>\{ \}</code></td>
+</tr>
+<tr>
+<td><code>cc</code> or <code>cceq</code></td>
+<td>\(\subset \) or \(\subseteq \)</td>
+<td><code>\subset</code> or <code>\subseteq</code></td>
+</tr>
+<tr>
+<td><code>EE</code> or <code>nEE</code></td>
+<td>\(\exists \) or \(\nexists \)</td>
+<td><code>\exists</code> or <code>\nexists</code></td>
+</tr>
+<tr>
+<td><code>VV</code></td>
+<td>\(\forall \)</td>
+<td><code>\forall</code></td>
+</tr>
+<tr>
+<td><code>xx</code></td>
+<td>\(\times \)</td>
+<td><code>\times</code></td>
+</tr>
+<tr>
+<td><code>ox</code></td>
+<td>\(\otimes \)</td>
+<td><code>\otimes</code></td>
+</tr>
+<tr>
+<td><code>o+</code></td>
+<td>\(\oplus \)</td>
+<td><code>\oplus</code></td>
+</tr>
+<tr>
+<td><code>...</code></td>
+<td>\(\dots \)</td>
+<td><code>\dots</code></td>
+</tr>
+<tr>
+<td><code>;.</code></td>
+<td>\(\vdots  \)</td>
+<td><code>\vdots</code></td>
+</tr>
+<tr>
+<td><code>;/</code></td>
+<td>\(\ddots \)</td>
+<td><code>\ddots</code></td>
+</tr>
+<tr>
+<td><code>,,</code> or <code>;;</code></td>
+<td>\( \&amp;  \) or <code>\\</code></td>
+<td>field sep or linebreak</td>
+</tr>
+</tbody>
+</table>
+<p>And so on. This functionality overlaps somewhat with cdlatex&rsquo;s symbol entry (<code>`</code>) command, and you could add these there instead. The point of these is not so much to save time as it is to preserve the flow of my thoughts when writing. I type them as I sound them out in my head (thus <code>leq</code> instead of <code>\le</code>, <code>x adj</code> instead of <code>x^{\dag}</code>) and they&rsquo;re automatically changed to the correct symbols. You can catch many of these replacements in the demos at the start of this write-up.</p>
+<h3 id="optional-conventional-snippets-with-multiple-placeholders">Optional: conventional snippets with multiple placeholders</h3>
+<p>You can also add some more conventional snippets in the mix. I use these quite often for derivatives and definite integrals, for instance:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-yasnippet-ddt-demo-4.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-yasnippet-ddt-demo-4.mp4">[VIDEO]</a>
+</video>
+<p>In principle these can just be added to the <code>cdlatex-command-alist</code> instead (which is much simpler to set up), but the above are relics of more experimental times that I&rsquo;ve not bothered to change.</p>
+<p>It&rsquo;s also tempting to set up snippets for typing in arrays, matrices or vectors, whose syntax has a lot of structure. However there is a better way, see <a href="#table-matrix-or-array-entry">table, matrix or array entry</a>.</p>
+<p><span class="tabbox">TAB&rsquo;ometer count: 5 (Expand a conventional YaSnippet with <code>yas-expand</code>.)</span></p>
+<h2 id="snippets-snap-easy">Snippets snap easy</h2>
+<p>Template or snippet based insertion is a very limited form of interaction with the document, both in time and space. The placeholder fields retain their special navigation and insertion behavior only until the snippet &ldquo;exits&rdquo;, and this behavior is not available anywhere else in the document.</p>
+<p>Snippets are rigid and monolithic, in that you have to bake in all the variables (such as field locations, mirrors or transformations) in the definition, and can&rsquo;t modify it on the fly. They&rsquo;re also brittle: things often break if you deviate from the expected behavior of <code>TAB</code> → insert text → <code>TAB</code> → insert text. For example, when you move the cursor away to copy something from another part of the document to a snippet field. They&rsquo;re modal in a bad way: you can exit the snippet mode but there&rsquo;s no resuming their state without starting over.</p>
+<p>What we would like instead is snippet-like navigation between fields, including field transformations, but at any time, anywhere in the document, and without the notion of a snippet being &ldquo;active&rdquo;. CDlatex&rsquo;s <code>TAB</code> goes some way towards this ideal, but its regex based jump heuristic is quite limited compared to what&rsquo;s possible.</p>
+<p>I can imagine a better system through some combination of Vim/ <code>evil-mode</code> style text-objects, a semantically aware tree-sitter based LaTeX parser and a further improved CDLaTeX style DWIM command set that&rsquo;s integrated into AucTeX. That&rsquo;s without bringing AI helpers into the picture. Maybe something like this already exists or is in the works for <code>$MODERN_EDITOR</code>.</p>
+<p>But there&rsquo;s no need to let perfect be the enemy of good enough. A little bit of YaS to plaster over the gaps goes a long way.</p>
+<h2 id="putting-it-into-practice">Putting it into practice</h2>
+<h3 id="environment-floats-and-math-input">Environment, floats and math input</h3>
+<p>The goal is to write LaTeX (and especially math) in a way that mirrors our stream of thought, where our eyes, fingers and the cursor all glide over the clutter of the markup. The above described process isn&rsquo;t quite there yet, but it&rsquo;s close. In summary,</p>
+<ul>
+<li>Turn on <code>prettify-symbols-mode</code> to enhance readability.</li>
+<li>Enter symbols with grave (<code>`</code>) and modify text or macros with the quote (<code>'</code>).</li>
+<li>Use <code>TAB</code> to jump forward to the next &ldquo;point of interest&rdquo; when typing.</li>
+<li>Insert environment and float templates with CDLaTeX&rsquo;s commands or YaS snippets. <code>env &lt;tab&gt;</code> for an arbitrary environment (with completion).</li>
+<li>Use YaS&rsquo; auto-expanding snippets (or <code>abbrev-mode</code> abbrevs) to type without breaking the flow. Generally useful, but especially handy for math operators.</li>
+<li>Preview your work with <code>preview-</code> commands. <code>preview-at-point</code> is quite handy.</li>
+<li>When everything else fails, use the slower but fully document aware AucTeX commands: <code>LaTeX-environment</code> (<code>C-c C-e</code>)  and <code>TeX-insert-macro</code> (<code>C-c C-m</code>).</li>
+</ul>
+<p>Here I type in a simple equation using many of the features we discussed above:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-full-demo-4.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-full-demo-4.mp4">[VIDEO]</a>
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Start an equation env with <code>dm</code> (YaS)</li>
+<li>Expand an integral snippet with <code>intl &lt;tab&gt;</code> (cdlatex, but you could define a YaS for this)</li>
+<li>Tab my way through the integration limits, use <code>` 8</code> to enter \(∞\) as the upper limit (CDLaTeX symbol)</li>
+<li>Obtain \(e^{\{\}}\) by auto-expansion of <code>e td</code> (YaS)</li>
+<li>Obtain \(- x^2 \) as the exponent from <code>-x sr</code> (YaS)</li>
+<li>Obtain <code>\mathrm{d}</code> from following <code>d</code> with <code>'r</code> (CDLaTeX math modifier)</li>
+<li>Type in <code>π</code> on the right hand side as <code>`p</code> (CDLaTeX symbol)</li>
+<li>Obtain \(\pi^{\{\}}\) by auto-expansion of <code>\pi td</code> (YaS)</li>
+<li>Get \(\frac{1}{2} \) as the exponent of \(\pi \) using the auto-expansion of <code>1 // 2</code> (YaS)</li>
+<li>Call <code>preview-at-point</code> to preview the equation using a keybinding.</li>
+</ol>
+</div>
+</details>
+<h3 id="table-matrix-or-array-entry">Table, matrix or array entry</h3>
+<p>In my <a href="../batteries-included-with-emacs">Batteries Included</a> series I briefly mentioned <code>orgtbl-mode</code>, a built-in feature of Emacs that brings org-mode style table editing to all buffers. This is a powerful and often underutilized ability that we will use to write LaTeX.</p>
+<p>Org-mode tables are very capable. Folks go as far as maintaining spreadsheets in them, but for our purposes what matters is that you can navigate and edit the table structurally. You can move between cells with <code>TAB</code>, move columns or cells around, delete or add new ones, transpose the table etc. Using this to input matrices or arrays in a free-form way feels very natural. The speed-up is a bonus. Here I&rsquo;ve rigged my CDLaTeX snippets for typing in matrices to automatically start <code>orgtbl-mode</code>. When I&rsquo;m done I can press <code>C-c C-c</code> and the table is converted to a LaTeX array:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-table-demo-3.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-table-demo-3.mp4">[VIDEO]</a>
+</video>
+<p>Here is the idea applied to a full matrix equation:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-table-demo-2.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<p>And here it is applied to a text table. I start by expanding the <code>tbl</code> template in cdlatex, which I&rsquo;ve set to start an org-mode table. I press <code>C-c C-c</code> when I&rsquo;m done to generate the LaTeX tabular environment:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-table-demo-4.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-table-demo-4.mp4">[VIDEO]</a>
+</video>
+<p>I moved the code for this out of my configuration into a standalone package, although it requires CDLaTeX to be installed. You can find <a href="https://github.com/karthink/lazytab">LazyTab here</a>. Turning a LaTeX array or matrix back into an org-table is not yet implemented.</p>
+<p><span class="tabbox">TAB&rsquo;ometer count: 6 (Next field in an org table with <code>org-table-next-field</code>.)</span></p>
+<h3 id="cross-references-and-citations">Cross-references and citations</h3>
+<p>There are many tools for Emacs to help you insert citations and cross-references without hassle, but these are mostly out of the scope of this write-up. You can check the <a href="#the-state-of-latex-editing-in-emacs">chart above</a>.</p>
+<p>However, one aspect  that&rsquo;s relevant here is the method of invoking these features. Instead of binding these command to keys (like the commonly used <code>C-c ]</code> and <code>C-c )</code>), you can invoke these commands using a snippet. To not break the flow, I use CDLaTeX to expand the words <code>ref</code> and <code>cite</code> into calls to my reference and citation handlers:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-cite-ref-demo-2.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-cite-ref-demo-2.mp4">[VIDEO]</a>
+</video>
+<h3 id="math-input-using-calc">Math input using Calc</h3>
+<p>It wouldn&rsquo;t be one of my rambling Emacs pieces if I didn&rsquo;t mention the Emacs Calculator. What can Calc do for you here? Quite a bit, it turns out.</p>
+<p>Calc has a built in parser for handling LaTeX math. While it&rsquo;s pretty basic, it can convert simple objects and equations from their &ldquo;programming language&rdquo; representation to LaTeX. The former is usually much simpler to input when using a keyboard. Here I call a helper function that invokes calc on a matrix and an equation:</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-calc-demo-1.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/calc-demo-1.mp4">[VIDEO]</a>
+</video>
+<p>An additional advantage is that Calc can do some math for you in the process. Here I invert the  above matrix in the process of displaying it as a LaTeX array.</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/latex-calc-demo-2.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/latex-calc-demo-2.mp4">[VIDEO]</a>
+</video>
+<p>Also shown: Some Taylor expansion and integration.</p>
+<details>
+<summary>LaTeX math forms using Calc <span><img src="https://karthinks.com/img/term-logo.png" class=detail-icon></span></summary>
+<div class="details">
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">latex-math-from-calc</span> ()
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Evaluate </span><span style="color:#a60;background-color:#fff0f0">`calc&#39;</span><span style="background-color:#fff0f0"> on the contents of line at point.&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">interactive</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">cond</span> ((<span style="color:#963">region-active-p</span>)
+</span></span><span style="display:flex;"><span>         (<span style="color:#007020">let*</span> ((<span style="color:#963">beg</span> (<span style="color:#06b;font-weight:bold">region-beginning</span>))
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">end</span> (<span style="color:#06b;font-weight:bold">region-end</span>))
+</span></span><span style="display:flex;"><span>                (<span style="color:#06b;font-weight:bold">string</span> (<span style="color:#06b;font-weight:bold">buffer-substring-no-properties</span> <span style="color:#963">beg</span> <span style="color:#963">end</span>)))
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">kill-region</span> <span style="color:#963">beg</span> <span style="color:#963">end</span>)
+</span></span><span style="display:flex;"><span>           (<span style="color:#06b;font-weight:bold">insert</span> (<span style="color:#963">calc-eval</span> <span style="color:#333">`</span>(<span style="color:#333">,</span><span style="color:#06b;font-weight:bold">string</span> <span style="color:#963">calc-language</span> <span style="color:#963">latex</span>
+</span></span><span style="display:flex;"><span>                                        <span style="color:#963">calc-prefer-frac</span> <span style="color:#036;font-weight:bold">t</span>
+</span></span><span style="display:flex;"><span>                                        <span style="color:#963">calc-angle-mode</span> <span style="color:#963">rad</span>)))))
+</span></span><span style="display:flex;"><span>        (<span style="color:#036;font-weight:bold">t</span> (<span style="color:#007020">let</span> ((<span style="color:#963">l</span> (<span style="color:#963">thing-at-point</span> <span style="color:#a60;background-color:#fff0f0">&#39;line</span>)))
+</span></span><span style="display:flex;"><span>             (<span style="color:#06b;font-weight:bold">end-of-line</span> <span style="color:#00d;font-weight:bold">1</span>) (<span style="color:#963">kill-line</span> <span style="color:#00d;font-weight:bold">0</span>)
+</span></span><span style="display:flex;"><span>             (<span style="color:#06b;font-weight:bold">insert</span> (<span style="color:#963">calc-eval</span> <span style="color:#333">`</span>(<span style="color:#333">,</span><span style="color:#963">l</span>
+</span></span><span style="display:flex;"><span>                                  <span style="color:#963">calc-language</span> <span style="color:#963">latex</span>
+</span></span><span style="display:flex;"><span>                                  <span style="color:#963">calc-prefer-frac</span> <span style="color:#036;font-weight:bold">t</span>
+</span></span><span style="display:flex;"><span>                                  <span style="color:#963">calc-angle-mode</span> <span style="color:#963">rad</span>)))))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">LaTeX-mode-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;C-S-e&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;latex-math-from-calc</span>)
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">org-mode-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;C-S-e&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;latex-math-from-calc</span>)
+</span></span></code></pre></div></div>
+</details>
+<h3 id="invoking-other-parsers">Invoking other parsers</h3>
+<p>Calc is an amazing piece of software, but unfortunately it falls somewhere in between a programmable calculator and a full CAS or numerical computation suite: constantly surprising in its abilities but too limited to use full time. Its built-in LaTeX syntax parser is quite rigid and in non-interactive use the built-in functions have non-standard, hard to remember names. Transpose is <code>trn</code>, for instance.</p>
+<p>While I haven&rsquo;t set it up, it&rsquo;s also possible to convert programming style formulas into LaTeX strings using a similar interface as the above Calc command, but with more fully featured external program instead. Parsers to do this are available as part of Mathematica, Python (<a href="https://castel.dev/post/lecture-notes-1/#sympy-and-mathematica">with Sympy</a>) and Julia (with Latexify.jl), for example. <a href="https://github.com/dandavison/xenops">Xenops</a> includes support for this.</p>
+<h2 id="keeping-tabs-on-tab">Keeping tabs on <code>TAB</code></h2>
+<p>You may have noticed the <code>TAB</code>&lsquo;ometer climbing as we progressively overload the key with more context-sensitive functions. The simple approach is to assign different keys to <code>outline-cycle</code>, <code>cdlatex-tab</code>, <code>yas-expand</code> etc, but I don&rsquo;t want to stop to think what key to press next when typing LaTeX. So I configure the <code>TAB</code> key to do everything, in this order:</p>
+<ol>
+<li>At an outline heading, like a section? Cycle the outline like in Org.</li>
+<li>Looking at text that CDLaTeX can expand? Expand it.</li>
+<li>At the end of a Yasnippet field? Jump to the next field.</li>
+<li>In a Yasnippet field? Try a CDLaTeX <code>TAB</code> jump. If that takes us out of the field, go to the end of the field instead.</li>
+<li>At the end of text in an org-table cell? Jump to the next cell like in a regular table.</li>
+<li>In a table cell? Try a CDLaTeX <code>TAB</code> jump. If that takes us out of the cell, go to the end of the cell instead.</li>
+</ol>
+<p>This reads like a blueprint for a Rube Goldberg machine, but in practice it does exactly what you expect at any location. The code for this is included <a href="https://gist.github.com/karthink/7d89df35ee9b7ac0c93d0177b862dadb">in the gist</a>, but there may be still be edge cases that need filing before it works in every context.</p>
+<h2 id="some-concluding-thoughts">Some concluding thoughts</h2>
+<p>This collection of tips is just what I&rsquo;ve scrabbled together over the years, not an authoritative or exhaustive exploration of this area. I think of it as a 90% solution: the remaining 10% is jank that someone needs to jump into and scrub out of the system. This rabbit hole goes very deep if you dive in headfirst, so I&rsquo;m quite content to hang out here for now.</p>
+<p>I&rsquo;ve been asked what the point is of speeding up LaTeX input - after all, the bottleneck with writing is usually your speed of thought, not typing. Leaving aside the issue of transcribing handwritten notes to the screen, I&rsquo;ve found that this bottleneck theory isn&rsquo;t true. Instead, normally there&rsquo;s a thinking phase followed by a busywork phase where you translate your thought into LaTeX. When you can type math fast enough that this busywork phase disappears (or as fast as someone can teach with a blackboard), new possibilities open up. Recording self-taught lessons in technical subjects into your hyperlinked, indexed and/or searchable digital archive becomes automatic, as you don&rsquo;t have to set aside time to do it. Written communication becomes easier, as dashing off a fully formatted, easy to parse technical email or message is no extra effort. The write → review → rewrite cycle when publishing material is much faster, and you can go through more iterations and feedback. It&rsquo;s one of those situations where quantity has an emergent quality.</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>Henceforth just LaTeX, because sheesh.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>Not included in the chart: literate programs in or as the document. This is covered essentially by PythonTeX in LaTeX files and by <code>org-babel</code> in org-mode.&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p>If you&rsquo;re on Emacs 27.2 or lower there are the <a href="https://github.com/alphapapa/outshine">Outshine</a> and <a href="https://github.com/tarsius/bicycle">Bicycle</a> packages for one-key Org-style cycling.&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:4">
+<p>Of course, this presumes that the user is comfortable with Emacs. And the alternatives are well ahead of AucTeX in other aspects, like collaboration.&#160;<a href="#fnref:4" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:5">
+<p>You could also go the other way, eschew cdlatex and auto-expand all your snippets with YaS. But snippet packages have a fundamental problem, see <a href="#snippets-snap-easy">Snippets snap easy</a>.&#160;<a href="#fnref:5" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>

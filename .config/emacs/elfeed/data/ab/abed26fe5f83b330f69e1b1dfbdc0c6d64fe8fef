@@ -1,0 +1,38 @@
+<p>I confess to taking a perverse delight in browsing the web from within Emacs. The <a href="https://www.gnu.org/software/emacs/manual/html_mono/eww.html">EWW</a> package that comes with the standard distribution of Emacs makes this possible. On paper, Emacs really has no business trying to support web browsing with its laughably threadbare support for layout and typography, much less its lack of support for multi-threaded operation. In practice though, I’ve found browsing the web from Emacs to be surprisingly useful. To enhance my usage of EWW, I wanted easy discovery of its features via Transient menus. With that motivation, I set out to build <a href="https://kickingvegas.github.io/casual/EWW.html">Casual EWW</a>, now available on <a href="https://melpa.org/#/casual">MELPA</a> in the <a href="https://github.com/kickingvegas/casual/releases/tag/2.13.0">Casual v2.13.0 update</a>.</p>
+<p>EWW is a minimal browser in that no CSS nor JavaScript is supported. As such, EWW is best suited for websites that treat HTML as a document specification and not as a sub-system to a web application.</p>
+<p align='center'>
+<img src='http://yummymelon.com/devnull/images/announcing-casual-eww/casual-eww-screenshot.png' alt='' />
+</p>
+
+<p>Features of Casual EWW include:</p>
+<ul>
+<li>
+<p>Support for in-page paragraph and link navigation.</p>
+</li>
+<li>
+<p>Key bindings that match Safari and Chrome on macOS.</p>
+<p>In particular <code>M-[</code> and <code>M-]</code> for historical navigation and <code>M-l</code> for entering a URL to open are supported.</p>
+</li>
+<li>
+<p>Menus for toggling and configuring the display of a web page (font, colors, images).</p>
+</li>
+<li>
+<p>Support for document navigation.</p>
+<p>This feature distinguishes EWW from other conventional web browsers for navigating websites that support the <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/rel">rel</a> attribute. For example, Texinfo uses the <code>rel</code> attribute in generating HTML output.</p>
+</li>
+</ul>
+<h1>Observations and Closing Thoughts</h1>
+<p>Some observations in using EWW:</p>
+<ul>
+<li>
+<p>The implementation of bookmarks in EWW is… underwhelming.</p>
+<p>Note that EWW bookmarks are a different implementation from a regular <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Bookmarks.html">Emacs bookmark</a>. The EWW bookmark list does not provide a means for ordering a bookmark, much less for sorting and editing them.</p>
+</li>
+<li>
+<p>The <code>eww-readable</code> command (bound to <code>R</code>) is your friend (when it works).</p>
+<p>EWW provides a “reader” mode via the command <code>eww-readable</code> which attempts to display only the main content of a web page. If successful, I’ve found it to vastly improve EWW’s utility.</p>
+<p>Setting the variable <code>eww-readable-urls</code> to include documentation from <a href="https://developer.mozilla.org">https://developer.mozilla.org</a> will break the command <code>css-lookup-symbol</code> (accessible via <a href="https://kickingvegas.github.io/casual/CSS-Usage.html">Casual CSS</a>) as that command expects the web page to <em>not</em> be in reader mode.</p>
+</li>
+</ul>
+<p>For Emacs users, the utility of EWW is very much a YMMV thing as it can overlap the features of other packages like the Info reader and Elfeed. Regardless of what is preferred, it is assuring to know that web browsing (however limited) is supported within Emacs.</p>
+<p><a href="https://kickingvegas.github.io/casual/EWW.html">Casual EWW</a> is now available on <a href="https://melpa.org/#/casual">MELPA</a> in the <a href="https://github.com/kickingvegas/casual/releases/tag/2.13.0">Casual v2.13.0 update</a>.</p>

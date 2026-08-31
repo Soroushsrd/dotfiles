@@ -1,0 +1,13 @@
+<p>
+Someone reposted a list of <a href="https://www.cs.yale.edu/homes/perlis-alan/quotes.html">Programming Epigrams</a> by Alan Perlis from 1982. Many of them are funny, some are just silly, and others are probably incomprehensible to today&rsquo;s programmers. They are sufficiently well known that they&rsquo;re <a href="https://en.wikipedia.org/wiki/Alan_Perlis#Epigrams_on_Programming">mentioned in Perlis&rsquo; Wikipedia entry</a>. One that stood out to me was #93:
+</p>
+<blockquote>
+<p>
+When someone says &ldquo;I want a programming language in which I need only say what I wish done,&rdquo; give him a lollipop.
+</p>
+</blockquote>
+<p>
+I&rsquo;ve heard that before and it always resonated with me but in view of <a href="https://irreal.org/blog/?p=13886">Last Friday&rsquo;s Red Meat Friday</a> it seems especially timely. What, after all, is &ldquo;vibe coding&rdquo; but a desire to simply tell the computer what you want done and have it magically happen?
+</p>
+<p>
+One could argue that with Vibe Coding the dream of &ldquo;do what I say&rdquo; has been realized and that celebration is in order. I&rsquo;m more inclined to think that Perlis&rsquo; prescription is the better reaction.</p>

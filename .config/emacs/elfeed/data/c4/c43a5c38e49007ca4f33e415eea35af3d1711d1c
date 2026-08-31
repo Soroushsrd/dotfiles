@@ -1,0 +1,89 @@
+<p>The Rust team is happy to announce a new version of Rust, 1.97.0. Rust is a programming language empowering everyone to build reliable and efficient software.</p>
+<p>If you have a previous version of Rust installed via <code>rustup</code>, you can get 1.97.0 with:</p>
+<pre class="giallo z-code"><code data-lang="shellsession"><span class="giallo-l"><span>$</span><span> rustup update stable</span></span></code></pre>
+<p>If you don't have it already, you can get <a rel="external" href="https://www.rust-lang.org/install.html"><code>rustup</code></a> from the appropriate page on our website, and check out the <a rel="external" href="https://doc.rust-lang.org/stable/releases.html#version-1970-2026-07-09">detailed release notes for 1.97.0</a>.</p>
+<p>If you'd like to help us out by testing future releases, you might consider updating locally to use the beta channel (<code>rustup default beta</code>) or the nightly channel (<code>rustup default nightly</code>). Please <a rel="external" href="https://github.com/rust-lang/rust/issues/new/choose">report</a> any bugs you might come across!</p>
+<h2 id="what-s-in-1-97-0-stable"><a class="anchor" href="#what-s-in-1-97-0-stable" aria-hidden="true"></a>
+What's in 1.97.0 stable</h2>
+<h3 id="symbol-mangling-v0-enabled-by-default"><a class="anchor" href="#symbol-mangling-v0-enabled-by-default" aria-hidden="true"></a>
+Symbol mangling v0 enabled by default</h3>
+<p>When Rust is compiled into object files and binaries, each item (functions,
+statics, etc) must have a globally unique "symbol" identifying it. To avoid
+conflicts when linking together different Rust programs, Rust mangles the
+original name of items to include additional context such as the module path,
+defining crate, generics, and more. Historically, this mangling was based on
+the <a rel="external" href="https://refspecs.linuxbase.org/cxxabi-1.86.html#mangling">Itanium ABI</a>,
+also (sometimes) used by C++.</p>
+<p>The new mangling scheme resolves a number of drawbacks from the previous one:</p>
+<ul>
+<li>Generic parameter instantiations preserve their values, rather than being tracked solely behind a hash</li>
+<li>Inconsistencies: not all parts used the Itanium ABI, meaning that custom demangling was still necessary</li>
+</ul>
+<p>Since Rust 1.59, the compiler has supported opting into a Rust-specific
+mangling scheme via <code>-Csymbol-mangling-version=v0</code>. Since November 2025, this
+scheme has been enabled by default on nightly, and 1.97 is now enabling it on
+stable Rust. The legacy mangling scheme can only be enabled on nightly, and the
+current plan is to fully remove it.</p>
+<p>See the previous <a rel="external" href="https://blog.rust-lang.org/2025/11/20/switching-to-v0-mangling-on-nightly/">blog post</a> for more details.</p>
+<h3 id="cargo-support-for-denying-warnings"><a class="anchor" href="#cargo-support-for-denying-warnings" aria-hidden="true"></a>
+Cargo support for denying warnings</h3>
+<p>It's common practice to deny warnings in CI. Historically, doing so is
+typically done through <code>RUSTFLAGS=-Dwarnings</code>. With Rust 1.97, Cargo controls
+how warnings interact with build success: either silencing them (via <code>allow</code>
+level), rendering without failing (default, <code>warn</code>), or denying them (via <code>deny</code>).</p>
+<p>As a  result of Cargo configuration determining the behavior, using this
+feature doesn't invalidate the underlying build cache, meaning that it's easy
+to temporarily opt-in. For example, if warnings are adding unwanted noise while
+working through fixing errors after a refactor, you can run
+<code>CARGO_BUILD_WARNINGS=allow cargo check</code>, temporarily silencing them.</p>
+<p>In CI, jobs can instead set <code>CARGO_BUILD_WARNINGS=deny</code> to deny warnings. This
+can be combined with <code>--keep-going</code> to collect all errors and warnings rather
+than stopping on the first failing package.</p>
+<p>See the <a rel="external" href="https://doc.rust-lang.org/cargo/reference/config.html#buildwarnings">documentation</a> for more details.</p>
+<h3 id="linker-output-no-longer-hidden-by-default"><a class="anchor" href="#linker-output-no-longer-hidden-by-default" aria-hidden="true"></a>
+Linker output no longer hidden by default</h3>
+<p>rustc invokes a linker on behalf of users. Historically, rustc has silenced
+linker output by default if the link completes successfully. This can mask real
+problems, though, so in Rust 1.97 we are enabling linker messages by default.
+These are emitted as a warning lint, for example:</p>
+<pre class="giallo z-code"><code data-lang="plain"><span class="giallo-l"><span>warning: linker stderr: ignoring deprecated linker optimization setting &#39;1&#39;</span></span>
+<span class="giallo-l"><span>  |</span></span>
+<span class="giallo-l"><span>  = note: `#[warn(linker_messages)]` on by default</span></span></code></pre>
+<p>Common linker messages that have been diagnosed as false positives or intentional behavior
+are filtered out by rustc. Several defects have already been fixed as a result
+of no longer hiding this output on nightly.</p>
+<p>Note that currently, <code>linker_messages</code> is a special lint that is <em>not</em> affected
+by the <code>warnings</code> lint group. This is intentional as rustc generally doesn't
+control linker output as precisely, and it's not uncommon for output to only
+appear on some platforms. If you are seeing what you think is a false positive
+output from the linker, please <a rel="external" href="https://github.com/rust-lang/rust/issues/new/choose">file an issue</a>.</p>
+<p>To silence the warning in the mean time, you can configure the lint level to
+allow. This can be done through <code>Cargo.toml</code> by adding a <a rel="external" href="https://doc.rust-lang.org/nightly/cargo/reference/manifest.html#the-lints-section">lints section</a> like this:</p>
+<pre class="giallo z-code"><code data-lang="toml"><span class="giallo-l"><span>[</span><span>lints</span><span>.</span><span>rust</span><span>]</span></span>
+<span class="giallo-l"><span class="z-variable">linker_messages</span><span> =</span><span class="z-punctuation z-definition z-string z-string"> &quot;</span><span class="z-string z-quoted z-string">allow</span><span class="z-punctuation z-definition z-string z-string">&quot;</span></span></code></pre><h3 id="stabilized-apis"><a class="anchor" href="#stabilized-apis" aria-hidden="true"></a>
+Stabilized APIs</h3>
+<ul>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/iter/struct.RepeatN.html#impl-Default-for-RepeatN%3CA%3E"><code>Default for RepeatN</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/ffi/struct.FromBytesUntilNulError.html#impl-Copy-for-FromBytesUntilNulError"><code>Copy for ffi::FromBytesUntilNulError</code></a></li>
+<li><a rel="external" href="https://github.com/rust-lang/rust/pull/154003"><code>Send for std::fs::File</code> on UEFI</a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.u32.html#method.isolate_highest_one"><code>&lt;{integer}&gt;::isolate_highest_one</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.u32.html#method.isolate_lowest_one"><code>&lt;{integer}&gt;::isolate_lowest_one</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.u32.html#method.highest_one"><code>&lt;{integer}&gt;::highest_one</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.u32.html#method.lowest_one"><code>&lt;{integer}&gt;::lowest_one</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.u32.html#method.bit_width"><code>&lt;{uN}&gt;::bit_width</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/num/struct.NonZero.html#method.isolate_highest_one"><code>NonZero&lt;{integer}&gt;::isolate_highest_one</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/num/struct.NonZero.html#method.isolate_lowest_one"><code>NonZero&lt;{integer}&gt;::isolate_lowest_one</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/num/struct.NonZero.html#method.highest_one"><code>NonZero&lt;{integer}&gt;::highest_one</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/num/struct.NonZero.html#method.lowest_one"><code>NonZero&lt;{integer}&gt;::lowest_one</code></a></li>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/num/struct.NonZero.html#method.bit_width"><code>NonZero&lt;{uN}&gt;::bit_width</code></a></li>
+</ul>
+<p>These previously stable APIs are now stable in const contexts:</p>
+<ul>
+<li><a rel="external" href="https://doc.rust-lang.org/stable/std/primitive.char.html#method.is_control"><code>char::is_control</code></a></li>
+</ul>
+<h3 id="other-changes"><a class="anchor" href="#other-changes" aria-hidden="true"></a>
+Other changes</h3>
+<p>Check out everything that changed in <a rel="external" href="https://github.com/rust-lang/rust/releases/tag/1.97.0">Rust</a>, <a rel="external" href="https://doc.rust-lang.org/nightly/cargo/CHANGELOG.html#cargo-197-2026-07-09">Cargo</a>, and <a rel="external" href="https://github.com/rust-lang/rust-clippy/blob/master/CHANGELOG.md#rust-197">Clippy</a>.</p>
+<h2 id="contributors-to-1-97-0"><a class="anchor" href="#contributors-to-1-97-0" aria-hidden="true"></a>
+Contributors to 1.97.0</h2>
+<p>Many people came together to create Rust 1.97.0. We couldn't have done it without all of you. <a rel="external" href="https://thanks.rust-lang.org/rust/1.97.0/">Thanks!</a></p>

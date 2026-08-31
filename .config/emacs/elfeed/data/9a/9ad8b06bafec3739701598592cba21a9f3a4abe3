@@ -1,0 +1,11 @@
+<p>
+You would think that by now every organization on earth would have heard of <a href="https://en.wikipedia.org/wiki/Goodhart%27s_law">Goodhart&rsquo;s law</a>. The law can be briefly stated as, &ldquo;When a measure is used as a target, it ceases to be a measure.&rdquo; We see the law in action all the time.
+</p>
+<p>
+My favorite example is tying student performance on standardized tests to teacher pay and promotion. It sounds like such a good idea when you first hear it. Of course, what happened is that teachers—often at the insistence of their superiors—began &ldquo;teaching to the test&rdquo;.
+</p>
+<p>
+Amazon, apparently, <a href="https://arstechnica.com/ai/2026/05/amazon-employees-are-tokenmaxxing-due-to-pressure-to-use-ai-tools/">didn&rsquo;t get the message</a> and started monitoring employee use of AI tools. They <a href="https://en.wikipedia.org/wiki/Pinky_swear">pinky swore</a> that the results would not be used for performance evaluations but their employees are a bit more intelligent than management supposed. They noticed that supervisors were monitoring their token usage and reacted exactly at Goodhart predicted. They started using AI to automate non-essential tasks to increase their token usage.
+</p>
+<p>
+To be fair to Amazon, they never explicitly made token usage a target but what&rsquo;s the point of monitoring it otherwise? Any employee with an ounce of brains knows that when management starts collecting information about your activities, it&rsquo;s not idle curiosity and they&rsquo;re apt to see the results in their next evaluation.</p>

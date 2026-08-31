@@ -1,0 +1,600 @@
+<p><em>Update (2024-10-02): Update for Emacs 29</em></p>
+<p><em>Update (2024-09-08): Read this article in Japanese at <a href="https://emacs-jp.github.io/tips/fifteen-ways-to-use-embark">Qiita</a> or at <a href="https://emacs-jp.github.io/tips/fifteen-ways-to-use-embark">Emacs-JP</a>.</em></p>
+<p><em>Update (2021-10-16): While this list was intended as a demonstration of the kinds of things you can do with Embark, there has been some interest by readers in reproducing these demos exactly on their machines. So I have added a &ldquo;Play by play&rdquo; section under each demo listing the sequence of actions in the demo.</em></p>
+<p><a href="https://github.com/oantolin/embark/tree/98121bacef39abaf6f6849f87a439ba2184c03e2">Embark</a> is a fantastic and thoughtfully designed package for Emacs that flips Emacs&rsquo; action → object ordering without adding a learning curve. It&rsquo;s completely changed how I use Emacs, and I&rsquo;m going to show you why.</p>
+<p>By default, Emacs&rsquo; action model is to specify the action (<code>find-file</code>), then the object (the file):
+<a href="https://karthinks.com/img/emacs-pattern.png"><img src="https://karthinks.com/img/emacs-pattern.png" alt=""></a></p>
+<p>This mirrors how one does things in a shell:
+<a href="https://karthinks.com/img/shell-pattern.png"><img src="https://karthinks.com/img/shell-pattern.png" alt=""></a>
+The difference is that before you submit your shell command, you&rsquo;re free to edit both the action and the object, since it&rsquo;s just a line of text. In Emacs you can change the object freely, but to change the action you&rsquo;d have to hit <code>C-g</code> and call a different command.</p>
+<p>Things work the other way in a GUI program like a file manager. You select some representation of the object (usually an icon), then choose the action you would like to perform on it:
+<a href="https://karthinks.com/img/gui-pattern.png"><img src="https://karthinks.com/img/gui-pattern.png" alt=""></a></p>
+<p>Either paradigm works fine, but this is Emacs, there&rsquo;s no reason to choose just one! <strong>Embark lets you go back and forth between the two patterns.</strong> So you can call <code>find-file</code> (say) and pick a file, only to realize that you want to do something else with it, like open it in another window, or copy the file to a different directory:</p>
+<figure><a href="https://karthinks.com/img/embark-pattern.png"><img src="https://karthinks.com/img/embark-pattern.png"/></a>
+</figure>
+
+<p>With Embark, this is a breeze.</p>
+<h2 id="embark-act-actually-dot-dot-dot-dot-and-but-first-dot-dot-dot"><code>embark-act</code>: <em>Actually&hellip;.</em> &amp; <em>But first&hellip;</em></h2>
+<p><code>embark-act</code> is your &ldquo;<strong>Actually&hellip;</strong>&rdquo; command. As in, I called <code>package-install</code> and picked a package but <em>actually</em> I&rsquo;d like to read the package description instead!</p>
+<p><code>embark-act</code> is your &ldquo;<strong>Yes, but first&hellip;</strong>&rdquo; command as well. As in, I called <code>find-file</code> but <em>first I&rsquo;d like to</em> copy it elsewhere to be safe, then continue to open this file!</p>
+<p>Or perhaps you want to think of it as a keyboard driven analog of a &ldquo;right-click menu&rdquo; in a GUI environment. That works too, but the former maps better to the idea of &ldquo;late-binding&rdquo; and laziness that I think of Embark as enabling.</p>
+<p>Emacs makes you specify and fix the action/verb first (<code>find-file</code>, say), then choose the thing it acts on (the file). If you call embark-act, this is reversed. Now the object (file) is fixed, and you&rsquo;re free to choose the action.</p>
+<p>I know: It sounds like I&rsquo;m describing Helm actions. The difference is that Embark works <em>everywhere</em>, across all types of &ldquo;objects&rdquo;, and with <em>every</em> initial and <em>wait-I-changed-my-mind</em> command. There is no predetermined set of alternative actions configured to work with another predetermined set of initial actions. No one (including yourself) needs to have anticipated in advance what actions go together.<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> This uniform, consistent integration into Emacs makes the difference between them one of kind and not of quantity, although it takes a bit of time to see this.</p>
+<p>This means you can start a command and select a candidate in the minibuffer, then call <code>embark-act</code> and  <code>M-x some-other-command</code> to run that command on the candidate instead. If you are about to kill a buffer with <code>C-x k</code> but want to switch to it instead, you can call <code>embark-act</code> followed by <code>C-x b</code>. You can even do this without losing the <code>kill-buffer</code> prompt if you just want a quick peek at the buffer!</p>
+<p>The categories of objects Embark understands covers most common cases: filenames, buffers, bookmarks, URLs, text regions, variables, commands, symbols and more.</p>
+<p>When you call <code>embark-act</code>, Embark also activates a keymap with direct access to common actions you might want to run for each category of object. This makes it unnecessary to use <code>M-x</code> to run your <em>I-changed-my-mind</em> action all the time, although you always have that option. You can, of course, add your own commands to this keymap as I do below.</p>
+<p>I use <code>embark-act</code> literally hundreds of times every day. Here are a few of my common uses. A few of these are built in, others need some elisp to work, all are surprisingly useful. To be clear, this list barely scratches the surface of the sphere of possibilities with Embark.</p>
+<details>
+<summary>A recipe for reproducing these demos</summary>
+<div class="details">
+<p>I use Embark in conjunction with various Consult commands (<code>consult-grep</code>, <code>consult-locate</code>, <code>consult-dir</code> etc) in Emacs 27.2. If you want to reproduce these demos exactly in your Emacs, you will need the following packages:</p>
+<ul>
+<li><code>embark</code></li>
+<li><code>marginalia</code></li>
+<li><code>vertico</code></li>
+<li><code>consult</code></li>
+<li><code>embark-consult</code></li>
+<li><code>orderless</code></li>
+<li><code>consult-dir</code></li>
+<li><code>ace-window</code></li>
+<li><code>0x0</code></li>
+</ul>
+<p>Additionally you may need to bind the relevant commands (<code>embark-act</code>, <code>embark-export</code>, <code>consult-*</code>) to suitable keys.</p>
+</div>
+</details>
+<h3 id="open-any-buffer-by-splitting-any-window">Open any buffer by splitting any window</h3>
+<p>This needs a little background. The ace-window package allows you to switch to a window based on keyboard hints. A less well known feature is that it also provides a &ldquo;dispatch menu&rdquo; that lets you act on windows in ways beyond simply switching to them:</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/EWC4jNH.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/ace-dispatch-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>With two or more windows open, call <code>ace-window</code></li>
+<li>Press <code>?</code> to bring up the dispatch menu.</li>
+<li>Press the dispatch key to split a window horizontally (<code>v</code> in my video)</li>
+<li>Press the ace-window key corresponding to the buffer you want to split (<code>e</code> in my video)</li>
+<li>Repeat steps 1 and 2</li>
+<li>Press the dispatch key to split a window vertically (<code>s</code> in my video)</li>
+<li>Press the ace-window key corresponding to the buffer you want to split (<code>w</code> in my video)</li>
+</ol>
+</div>
+</details>
+<p>So you can kill windows, move them around, split them and more by using the dispatch keys. (Hit <code>?</code> to bring up the dispatch menu.)</p>
+<p>Now: You can call ace-window via Embark to display a candidate anywhere, including in splits that you create using the above dispatch menu. This means any buffer/file/bookmark I open is always placed exactly where I want it to be on the screen.</p>
+<p>In the below demo, I open a bookmark (with <code>consult-bookmark</code>), a file (with <code>find-file</code>) and a buffer (with <code>consult-buffer</code>) in sequence. Each time, I run <code>embark-act</code> and select the ace-window action, which activates <code>ace-window</code>. You can then display the buffer in any existing window by making a selection with <code>ace-window</code>. I actually go one step further in the demo: I split one of the existing windows using <code>ace-window</code>&rsquo;s dispatch feature from above and display the relevant buffer in that split!</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/5hwqpQD.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-ace-open-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Run a command that requires selecting a file, bookmark or buffer, perhaps <code>switch-to-buffer</code></li>
+<li>Select one and run <code>embark-act</code></li>
+<li>Run the <code>my/embark-ace-action</code> with <code>o</code> (see below)</li>
+<li>Select the window where you want the buffer to be placed, OR</li>
+<li>Split an existing window with <code>v</code> or <code>b</code> (see <code>aw-dispatch-alist</code>) followed by a window selection, and display the buffer in the new split.</li>
+</ol>
+</div>
+</details>
+<details>
+<summary>Update for Emacs 29</summary>
+<div class="details">
+<p>Emacs 29 provides a bunch of &ldquo;window-prefix&rdquo; actions: <a href="https://karthinks.com/software/emacs-window-management-almanac/#the-other-window-prefix--built-in">these are commands you can call to display the output of the <em>next</em> command in specified windows</a>.  For example, calling <code>other-tab-prefix</code> and then <code>find-file</code> will open the file you select in a new tab.  Emacs provides <code>same-window-prefix</code>, <code>other-window-prefix</code>, <code>other-tab-prefix</code> and <code>other-frame-prefix</code>.  We can <a href="https://karthinks.com/software/emacs-window-management-almanac/#a-window-prefix-command-for-ace-window">go one step further and define</a> an <code>ace-window-prefix</code>. Calling it will activate <code>ace-window</code> after the <em>next</em> command and show its result in the window you select, including possibly in splits you create using <code>ace-window</code> actions:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">ace-window-prefix</span> ()
+</span></span><span style="display:flex;"><span>    <span style="background-color:#fff0f0">&#34;Use </span><span style="color:#a60;background-color:#fff0f0">`ace-window&#39;</span><span style="background-color:#fff0f0"> to display the buffer of the next command.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">The next buffer is the buffer displayed by the next command invoked
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">immediately after this command (ignoring reading from the minibuffer).
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">Creates a new window before displaying the buffer.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">When </span><span style="color:#a60;background-color:#fff0f0">`switch-to-buffer-obey-display-actions&#39;</span><span style="background-color:#fff0f0"> is non-nil,
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0"></span><span style="color:#a60;background-color:#fff0f0">`switch-to-buffer&#39;</span><span style="background-color:#fff0f0"> commands are also supported.&#34;</span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">interactive</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">display-buffer-override-next-command</span>
+</span></span><span style="display:flex;"><span>     (<span style="color:#007020">lambda</span> (<span style="color:#963">buffer</span> <span style="color:#963">_</span>)
+</span></span><span style="display:flex;"><span>       (<span style="color:#007020">let</span> (<span style="color:#963">window</span> <span style="color:#963">type</span>)
+</span></span><span style="display:flex;"><span>         (<span style="color:#007020">setq</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#963">window</span> (<span style="color:#963">aw-select</span> (<span style="color:#06b;font-weight:bold">propertize</span> <span style="background-color:#fff0f0">&#34; ACE&#34;</span> <span style="color:#a60;background-color:#fff0f0">&#39;face</span> <span style="color:#a60;background-color:#fff0f0">&#39;mode-line-highlight</span>))
+</span></span><span style="display:flex;"><span>          <span style="color:#963">type</span> <span style="color:#a60;background-color:#fff0f0">&#39;reuse</span>)
+</span></span><span style="display:flex;"><span>         (<span style="color:#06b;font-weight:bold">cons</span> <span style="color:#963">window</span> <span style="color:#963">type</span>)))
+</span></span><span style="display:flex;"><span>     <span style="color:#036;font-weight:bold">nil</span> <span style="background-color:#fff0f0">&#34;[ace-window]&#34;</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">message</span> <span style="background-color:#fff0f0">&#34;Use </span><span style="color:#a60;background-color:#fff0f0">`ace-window&#39;</span><span style="background-color:#fff0f0"> to display next command buffer...&#34;</span>))
+</span></span></code></pre></div><p>Now the interesting bit:  Instead of defining separate Embark actions for opening files, bookmarks or buffers in specified windows or splits, we can embed the window prefix actions into Embark so they can be used with any category of object.</p>
+<p>First we define a keymap with these actions:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">defvar-keymap</span> <span style="color:#963">my/window-prefix-map</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#007020">:doc</span> <span style="background-color:#fff0f0">&#34;Keymap for various window-prefix maps&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#007020">:suppress</span> <span style="color:#a60;background-color:#fff0f0">&#39;nodigits</span>
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;o&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">ace-window-prefix</span>
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;0&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">ace-window-prefix</span>
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;1&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">same-window-prefix</span>
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;2&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">split-window-vertically</span>
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;3&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">split-window-horizontally</span>
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;4&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">other-window-prefix</span>
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;5&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">other-frame-prefix</span>
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;6&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">other-tab-prefix</span>
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;t&#34;</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">other-tab-prefix</span>)
+</span></span></code></pre></div><p>What we&rsquo;d like: When running <code>embark-act</code>, pressing any of the keys in the above keymap should run Embark&rsquo;s default action &ndash; i.e. the command that you originally invoked &ndash; but with the right window-prefix applied.  This will supersede the below, older method of defining individual Embark commands for each kind of object.  Getting there involves hooking into Embark&rsquo;s event loop, so this is a little convoluted.  Strap in!</p>
+<ul>
+<li>
+<p>We define a function that looks up keys in the above keymap and calls the right <code>-window-prefix</code> command before running Embark&rsquo;s default action.  This is intended as a hook function for Embark&rsquo;s <code>embark-around-action-hooks</code>, which lets you insert specific behavior around each Embark action.  This is the code we&rsquo;d like Embark to <em>actually</em> run:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>  <span style="color:#888">;; Look up the key in `my/window-prefix-map&#39; and call that function first.</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#888">;; Then run the default embark action.</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">cl-defun</span> <span style="color:#963">my/embark--call-prefix-action</span> (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">rest</span> <span style="color:#038;font-weight:bold">&amp;key</span> <span style="color:#963">run</span> <span style="color:#963">type</span> <span style="color:#038;font-weight:bold">&amp;allow-other-keys</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">when-let</span> ((<span style="color:#963">cmd</span> (<span style="color:#963">keymap-lookup</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#963">my/window-prefix-map</span>
+</span></span><span style="display:flex;"><span>                     (<span style="color:#06b;font-weight:bold">key-description</span> (<span style="color:#06b;font-weight:bold">this-command-keys-vector</span>)))))
+</span></span><span style="display:flex;"><span>      (<span style="color:#06b;font-weight:bold">funcall</span> <span style="color:#963">cmd</span>))
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">funcall</span> <span style="color:#963">run</span> <span style="color:#007020">:action</span> (<span style="color:#963">embark--default-action</span> <span style="color:#963">type</span>) <span style="color:#007020">:type</span> <span style="color:#963">type</span> <span style="color:#963">rest</span>))
+</span></span></code></pre></div></li>
+<li>
+<p>But this behavior is not attached to any Embark action yet.  To access this behavior from Embark, we define a dummy Embark action whose behavior will be replaced by the above function:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>  <span style="color:#888">;; Dummy function, will be overridden by running `embark-around-action-hooks&#39;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">defun</span> <span style="color:#963">my/embark-set-window</span> () (<span style="color:#007020">interactive</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#888">;; When running the dummy function, call the prefix action from above</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">setf</span> (<span style="color:#963">alist-get</span> <span style="color:#a60;background-color:#fff0f0">&#39;my/embark-set-window</span> <span style="color:#963">embark-around-action-hooks</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#333">&#39;</span>(<span style="color:#963">my/embark--call-prefix-action</span>))
+</span></span></code></pre></div></li>
+<li>
+<p>A wrinkle: to support multi-category commands like those provided by Consult (where the candidates can be a mix of bookmarks, buffers, files and others), we need to explicitly set the &ldquo;default&rdquo; Embark action for relevant categories:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>  (<span style="color:#007020">setf</span> (<span style="color:#963">alist-get</span> <span style="color:#a60;background-color:#fff0f0">&#39;buffer</span> <span style="color:#963">embark-default-action-overrides</span>) <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">pop-to-buffer-same-window</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">alist-get</span> <span style="color:#a60;background-color:#fff0f0">&#39;file</span> <span style="color:#963">embark-default-action-overrides</span>) <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">find-file</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">alist-get</span> <span style="color:#a60;background-color:#fff0f0">&#39;bookmark</span> <span style="color:#963">embark-default-action-overrides</span>) <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">bookmark-jump</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">alist-get</span> <span style="color:#a60;background-color:#fff0f0">&#39;library</span> <span style="color:#963">embark-default-action-overrides</span>) <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">find-library</span>)
+</span></span></code></pre></div></li>
+<li>
+<p>Finally, we map this dummy embark action to all the keys in <code>my/window-prefix-map</code>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>  (<span style="color:#06b;font-weight:bold">map-keymap</span> (<span style="color:#007020">lambda</span> (<span style="color:#963">key</span> <span style="color:#963">cmd</span>)
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">keymap-set</span> <span style="color:#963">embark-general-map</span> (<span style="color:#06b;font-weight:bold">key-description</span> (<span style="color:#06b;font-weight:bold">make-vector</span> <span style="color:#00d;font-weight:bold">1</span> <span style="color:#963">key</span>))
+</span></span><span style="display:flex;"><span>                            <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">my/embark-set-window</span>))
+</span></span><span style="display:flex;"><span>              <span style="color:#963">my/window-prefix-map</span>)
+</span></span></code></pre></div><p>The fact that all keys in <code>my/window-prefix-map</code> are mapped to the same action is not a problem &ndash; in <code>my/embark--call-prefix-action</code> we dispatch on the key that was actually pressed.</p>
+</li>
+</ul>
+</div>
+</details>
+<div class="warning">
+<p>If you&rsquo;re on Emacs 29 or later, you can enable behavior like the above for all commands and categories at once, without needing to define individual actions.  The below is a more manual (and backward-compatible) approach.</p>
+</div>
+<p>To get this to work, you&rsquo;ll need to add a few ace-window functions to the Embark file actions map:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">eval-when-compile</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">defmacro</span> <span style="color:#963">my/embark-ace-action</span> (<span style="color:#963">fn</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#333">`</span>(<span style="color:#007020">defun</span> <span style="color:#333">,</span>(<span style="color:#06b;font-weight:bold">intern</span> (<span style="color:#06b;font-weight:bold">concat</span> <span style="background-color:#fff0f0">&#34;my/embark-ace-&#34;</span> (<span style="color:#06b;font-weight:bold">symbol-name</span> <span style="color:#963">fn</span>))) ()
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">interactive</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">with-demoted-errors</span> <span style="background-color:#fff0f0">&#34;%s&#34;</span>
+</span></span><span style="display:flex;"><span>       (<span style="color:#007020">require</span> <span style="color:#a60;background-color:#fff0f0">&#39;ace-window</span>)
+</span></span><span style="display:flex;"><span>       (<span style="color:#007020">let</span> ((<span style="color:#963">aw-dispatch-always</span> <span style="color:#036;font-weight:bold">t</span>))
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">aw-switch-to-window</span> (<span style="color:#963">aw-select</span> <span style="color:#036;font-weight:bold">nil</span>))
+</span></span><span style="display:flex;"><span>        (<span style="color:#06b;font-weight:bold">call-interactively</span> (<span style="color:#06b;font-weight:bold">symbol-function</span> <span style="color:#a60;background-color:#fff0f0">&#39;,fn</span>)))))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">embark-file-map</span>     (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;o&#34;</span>) (<span style="color:#963">my/embark-ace-action</span> <span style="color:#963">find-file</span>))
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">embark-buffer-map</span>   (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;o&#34;</span>) (<span style="color:#963">my/embark-ace-action</span> <span style="color:#963">switch-to-buffer</span>))
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">embark-bookmark-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;o&#34;</span>) (<span style="color:#963">my/embark-ace-action</span> <span style="color:#963">bookmark-jump</span>))
+</span></span></code></pre></div><p>I also add actions to open the buffer in a vertical or horizontal split. But you probably don&rsquo;t need this, since you can do this and a lot more with ace-window&rsquo;s dispatch menu!</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">eval-when-compile</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">defmacro</span> <span style="color:#963">my/embark-split-action</span> (<span style="color:#963">fn</span> <span style="color:#963">split-type</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#333">`</span>(<span style="color:#007020">defun</span> <span style="color:#333">,</span>(<span style="color:#06b;font-weight:bold">intern</span> (<span style="color:#06b;font-weight:bold">concat</span> <span style="background-color:#fff0f0">&#34;my/embark-&#34;</span>
+</span></span><span style="display:flex;"><span>                      (<span style="color:#06b;font-weight:bold">symbol-name</span> <span style="color:#963">fn</span>)
+</span></span><span style="display:flex;"><span>                      <span style="background-color:#fff0f0">&#34;-&#34;</span>
+</span></span><span style="display:flex;"><span>                      (<span style="color:#06b;font-weight:bold">car</span> (<span style="color:#963">last</span>  (<span style="color:#963">split-string</span>
+</span></span><span style="display:flex;"><span>                                   (<span style="color:#06b;font-weight:bold">symbol-name</span> <span style="color:#963">split-type</span>) <span style="background-color:#fff0f0">&#34;-&#34;</span>))))) ()
+</span></span><span style="display:flex;"><span>       (<span style="color:#007020">interactive</span>)
+</span></span><span style="display:flex;"><span>       (<span style="color:#06b;font-weight:bold">funcall</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#333">,</span><span style="color:#963">split-type</span>)
+</span></span><span style="display:flex;"><span>       (<span style="color:#06b;font-weight:bold">call-interactively</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#333">,</span><span style="color:#963">fn</span>))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">embark-file-map</span>     (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;2&#34;</span>) (<span style="color:#963">my/embark-split-action</span> <span style="color:#963">find-file</span> <span style="color:#963">split-window-below</span>))
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">embark-buffer-map</span>   (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;2&#34;</span>) (<span style="color:#963">my/embark-split-action</span> <span style="color:#963">switch-to-buffer</span> <span style="color:#963">split-window-below</span>))
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">embark-bookmark-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;2&#34;</span>) (<span style="color:#963">my/embark-split-action</span> <span style="color:#963">bookmark-jump</span> <span style="color:#963">split-window-below</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">embark-file-map</span>     (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;3&#34;</span>) (<span style="color:#963">my/embark-split-action</span> <span style="color:#963">find-file</span> <span style="color:#963">split-window-right</span>))
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">embark-buffer-map</span>   (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;3&#34;</span>) (<span style="color:#963">my/embark-split-action</span> <span style="color:#963">switch-to-buffer</span> <span style="color:#963">split-window-right</span>))
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">embark-bookmark-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;3&#34;</span>) (<span style="color:#963">my/embark-split-action</span> <span style="color:#963">bookmark-jump</span> <span style="color:#963">split-window-right</span>))
+</span></span></code></pre></div><hr>
+<h3 id="copy-a-file-to-a-remote-location-when-finding-a-file">Copy a file to a remote location when finding a file</h3>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/mpArf9q.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-copy-remote-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Run <em>any</em> command that requires selecting a file, perhaps <code>find-file-other-window</code></li>
+<li>Select one and run <code>embark-act</code></li>
+<li>Run the <code>copy-file</code> action with <code>c</code>. Embark has a key for this but you can also <code>M-x copy-file</code> here.</li>
+<li>Navigate to the destination path. In the video I used the <a href="https://github.com/karthink/consult-dir">consult-dir</a> package to instantly switch the path to one of my bookmarks, a remote location.</li>
+<li>Press <code>RET</code> to copy the file. You can type in a name to copy it as.</li>
+</ol>
+</div>
+</details>
+<p>Here&rsquo;s what happened. In any file prompt, you can call <code>embark-act</code>  and select the copy action to copy the file instead. (You could just as well call <code>M-x copy-file</code>.) In this case I then use <a href="https://github.com/karthink/consult-dir">consult-dir</a> to insert a bookmark that points to my server into the destination prompt, and the file is copied using Tramp.</p>
+<p>You can even do this without losing the <code>find-file</code> prompt! Calling <code>embark-act</code> with a prefix argument keeps the prompt alive:</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/BIw0Tht.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-copy-remote-persist-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Run <em>any</em> command that requires selecting a file, perhaps <code>find-file-other-window</code></li>
+<li>Select one and run <code>embark-act</code> with a prefix argument. That is, if your binding for <code>embark-act</code> is <code>C-.</code>, run <code>C-u C-.</code>.</li>
+<li>Run the <code>copy-file</code> action with <code>c</code>. Embark has a key for this but you can also <code>M-x copy-file</code> here.</li>
+<li>Navigate to the destination path. In the video I used the <a href="https://github.com/karthink/consult-dir">consult-dir</a> package to instantly switch the path to one of my bookmarks, a remote location.</li>
+<li>Press <code>RET</code> to copy the file. You can type in a name to copy it as.</li>
+<li>Continue to use your <code>find-file-other-window</code> prompt as before.</li>
+</ol>
+</div>
+</details>
+<p>At the end I quit the <code>find-file</code> prompt manually and check the remote directory to ensure that the file has been copied.</p>
+<hr>
+<h3 id="insert-a-minibuffer-candidate-into-the-buffer">Insert a minibuffer candidate into the buffer</h3>
+<p>Simple but very convenient:</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/SrAD4Oa.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-insert-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Run <em>any</em> command that requires you to make a selection using the minibuffer. The selection can be anything, it just has to display some text.</li>
+<li>In the video I chose a distant directory with <code>consult-dir</code> and selected a file in that directory.</li>
+<li>Run <code>embark-act</code></li>
+<li>Press <code>i</code> to insert the text of the selection into the main buffer. In the video I used <code>I</code> instead to insert the selected file&rsquo;s relative path. <code>I</code> does different things based on the type of object you&rsquo;re selecting. For example, <code>I</code> with a buffer candidate inserts the contents of the buffer instead.</li>
+</ol>
+</div>
+</details>
+<hr>
+<h3 id="run-a-shell-command-on-a-minibuffer-candidate-file-without-losing-your-session">Run a shell command on a minibuffer candidate file without losing your session</h3>
+<p>A perfect example of <em>But First I need to&hellip;</em>:</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/9Wf6mQc.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-shell-cmd-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Run <em>any</em> command that requires selecting a file, perhaps <code>find-file</code></li>
+<li>I switched to a distant directory using <code>consult-dir</code>.</li>
+<li>Select a file and run <code>embark-act</code> with a prefix argument. That is, if your binding for <code>embark-act</code> is <code>C-.</code>, run <code>C-u C-.</code>.</li>
+<li>Press <code>&amp;</code> to run the <code>async-shell-command</code> action. Embark has a key for this in its keymaps but you could run <code>M-x async-shell-command</code> or call its default keybinding (<code>M-&amp;</code>) instead.</li>
+<li>Type in the command at the prompt. The file name is already filled in for you. I used the <code>file</code> shell command for more info on a file.</li>
+<li>Press <code>RET</code> to run the command and return to the <code>find-file</code> prompt.</li>
+</ol>
+</div>
+</details>
+<p>I called the &ldquo;file&rdquo; shell command for more info on the file without ending the <code>find-file</code> prompt.</p>
+<hr>
+<h3 id="open-a-file-as-root-without-losing-your-session">Open a file as root without losing your session</h3>
+<p>Emacs&rsquo; version of forgetting to add <code>sudo</code> before the command. In the shell you can go back to the start of the prompt and type it in, or engage in the <code>sudo !!</code> ritual. In Emacs I use an Embark action:</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/ccjvizN.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-sudo-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Run <em>any</em> command that requires selecting a file. I used <code>consult-locate</code> to locate a root-owned file on my filesystem.</li>
+<li>Select one and run <code>embark-act</code> with a prefix argument. That is, if your binding for <code>embark-act</code> is <code>C-.</code>, run <code>C-u C-.</code>.</li>
+<li>Select the <code>sudo-find-file</code> action with <code>S</code>. Note: You&rsquo;ll need to add this action to the keymap, see below. Alternatively you can run <code>M-x sudo-find-file</code> or its global binding.</li>
+</ol>
+</div>
+</details>
+<p>Like before, this works from any file prompt but the command I started with was <code>consult-locate</code>. For the sudo program there is the <code>sudo-edit</code> package, although I used a snippet from my init file that I can&rsquo;t ascertain the provenance of anymore:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">sudo-find-file</span> (<span style="color:#963">file</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Open FILE as root.&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">interactive</span> <span style="background-color:#fff0f0">&#34;FOpen file as root: &#34;</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">when</span> (<span style="color:#06b;font-weight:bold">file-writable-p</span> <span style="color:#963">file</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#f00;font-weight:bold">user-error</span> <span style="background-color:#fff0f0">&#34;File is user writeable, aborting sudo&#34;</span>))
+</span></span><span style="display:flex;"><span>  (<span style="color:#963">find-file</span> (<span style="color:#007020">if</span> (<span style="color:#963">file-remote-p</span> <span style="color:#963">file</span>)
+</span></span><span style="display:flex;"><span>                 (<span style="color:#06b;font-weight:bold">concat</span> <span style="background-color:#fff0f0">&#34;/&#34;</span> (<span style="color:#963">file-remote-p</span> <span style="color:#963">file</span> <span style="color:#a60;background-color:#fff0f0">&#39;method</span>) <span style="background-color:#fff0f0">&#34;:&#34;</span>
+</span></span><span style="display:flex;"><span>                         (<span style="color:#963">file-remote-p</span> <span style="color:#963">file</span> <span style="color:#a60;background-color:#fff0f0">&#39;user</span>) <span style="background-color:#fff0f0">&#34;@&#34;</span> (<span style="color:#963">file-remote-p</span> <span style="color:#963">file</span> <span style="color:#a60;background-color:#fff0f0">&#39;host</span>)
+</span></span><span style="display:flex;"><span>                         <span style="background-color:#fff0f0">&#34;|sudo:root@&#34;</span>
+</span></span><span style="display:flex;"><span>                         (<span style="color:#963">file-remote-p</span> <span style="color:#963">file</span> <span style="color:#a60;background-color:#fff0f0">&#39;host</span>) <span style="background-color:#fff0f0">&#34;:&#34;</span> (<span style="color:#963">file-remote-p</span> <span style="color:#963">file</span> <span style="color:#a60;background-color:#fff0f0">&#39;localname</span>))
+</span></span><span style="display:flex;"><span>               (<span style="color:#06b;font-weight:bold">concat</span> <span style="background-color:#fff0f0">&#34;/sudo:root@localhost:&#34;</span> <span style="color:#963">file</span>))))
+</span></span></code></pre></div><p>To use <code>sudo-find-file</code> as an Embark action, you can run it (with <code>M-x</code> or a global keybinding) after calling <code>embark-act</code>, or shorten the process further by adding an entry to Embark&rsquo;s file actions map:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">embark-file-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;S&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;sudo-find-file</span>)
+</span></span></code></pre></div><hr>
+<h3 id="upload-a-region-of-text-to-0x0">Upload a region of text to 0x0</h3>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/i06G4vT.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-0x0-region-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Select a region of text in a buffer.</li>
+<li>Run <code>embark-act</code>.</li>
+<li>Press <code>U</code> to choose the <code>0x0-dwim</code> action. Note: You&rsquo;ll need to add this action to the keymap, see below.</li>
+<li>The region text will be uploaded to 0x0 and URL added to the <code>kill-ring</code>. (See message at the end of the video.)</li>
+</ol>
+</div>
+</details>
+<p>I&rsquo;m using the <a href="https://melpa.org/#/0x0">0x0</a> package for the <code>0x0-dwim</code> function. When called as an Embark action on a URL, this shortens it. When called on a file, it uploads the file. The echo area message at the end (from <code>0x0-dwim</code>) tells me the upload URL has been copied to the kill ring. As with the other examples, you can call <code>0x0-dwim</code> after running <code>embark-act</code> or define a short key for it in one of Embark&rsquo;s keymaps:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">embark-region-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;U&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;0x0-dwim</span>)
+</span></span></code></pre></div><hr>
+<h3 id="visit-a-package-s-url-from-the-minibuffer">Visit a package&rsquo;s URL from the minibuffer</h3>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/b6BTODS.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-package-url-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Run <em>any</em> command that requires selecting a package, perhaps <code>describe-package</code> (<code>C-h P</code> by default)</li>
+<li>Select a package and run <code>embark-act</code></li>
+<li>Press <code>u</code> to run the <code>embark-browse-package-url</code> action.</li>
+</ol>
+</div>
+</details>
+<p>In this case I ran the <code>describe-package</code> command before going &ldquo;<strong>Actually&hellip; URL please</strong>&rdquo;, but in this example as all the others, there&rsquo;s nothing special about <code>describe-package</code>. Any command that gives you a list of packages at the minibuffer will proffer the same set of Embark actions.</p>
+<hr>
+<h3 id="set-a-variable-from-anywhere-it-appears-in-a-buffer">Set a variable from anywhere it appears in a buffer</h3>
+<p>Super handy for quickly setting variables, especially when testing code.</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/wltZaGq.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-set-var-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Move point to a variable in a buffer. (Alternatively, run a command that requires selecting a variable at the minibuffer, like <code>describe-variable</code>)</li>
+<li>Run <code>embark-act</code>.</li>
+<li>Press <code>=</code> to run the <code>set-variable</code> action. Embark has a key for this in its keymaps, but you could call <code>M-x set-variable</code> instead.</li>
+<li>Set the new value of the variable.</li>
+</ol>
+</div>
+</details>
+<p>In this case Embark has an entry for <code>set-variable</code> in its variables keymap (bound to <code>=</code>), but you can just call <code>M-x set-variable</code>.</p>
+<hr>
+<h3 id="add-a-keybinding-for-a-command-name-from-anywhere-it-appears">Add a keybinding for a command name from anywhere it appears</h3>
+<p>Set all the keys.</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/A0hHGhi.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-set-key-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Move point to a command name in a buffer. (Alternatively, run a command that requires selecting a command at the minibuffer, like <code>describe-command</code>)</li>
+<li>Run <code>embark-act</code>.</li>
+<li>Press <code>g</code> to run the <code>global-set-key</code> action. Embark has a key for this in its keymaps, but you could call <code>M-x global-set-key</code> instead.</li>
+<li>Set the new keybinding for the command.</li>
+</ol>
+</div>
+</details>
+<p>Embark provides an action in its keymap to run <code>global-set-key</code>, but you could just call <code>M-x global-set-key</code> after running <code>embark-act</code> with the point on a command name. There is also <code>local-set-key</code> in the embark keymap.</p>
+<hr>
+<h2 id="embark-export-i-want-a-gist-so-give-me-a-list"><code>embark-export</code>: <em>I want a gist, so give me a list</em></h2>
+<p>If that was everything Embark did I&rsquo;d be a happy camper. But <code>embark-act</code> isn&rsquo;t even its best feature. That would be the gem of composability that is <code>embark-export</code> (and its lesser kin <code>embark-collect</code>). These commands create persistent collections from minibuffer candidate lists: It&rsquo;s one part ivy-occur and one part glue that ties together Emacs libraries better than Emacs does. The examples illustrate why.</p>
+<hr>
+<h3 id="export-emacs-package-candidates-to-a-package-menu">Export Emacs package candidates to a package menu</h3>
+<p>Want a package-menu-mode buffer with all packages involving shells in Emacs? <code>embark-export</code> has you covered:</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/oaDGV3X.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-package-export-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Run <em>any</em> command that requires selecting a package, perhaps <code>describe-package</code> (<code>C-h P</code> by default)</li>
+<li>(Optional) Type in some text to filter the completions list</li>
+<li>Run <code>embark-export</code></li>
+</ol>
+</div>
+</details>
+<p>The clever idea behind <code>embark-export</code> is to reuse Emacs&rsquo; built-in functionality whenever possible: the package-menu library already handles displaying packages. If you&rsquo;re generating a list of packages with user-specified conditions, why reinvent the wheel?</p>
+<hr>
+<h3 id="collect-imenu-candidates-in-an-imenu-list">Collect imenu candidates in an &ldquo;imenu-list&rdquo;</h3>
+<p><code>embark-collect</code> creates persistent collections of minibuffer completion candidates (filtered by user input) in a way that basically obsoletes every &ldquo;listing&rdquo; package for me. In this example I create a filtered list of <code>imenu</code> items that sticks around and that I can use to navigate around the file:</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/MJlM9cL.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-imenu-list-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>When visiting any file, run <code>imenu</code> or a version of it (I ran <code>consult-imenu-all</code>)</li>
+<li>(Optional) Type in some text to filter the completions list</li>
+<li>Run <code>embark-export</code>. (This actually runs <code>embark-collect</code> under the hood. You could run <code>embark-collect</code> directly instead, but it&rsquo;s simpler to just use one command.)</li>
+<li>Press <code>RET</code> in the persistent collections buffer to navigate to that symbol in the file.</li>
+</ol>
+</div>
+</details>
+<p>I didn&rsquo;t show this in the demo, but all <code>embark-act</code> actions are available in the Collections buffer, and you can even call them directly (i.e. without calling <code>embark-act</code> first) by turning on <code>embark-collect-direct-action-minor-mode</code>.</p>
+<hr>
+<h3 id="export-file-candidates-to-a-dired-buffer">Export file candidates to a dired-buffer</h3>
+<p>Have a list of files you arrived at in a tortuous manner that you want to keep around? <code>dired</code> was created to list files, and <code>embark-export</code> respects this:</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/6ZY08H2.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-file-export-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Run <em>any</em> command that requires selecting a file. I used <code>consult-fd</code> to find all files matching a pattern below a directory.</li>
+<li>(Optional) Type in some text to filter the completions list. With <code>consult-fd</code> you do this by adding a <code>#</code> to end the string to search on and begin the string used to filter the results.</li>
+<li>Run <code>embark-export</code>.</li>
+</ol>
+</div>
+</details>
+<p>This obsoletes <code>find-name-dired</code>, another &ldquo;listing&rdquo; based feature.</p>
+<hr>
+<h3 id="export-buffer-candidates-to-ibuffer">Export buffer candidates to ibuffer</h3>
+<p>You saw this coming: Any list of buffers gets exported to an <code>ibuffer</code>.</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/pmBTb6q.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-buffer-export-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Run <em>any</em> command that requires selecting a buffer. I used <code>consult-buffer</code>.</li>
+<li>Type in some text to filter the completions list:
+<ul>
+<li>I pressed <code>b SPC</code> to narrow the consult-buffer list to buffers, then</li>
+<li>typed in <code>!</code> followed by <code>*</code> to omit all buffers<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup> that begin with a <code>*</code>, i.e. &ldquo;special&rdquo; buffers.</li>
+</ul>
+</li>
+<li>Run <code>embark-export</code>.</li>
+</ol>
+</div>
+</details>
+<hr>
+<h3 id="export-variable-candidates-to-a-customize-buffer">Export variable candidates to a customize buffer</h3>
+<p>A list of variables is exported by <code>embark-export</code> into a customize buffer:</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/NIQBwKS.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-custom-var-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Run a command that requires selecting a variable, like <code>describe-variable</code></li>
+<li>Type in some text to filter the completions list</li>
+<li>Run <code>embark-export</code></li>
+</ol>
+</div>
+</details>
+<p>This is a great way to transition from looking up a variable to a full-fledged apropos on relevant items when you need to.</p>
+<hr>
+<h3 id="export-grep-or-line-candidates-to-a-grep-buffer">Export grep or line candidates to a grep buffer</h3>
+<p>Any <code>occur</code>-like results (from consult-line, grep, xref etc) get exported into a <code>grep</code> buffer.</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/PjS1Yx6.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-grep-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Run a command that generates a list of grep-style matches. I used <code>consult-ripgrep</code> in the demo. Other Consult-based options are <code>consult-grep</code>, <code>consult-git-grep</code> and <code>consult-line</code>.</li>
+<li>Type in some text to find grep results.</li>
+<li>Not necessary: I flipped through the various files that matched with <code>vertico-next-group</code> and <code>vertico-previous-group</code>.</li>
+<li>Run <code>embark-export</code>.</li>
+<li>Turn on <code>next-error-follow-minor-mode</code> in the grep buffer with <code>C-c C-f</code>. This jumps each match as I&hellip;</li>
+<li>&hellip;navigate the grep buffer with <code>M-n</code> and <code>M-p</code> (<code>compilation-next-error</code> and <code>compilation-previous-error</code>), and move to the next/previous matching file with <code>}</code> and <code>{</code>.</li>
+</ol>
+</div>
+</details>
+<p>Note that this is a regular grep buffer, so you can use all your tricks, like wgrep to edit the grep buffer and save changes in all the files.</p>
+<hr>
+<h2 id="bonus-use-embark-actions-like-helm">BONUS: Use Embark Actions like Helm</h2>
+<p>In the above examples, the available embark actions were displayed in some window in the frame. Embark has multiple &ldquo;prompters&rdquo; listing the preset actions, and with a little elbow grease you can set up something similar to Helm<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>:</p>
+<video style="center" width="700" controls loop preload="metadata">
+<source src="https://i.imgur.com/LH9uYM6.gifv" type="video/mp4">
+<source src="https://karthinks.com/img/embark-helm-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ol>
+<li>Run any command involving minibuffer selection, <code>consult-buffer</code> in the video.</li>
+<li>(Optional) type in something to filter the completions list or select a buffer.</li>
+<li>Press <code>TAB</code> to switch to the list of embark actions.</li>
+<li>Press <code>TAB</code> again to switch back to the list of candidates.</li>
+<li>Search for an action by name (in this case &ldquo;kill&rdquo;) to filter the list of actions</li>
+<li>Erase and search for a different action (&ldquo;diff&rdquo;) and choose the <code>diff-buffer-with-file</code> action</li>
+<li>Press <code>RET</code> to run <code>diff-buffer-with-file</code> on the selected buffer</li>
+<li>(Optional) Navigate the diff hunks with <code>diff-hunk-next</code> and <code>diff-hunk-prev</code></li>
+<li>(Optional) Fold the diff sections with <code>outline-cycle</code></li>
+<li>Run <code>consult-buffer</code> again and select a buffer</li>
+<li>Switch to the actions list again with <code>TAB</code></li>
+<li>Press <code>@</code> to call an action by its keybinding instead of selecting it by name</li>
+<li>Call the embark action for killing a buffer with <code>k</code> to kill the selected buffer.</li>
+</ol>
+</div>
+</details>
+<p>Here I switch back and forth between the list of actions and the list of candidates (like in Helm) with <code>C-&lt;tab&gt;</code>. In the actions list you can either type the action (matched with completing-read), or call the action directly by prepending its keybinding with <code>@</code>.</p>
+<p>Elbow grease:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">with-minibuffer-keymap</span> (<span style="color:#963">keymap</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">lambda</span> (<span style="color:#963">fn</span> <span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">args</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">minibuffer-with-setup-hook</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>          (<span style="color:#06b;font-weight:bold">use-local-map</span>
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">make-composed-keymap</span> <span style="color:#963">keymap</span> (<span style="color:#06b;font-weight:bold">current-local-map</span>))))
+</span></span><span style="display:flex;"><span>      (<span style="color:#06b;font-weight:bold">apply</span> <span style="color:#963">fn</span> <span style="color:#963">args</span>))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defvar</span> <span style="color:#963">embark-completing-read-prompter-map</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">map</span> (<span style="color:#06b;font-weight:bold">make-sparse-keymap</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;&lt;tab&gt;&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;abort-recursive-edit</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#963">map</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#963">advice-add</span> <span style="color:#a60;background-color:#fff0f0">&#39;embark-completing-read-prompter</span> <span style="color:#007020">:around</span>
+</span></span><span style="display:flex;"><span>            (<span style="color:#963">with-minibuffer-keymap</span> <span style="color:#963">embark-completing-read-prompter-map</span>))
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">vertico-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;&lt;tab&gt;&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;embark-act-with-completing-read</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">embark-act-with-completing-read</span> (<span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">arg</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">interactive</span> <span style="background-color:#fff0f0">&#34;P&#34;</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let*</span> ((<span style="color:#963">embark-prompter</span> <span style="color:#a60;background-color:#fff0f0">&#39;embark-completing-read-prompter</span>)
+</span></span><span style="display:flex;"><span>         (<span style="color:#963">embark-indicators</span> <span style="color:#333">&#39;</span>(<span style="color:#963">embark-minimal-indicator</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">embark-act</span> <span style="color:#963">arg</span>)))
+</span></span></code></pre></div><p>Replace <code>vertico-map</code> above with your completion system of choice&rsquo;s active minibuffer keymap. The default is <code>minibuffer-local-completion-map</code>.</p>
+<p>Remember that unlike with Helm, <em>you&rsquo;re not restricted to these actions</em> when you use Embark! You can call literally any command that it makes sense to with its keybinding or with <code>M-x</code> after running <code>embark-act</code>.</p>
+<hr>
+<h2 id="33">33%</h2>
+<p>That&rsquo;s fifteen useful Embark thingamajigs, and I didn&rsquo;t get to mention <code>embark-become</code>. Or <code>embark-prefix-help-map</code>, <code>embark-which-key-prompter</code>, or Embark&rsquo;s targets and target cycling, or half a dozen more thoughtful features and niceties about Embark. Maybe next time.</p>
+<p>I&rsquo;ll conclude instead by mentioning the main packages I used in the above demos:</p>
+<ul>
+<li><a href="https://github.com/oantolin/embark"><code>embark</code></a> by Omar Antolin Camarena, who&rsquo;s been a pleasure to interact with and pester with my requests for features. To add custom actions to the embark keymaps or otherwise customize Embark, I suggest perusing the README. It&rsquo;s as readable and informative as they come.</li>
+<li><a href="https://github.com/minad/consult"><code>consult</code></a> for its various enhancements to Emacs&rsquo; builtins. <code>consult-locate</code> and <code>consult-find</code> (actually <code>consult-fd</code>) to find files, <code>consult-imenu</code> for a colorful imenu with grouping and <code>consult-ripgrep</code> to grep across a directory.</li>
+<li><a href="https://github.com/minad/marginalia"><code>marginalia</code></a> for the annotations in the minibuffer. Co-maintained by Omar Antolin and Daniel Mendler.</li>
+<li><a href="https://github.com/minad/vertico"><code>vertico</code></a> as the minibuffer completion interface. Consult, Vertico and Marginalia are all authored by Daniel Mendler, who I&rsquo;m convinced never sleeps. I didn&rsquo;t even mention Corfu.</li>
+<li>The <a href="https://github.com/oantolin/orderless"><code>orderless</code></a> completion style, also by Omar Antolin, to match pieces of text against minibuffer candidates independently. Together these five packages form the MOVEC pentagram, a composable enhancement suite that integrates Emacs&rsquo; loosely bound libraries into a modern and cohesive whole.</li>
+<li><a href="https://github.com/karthink/consult-dir"><code>consult-dir</code></a> to switch directories quickly. I used this multiple times above to navigate to distant directories when in the minibuffer prompt.</li>
+<li><a href="https://github.com/karthink/popper"><code>popper</code></a> to make <code>embark-collect</code>, help and other ephemeral buffers behave when they appear on screen.</li>
+<li><a href="https://github.com/abo-abo/ace-window"><code>ace-window</code></a> by abo-abo, whose dispatch-keys idea in Ace-Window and Avy I promptly ripped off for Popper. If I understand correctly his Ivy-Occur was an early influence on what became Embark-Collect as well.</li>
+<li><a href="https://git.sr.ht/~willvaughn/emacs-0x0"><code>0x0</code></a> by William Vaughn. I use this far more often than I thought I would.</li>
+</ul>
+<p>Finally a quick note for Doom Emacs users: Doom ships with Embark out of the box (as of Sep 2021), you don&rsquo;t need to do anything besides looking up the keys for <code>embark-act</code> and <code>embark-collect</code>.</p>
+<p>Despite what these examples suggest, I estimate that I use less than a third of what Embark provides. Even so, in allowing me to change or chain actions at any time, it lets me pilot Emacs by the seat of my pants. A second, unforeseen benefit is that it makes commands and listings that I would never use available in a frictionless way: commands like <code>transpose-regions</code> and <code>apply-macro-to-region-lines</code>, or custom dired, ibuffer and package-menu listings that are interactively inaccessible otherwise<sup id="fnref:4"><a href="#fn:4" class="footnote-ref" role="doc-noteref">4</a></sup>. The ability to quickly whip up such buffers makes knowhing how to use dired or ibuffer pay off several fold. In composing such features seamlessly with minibuffer interaction or with text-regions, Embark acts as a lever to amplify the power of Emacs&rsquo; myriad built in commands and libraries.</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>Although of course, Helm and Embark both do a good job with their presets.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>To match the inverse of an input string with <code>!</code>, I used a <a href="https://github.com/oantolin/orderless#style-dispatchers">feature of the orderless package</a> for Emacs.&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p>Yes, it&rsquo;s not fully Helm-style since it still uses the minibuffer instead of a buffer to show the candidates/actions. You could use <a href="https://github.com/minad/vertico#extensions">vertico-buffer</a> if that&rsquo;s a sticking point.&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:4">
+<p>Technically custom package-menu listings are accessible. From the full package listing (<code>M-x list-packages</code>), you can filter package names by regexp with <code>/ n</code>.&#160;<a href="#fnref:4" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>

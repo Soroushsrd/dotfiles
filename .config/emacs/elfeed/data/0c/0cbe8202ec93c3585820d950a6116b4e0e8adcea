@@ -1,0 +1,43 @@
+<p>I&rsquo;m well aware that I may have a bit of an <a href="https://lambdaland.org/posts/2022-08-01_a_new_font/">obsession with fonts</a>. I don&rsquo;t think that&rsquo;s too unusual for someone who works in tech, however. Sites like <a href="https://www.programmingfonts.org/">Programming Fonts</a> exist to let people test drive and compare a bunch of different fonts. Just for fun, I thought I&rsquo;d write up some of the features I look for in a programming font that I&rsquo;ve come to deliberately pick out.</p>
+<h2 id="critical-letter-forms-i-i-l-1-o-o-0">
+  Critical letter forms: <code>i</code>, <code>I</code>, <code>l</code>, <code>1</code>; <code>o</code>, <code>O</code>, <code>0</code>
+  <a class="anchor" href="#critical-letter-forms-i-i-l-1-o-o-0">#</a>
+</h2>
+<p>These are probably the most important letters to get write in any font that&rsquo;s meant to be hyper-legible: lowercase <code>l</code> must be easily distinguishable from an uppercase <code>I</code> or the number <code>1</code>, and the lowercase <code>i</code> should stand out nicely as well.</p>
+<p>I like to foot of the lowercase <code>l</code> to be curved to more easily distinguish it from the number <code>1</code>. For example, this is what the letters look like in my <a href="https://codeberg.org/ashton314/iosevka-output/">Iosevka Output</a> build:</p>
+<figure><img src="https://lambdaland.org/img/iosevka_output_amb1.png">
+</figure>
+
+<p>I find that that helps readability. I go back and forth as to whether or not I like the foot of the lowercase <code>i</code> to be likewise curved. My current font doesn&rsquo;t have that set, but I used to configure <a href="https://input.djr.com/">Input Mono</a> to work like that.</p>
+<p>Zeros must be distinct from capital <code>O</code>. That&rsquo;s usually pretty easy for a coding font to get right. I personally like the slash—I think that&rsquo;s what I grew up with. Nothing wrong with a dot though.</p>
+<h2 id="increased-pickiness-a-g">
+  Increased pickiness: <code>a</code>, <code>g</code>
+  <a class="anchor" href="#increased-pickiness-a-g">#</a>
+</h2>
+<p>I like double-storey <code>a</code> and <code>g</code> rather than their simpler counterparts. A single-storey <code>a</code> looks a little too much like a lowercase <code>o</code>, and I find the <code>g</code> without two loops looks too much like a lowercase <code>y</code>.</p>
+<figure><img src="https://lambdaland.org/img/iosevka_output_amb2.png">
+</figure>
+
+<h2 id="width">
+  Width
+  <a class="anchor" href="#width">#</a>
+</h2>
+<p>Narrow fonts appeal to a lot of people. I don&rsquo;t get it, however. I like how gentle an extended font is on the eyes. One of the reasons why I liked Input Mono so much was because it had nice, comfy, wide characters. Compare the readability:</p>
+<p>{{&lt; tabs &ldquo;normal-and-narrow&rdquo; &gt;}}</p>
+<p>{{&lt;tab &ldquo;Normal&rdquo;&gt;}}</p>
+<figure><img src="https://lambdaland.org/img/iosevka_output_normal.png">
+</figure>
+
+<p>{{&lt;/tab&gt;}}</p>
+<p>{{&lt;tab &ldquo;Narrow&rdquo;&gt;}}</p>
+<figure><img src="https://lambdaland.org/img/iosevka_output_narrow.png">
+</figure>
+
+<p>{{&lt;/tab&gt;}}</p>
+<p>{{&lt; /tabs &gt;}}</p>
+<p>I find the wider font to be much more readable.</p>
+<h2 id="ligatures">
+  Ligatures
+  <a class="anchor" href="#ligatures">#</a>
+</h2>
+<p>Nope. Just nope. I like to see exactly what characters are in my files. See <a href="https://practicaltypography.com/ligatures-in-programming-fonts-hell-no.html">Matthew Butterick&rsquo;s take</a> for more reasons why.</p>

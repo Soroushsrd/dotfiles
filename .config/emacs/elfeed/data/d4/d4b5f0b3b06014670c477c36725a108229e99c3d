@@ -1,0 +1,11 @@
+<p>
+Just a quickie from Marcin Borkowski (mbork) today. Like many of us, mbork likes to turn on <code>global-auto-revert</code> so that any file open in Emacs that gets changed by an external process has the changes reflected in the Emacs buffer.
+</p>
+<p>
+Sometimes, though, you don&rsquo;t want that to happen. Mbork gives the example of viewing a PDF file while LaTeX is updating it. The question is: <a href="https://mbork.pl/2026-05-25_Ignoring_pdfs_when_auto-reverting_files">how to prevent auto revert from updating certain modes</a>.
+</p>
+<p>
+That turns out to be pretty easy. As usual, Emacs has us covered. The <code>global-auto-revert-ignore-modes</code> variable lists all the modes that should be ignored by auto revert. You can check mbork&rsquo;s post for the details but it&rsquo;s really quite simple: you list the modes that auto revert should ignore and that&rsquo;s it.
+</p>
+<p>
+This is, really, a niche concern but if you have it, mbork&rsquo;s post tells you how to avoid it.</p>

@@ -1,0 +1,204 @@
+<p>Macros are tricky beasts. Most languages—if they have macros at all—usually include a huge “here there be dragons” warning to warn curious would-be macro programmers of the dangers that lurk ahead.</p>
+<p>What is it about macros that makes them so dangerous and unwieldy? That’s difficult to answer in general: there are many different macro systems with varying degrees of ease-of-use. Moreover, making macros easy to use safely is an open area of research—most languages that have macros don’t have features necessary to implement macros safely. Hence, most people steer clear of macros.</p>
+<p>There are many ways to characterize macro systems; I won’t attempt to cover them all here, but here’s the spectrum I’ll be covering in this post:</p>
+<div class="figure">
+  <p><img src="/img/macro_spectrum.svg" alt="" /></p>
+
+  
+  <div class="figure-caption">
+    <span class="figure-caption-text"><p>A spectrum of how easy macro systems are to use safely</p>
+</span>
+  </div>
+  
+</div>
+<h2 id="c-macros-advanced-search-and-replace">C macros: advanced search-and-replace</h2>
+<p>If you’ve done any C programming, you’ve likely run into things like:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="c"><span class="giallo-l"><span style="color: #5E81AC;font-weight: bold;">#</span><span style="color: #81A1C1;">define</span><span style="color: #88C0D0;"> FOO</span><span style="color: #B48EAD;"> 42</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #88C0D0;">printf</span><span style="color: #ECEFF4;">(&quot;</span><span style="color: #A3BE8C;">The answer is: %s</span><span style="color: #EBCB8B;">\n</span><span style="color: #ECEFF4;">&quot;,</span><span> FOO</span><span style="color: #ECEFF4;">)</span><span style="color: #81A1C1;">;</span><span style="color: #616E88;">     /* prints &quot;The answer is: 42&quot; */</span></span></code></pre>
+<p>That <code>#define</code> bit is a macro—albeit a <em>C</em> macro. These operate just after the lexer: they work on token streams. It’s a bit like textual search-and-replace, though it knows a <em>little</em> bit about the structure of the language (not much: just what’s a token and what’s not) so that you won’t run into problems if you do something like this:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="c"><span class="giallo-l"><span style="color: #5E81AC;font-weight: bold;">#</span><span style="color: #81A1C1;">define</span><span style="color: #88C0D0;"> FOO</span><span style="color: #B48EAD;"> 42</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #88C0D0;">printf</span><span style="color: #ECEFF4;">(&quot;</span><span style="color: #A3BE8C;">It says FOO</span><span style="color: #ECEFF4;">&quot;)</span><span style="color: #81A1C1;">;</span><span style="color: #616E88;">     /* prints &quot;It says FOO&quot; not &quot;It says 42&quot; */</span></span></code></pre>
+<p>because that <code>FOO</code> in the string is <em>not</em> a token—it’s just part of a string.</p>
+<p>C macros can’t do very much: you scan the token stream for a macro, then fill in the variables to the macro, and then replace the macro and the arguments its consumed with the filled-out template that is the macro definition. This prevents you from doing silly things like replacing something sitting inside of a string literal, but it’s far, far from being safe, as we’ll see in the next section.</p>
+<h2 id="lisp-macros-operating-on-asts">Lisp macros: operating on ASTs</h2>
+<p>In contrast to C’s macros, Lisp’s macros are much more powerful. Lisp macros operate after the lexer <em>and</em> the parser have had a go at the source code—Lisp macro operate on <em>abstract syntax trees</em>—or ASTs, which is what the compiler or interpreter works with.</p>
+<p>Why is this a big deal? The ASTs capture the language’s semantics around precedence, for instance. In C you can write a macro that does unexpended things, like this:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="c"><span class="giallo-l"><span style="color: #5E81AC;font-weight: bold;">#</span><span style="color: #81A1C1;">define</span><span style="color: #88C0D0;"> DOUBLE</span><span style="color: #ECEFF4;">(</span><span>x</span><span style="color: #ECEFF4;">)</span><span style="color: #5E81AC;"> x </span><span style="color: #81A1C1;">+</span><span style="color: #5E81AC;"> x</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #B48EAD;">3</span><span style="color: #81A1C1;"> *</span><span style="color: #88C0D0;"> DOUBLE</span><span style="color: #ECEFF4;">(</span><span style="color: #B48EAD;">5</span><span style="color: #ECEFF4;">)</span><span style="color: #81A1C1;">;</span><span style="color: #616E88;"> /* Does 3 * 5 + 5 = 20, not 3 * (5 + 5) = 30 */</span></span></code></pre>
+<p>The <code>DOUBLE</code> macro didn’t know anything about precedence and we computed the wrong thing. This means that, to use a macro in C, you have to have a good idea of <em>how</em> it’s doing what it’s intended to do. That means C macros are leaky abstractions that prevent local reasoning: you have to consider both the macro definition and where it’s used to understand what’s going on.</p>
+<p>In contrast, Lisp macros are an improvement because they will rewrite the AST and the precedence you’d expect will be preserved. You can do this, for example:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="common-lisp"><span class="giallo-l"><span>(</span><span style="color: #81A1C1;">defmacro</span><span style="color: #88C0D0;"> double</span><span> (x) `(</span><span style="color: #88C0D0;">+</span><span> ,x ,x))</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>(</span><span style="color: #88C0D0;">*</span><span style="color: #B48EAD;"> 3</span><span> (double </span><span style="color: #B48EAD;">5</span><span>))                        </span><span style="color: #616E88;">; returns 30</span></span></code></pre>
+<p>Lisp macros are also <em>procedural macros</em>, meaning you can execute arbitrary code inside of a macro to generate new ASTs. Macros in Lisp and its descendants are essentially functions from AST → AST. This opens up a whole world of exciting possibilities! Procedural macros constitute a “lightweight compiler API”. [<a href="#citeproc_bib_item_4">4</a>]</p>
+<h2 id="scheme-macros-hygiene">Scheme macros: hygiene</h2>
+<div class="marginnote">
+<p>“Same except for variable names” is also called alpha-equivalence. This comes from the λ-calculus, which states that the particular choice of variable name should not matter. E.g. <script type="math/tex">\lambda x.x</script>
+ and <script type="math/tex">\lambda y.y</script>
+ are the same function in the lambda calculus, just as <script type="math/tex">f(x) = x + 2</script>
+ and <script type="math/tex">g(y) = y + 2</script>
+ are the same function in algebra.</p>
+</div>
+<p>Lisp macros aren’t without danger—many a Lisp programmer has shot their foot off with a macro. One reason is that Lisp macros are not <em>hygienic</em>—variables in the macro’s implementation may leak into the context of the macro call. This means that two Lisp programs that are the same except for different variable names can behave differently:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain" data-anchorlinenos="true }" data-lisp---linenos="true"><span class="giallo-l"><span>(defmacro swap (x y)</span></span>
+<span class="giallo-l"><span>  `(let ((tmp ,x))      ;(tmp-leaky)</span></span>
+<span class="giallo-l"><span>     (setq ,x ,y)</span></span>
+<span class="giallo-l"><span>     (setq ,y tmp)))</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>(let ((foo 1)</span></span>
+<span class="giallo-l"><span>      (bar 2))</span></span>
+<span class="giallo-l"><span>  (swap foo bar)</span></span>
+<span class="giallo-l"><span>  (list foo bar)) ; produces &#39;(2 1)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>(let ((tmp 1)</span></span>
+<span class="giallo-l"><span>      (baz 2))</span></span>
+<span class="giallo-l"><span>  (swap tmp baz)        ;(tmp-capture)</span></span>
+<span class="giallo-l"><span>  (list tmp baz)) ; produces &#39;(1 2) --- no swap!</span></span></code></pre>
+<p>The fact that the macro implementation uses a variable named <code>tmp</code> (tmp-leaky) has leaked through to the user of the macro. (tmp-capture) This phenomenon is called <em>variable capture</em>, and it exposes this macro as a leaky abstraction! There are ways to mitigate this using <code>gensym</code>, but those are error-prone manual techniques. It makes macro writing feel like you’re writing in an unsafe lower-level language.</p>
+<p>Scheme’s macros introduce a concept known as <em>hygiene</em>, which prevents variable capture automatically:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain" data-anchorlinenos="true }" data-scheme---linenos="true"><span class="giallo-l"><span>(define-syntax swap</span></span>
+<span class="giallo-l"><span>  (syntax-rules ()</span></span>
+<span class="giallo-l"><span>    ((swap a b)</span></span>
+<span class="giallo-l"><span>     (let ((tmp a))      ; (tmp-intro-macro)</span></span>
+<span class="giallo-l"><span>       (set! a b)</span></span>
+<span class="giallo-l"><span>       (set! b tmp)))))</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>(let ((foo 1)</span></span>
+<span class="giallo-l"><span>      (bar 2))</span></span>
+<span class="giallo-l"><span>  (swap foo bar)</span></span>
+<span class="giallo-l"><span>  (list foo bar)) ; produces &#39;(2 1)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>(let ((tmp 1)            ; (tmp-intro-let)</span></span>
+<span class="giallo-l"><span>      (baz 2))</span></span>
+<span class="giallo-l"><span>  (swap tmp baz)</span></span>
+<span class="giallo-l"><span>  (list tmp baz)) ; still produces &#39;(2 1)</span></span></code></pre>
+<p>In this case, the variable <code>tmp</code> that the <code>swap</code> macro introduces (tmp-intro-macro) is not the same thing that the variable <code>tmp</code> from the calling context (tmp-intro-let) refers to. This separation of scopes happens automatically behind the scenes, so there’s now no chance of accidental variable capture.<sup class="footnote-reference" id="fr-1-1"><a href="#fn-1">1</a></sup></p>
+<p>If you’d like to know more about hygiene, [<a href="#citeproc_bib_item_1">1</a>] is an excellent resource.</p>
+<h2 id="racket-macros-phase-separation-and-scope-sets">Racket macros: phase separation and scope sets</h2>
+<p>Since Scheme macros (and Lisp macros more generally) allow running arbitrary Scheme code—including code from other modules—the dependency graph between modules can get so tangled that clean builds of a Scheme codebase are impossible. Racket solves this problem with its <a class="link-external" rel="external" href="https://docs.racket-lang.org/guide/phases.html">phase separation</a>, which puts clear delimiters between when functions and macros are available to different parts of the language. This detangles dependency graphs without sacrificing the expressive power of macros. I wrote a little bit about <a href="/posts/2023-05-19_racket_macros/#phases">phase separation</a>; you can read more on <a class="link-external" rel="external" href="https://docs.racket-lang.org/reference/syntax-model.html#%28tech._phase._level%29">the Racket docs</a> as well as Matthew Flatt’s paper [<a href="#citeproc_bib_item_3">3</a>] on phase separation.</p>
+<p>Racket also has a robust system for reasoning about where a variable’s definition comes from called a <em>scope set</em>. This is a notion makes reasoning about where variables are bound sensible. See a <a class="link-external" rel="external" href="https://www-old.cs.utah.edu/plt/scope-sets/">blog post</a> as well as [NO_ITEM_DATA:flattBindingSetsScopes2016b] by Matthew Flatt for more on scope sets.</p>
+<p>Phase separation and scope sets make Racket macros the safest to use: Racket macros compose sensibly and hide their implementation details so that it is easy to write macros that are easy to use as if they were built-in language constructs.</p>
+<p>Racket also goes beyond the <code>syntax-rules</code> form that it inherited from Scheme; Racket’s <code>syntax-parse</code> macro-building system makes generating good error messages easy.</p>
+<p>There’s a little bug in the <code>swap</code> macro we used earlier, and that is the <code>set!</code> form only takes an identifier (i.e. a variable) as its first argument. We don’t have any error checking inside the macro; if we were to call <code>swap</code> with something that wasn’t an identifier, we’d get an error in terms of the <code>set!</code> the macro expands to, not the macro call itself:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="scheme"><span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;">let</span><span style="color: #ECEFF4;"> ((</span><span style="color: #88C0D0;">foo</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      (</span><span>bar </span><span style="color: #B48EAD;">2</span><span style="color: #ECEFF4;">))</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  (</span><span>swap </span><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;">+</span><span style="color: #88C0D0;"> foo</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">)</span><span> bar</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  (</span><span style="color: #88C0D0;">list foo</span><span> bar</span><span style="color: #ECEFF4;">))</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>&gt; </span><span style="color: #ECEFF4;">(</span><span>swap </span><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;">+</span><span style="color: #88C0D0;"> foo</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">)</span><span> bar</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span>  set!: </span><span style="color: #88C0D0;">not</span><span> an identifier</span></span>
+<span class="giallo-l"><span>  at: </span><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;">+</span><span style="color: #88C0D0;"> foo</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span>  in: </span><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;">set!</span><span style="color: #ECEFF4;"> (</span><span style="color: #81A1C1;">+</span><span style="color: #88C0D0;"> foo</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">)</span><span> bar</span><span style="color: #ECEFF4;">)</span></span></code></pre>
+<p>This isn’t good because there’s no <code>set!</code> in our code at all! We could add some error handling in our macro to manually check that <code>a</code> and <code>b</code> are identifiers, but that’s a little tedious. Racket’s <code>syntax-parse</code> helps us out:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="racket"><span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">require</span><span> syntax/parse/define</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;">define-syntax</span><span style="color: #ECEFF4;"> (</span><span style="color: #88C0D0;">swap</span><span> stx</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  (</span><span>syntax-parse stx</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    [(</span><span style="color: #88C0D0;">_</span><span> a:id b:id</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #88C0D0;">     #&#39;</span><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">let</span><span style="color: #ECEFF4;"> ([</span><span>tmp a</span><span style="color: #ECEFF4;">])</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">         (</span><span style="color: #88C0D0;">set!</span><span> a b</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">         (</span><span style="color: #88C0D0;">set!</span><span> b tmp</span><span style="color: #ECEFF4;">))]))</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">let</span><span style="color: #ECEFF4;"> ([</span><span>tmp</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">]</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      [</span><span>baz</span><span style="color: #B48EAD;"> 2</span><span style="color: #ECEFF4;">])</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  (</span><span>swap tmp baz</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  (</span><span style="color: #88C0D0;">list</span><span> tmp baz</span><span style="color: #ECEFF4;">))</span><span style="color: #616E88;">            ; returns &#39;(2 1) as expected</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">let</span><span style="color: #ECEFF4;"> ([</span><span>foo</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">]</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      [</span><span>bar</span><span style="color: #B48EAD;"> 2</span><span style="color: #ECEFF4;">])</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  (</span><span>swap</span><span style="color: #ECEFF4;"> (</span><span style="color: #88C0D0;">+</span><span> foo</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">)</span><span> bar</span><span style="color: #ECEFF4;">))</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>swap: expected identifier</span></span>
+<span class="giallo-l"><span>  at:</span><span style="color: #ECEFF4;"> (</span><span style="color: #88C0D0;">+</span><span> foo</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span>  in:</span><span style="color: #ECEFF4;"> (</span><span>swap</span><span style="color: #ECEFF4;"> (</span><span style="color: #88C0D0;">+</span><span> foo</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">)</span><span> bar</span><span style="color: #ECEFF4;">)</span></span></code></pre>
+<p>Much better! Now our error is in terms that the macro user will recognize. There are lots of other things that <code>syntax-parse</code> can do that make it easy to write correct macros that generate good error messages—a must for macros that become a part of a library.</p>
+<h2 id="other-languages">Other languages</h2>
+<p>Many modern languages use macros; I’ll only talk about a few more here. If something’s missing, that’s probably because I didn’t want to be exhaustive.</p>
+<h3 id="julia">Julia</h3>
+<p>Julia macros have a lot of nice things: they operate on ASTs and they’re hygienic, though the way hygiene is currently implemented is a little strange: all variables get <code>gensym</code>’d automatically{{% sidenote sn2 %}}Meaning, they all get replaced with some generated symbol that won’t clash with any possible variable or function name.{{% /sidenote %}} whether or not they come from inside the macro or they originated from the calling code.</p>
+<p>Part of the problem is that all variables are represented as simple symbols, which [<a href="#citeproc_bib_item_1">1</a>] shows is insufficient to properly implement hygiene.</p>
+<p>Evidently there is <a class="link-external" rel="external" href="https://github.com/JuliaLang/julia/pull/6910">some</a> <a class="link-external" rel="external" href="https://github.com/JuliaLang/julia/issues/37691">ongoing</a> <a class="link-external" rel="external" href="https://github.com/JuliaLang/JuliaSyntax.jl/pull/329">work</a> to improve the situation. This is a good example of research ideas percolating into industry languages I think.</p>
+<h3 id="elixir">Elixir</h3>
+<p>Elixir has robust AST macros, and its standard library makes heavy use of macros; many “core” Elixir constructs like <code>def</code>, <code>if</code>, <code>raise</code>, <code>|&gt;</code>, and others are actually macros that expand to smaller units of Elixir.</p>
+<p>Elixir actually gets hygiene right! Unlike Julia, variables in Elixir’s AST have metadata—including scope information—attached to them. This and other aspects of Elixir’s macro system open it up to lots of exciting possibilities. The <a class="link-external" rel="external" href="https://hexdocs.pm/nx/Nx.html">Nx</a> library brings support for numerical and GPU programming to Elixir, and it works essentially by implementing a custom Elixir compiler <em>in Elixir itself</em>, and macros play a big role in this.</p>
+<div class="marginnote">
+<p>Me thinking that Elixir is a big mainstream language should tell you something about the languages I spend my time with in my job as a PhD student.</p>
+</div>
+<p>I think Elixir macros are really neat—they’re the most powerful I’ve seen in a “big mainstream” language.</p>
+<h3 id="rust">Rust</h3>
+<p>Rust supports two kinds of macros: macros-by-example, and procedural macros.</p>
+<p>Macros-by-example are a simple pattern-to-pattern transformation. Here’s an example from <a class="link-external" rel="external" href="https://doc.rust-lang.org/book/ch19-06-macros.html">The Rust Book</a>:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="rust"><span class="giallo-l"><span style="color: #5E81AC;">#[macro_export]</span></span>
+<span class="giallo-l"><span style="color: #88C0D0;font-weight: bold;">macro_rules! vec</span><span style="color: #ECEFF4;"> {</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    (</span><span style="color: #81A1C1;"> $</span><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;"> $</span><span>x</span><span style="color: #81A1C1;">:</span><span>expr</span><span style="color: #ECEFF4;"> ),</span><span style="color: #81A1C1;">*</span><span style="color: #ECEFF4;"> )</span><span style="color: #81A1C1;"> =&gt;</span><span style="color: #ECEFF4;"> {</span><span style="color: #616E88;">     // (pattern-repeat)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        {</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">            let mut</span><span> temp_vec</span><span style="color: #81A1C1;"> =</span><span style="color: #8FBCBB;"> Vec</span><span style="color: #81A1C1;">::</span><span style="color: #88C0D0;">new</span><span style="color: #ECEFF4;">();</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">            $</span><span style="color: #ECEFF4;">(</span></span>
+<span class="giallo-l"><span>                temp_vec</span><span style="color: #81A1C1;">.</span><span style="color: #88C0D0;">push</span><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;">$</span><span>x</span><span style="color: #ECEFF4;">);</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">            )</span><span style="color: #81A1C1;">*</span></span>
+<span class="giallo-l"><span>            temp_vec</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        }</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    };</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">}</span></span></code></pre>
+<p>This macro takes a pattern like</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="rust"><span class="giallo-l"><span style="color: #88C0D0;font-weight: bold;">vec!</span><span style="color: #ECEFF4;">(</span><span>foo</span><span style="color: #ECEFF4;">,</span><span> bar baz</span><span style="color: #ECEFF4;">)</span></span></code></pre>
+<p>and expands it to a pattern like</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="rust"><span class="giallo-l"><span style="color: #ECEFF4;">{</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    let mut</span><span> temp_vec</span><span style="color: #81A1C1;"> =</span><span style="color: #8FBCBB;"> Vec</span><span style="color: #81A1C1;">::</span><span style="color: #88C0D0;">new</span><span style="color: #ECEFF4;">();</span></span>
+<span class="giallo-l"><span>    temp_vec</span><span style="color: #81A1C1;">.</span><span style="color: #88C0D0;">push</span><span style="color: #ECEFF4;">(</span><span>foo</span><span style="color: #ECEFF4;">);</span></span>
+<span class="giallo-l"><span>    temp_vec</span><span style="color: #81A1C1;">.</span><span style="color: #88C0D0;">push</span><span style="color: #ECEFF4;">(</span><span>bar</span><span style="color: #ECEFF4;">);</span></span>
+<span class="giallo-l"><span>    temp_vec</span><span style="color: #81A1C1;">.</span><span style="color: #88C0D0;">push</span><span style="color: #ECEFF4;">(</span><span>baz</span><span style="color: #ECEFF4;">);</span></span>
+<span class="giallo-l"><span>    temp_vec</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">}</span></span></code></pre>
+<p>Notice how the <code>*</code> marks a part of the template that can be repeated. (pattern-repeat) This is akin to Racket or Scheme’s <code>...</code> repetition form. Macros-by-example work on AST, but you can’t perform arbitrary computation on the AST. For that, you need procedural macros.</p>
+<p>Rust’s procedural macros (called “proc macros”) work on a token stream, and you can perform arbitrary computation, which puts them in a bit of a funny middle ground between C and Lisp. There is a <a class="link-external" rel="external" href="https://docs.rs/syn/2.0.39/syn/">Rust crate</a> that you can use to parse a Rust token stream into Rust AST, but you don’t get any nice source information from the AST nodes, which makes producing good error messages a challenge.</p>
+<p>I personally find Rust macros to be disappointing.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>There’s a wide variety of macro systems. The best macro systems:</p>
+<ul>
+<li><em>Operate on the AST</em> rather than on a stream of tokens</li>
+<li>Avoid leaking implementation details through inadvertent variable capture by being <em>hygienic</em></li>
+<li>Produce good error messages that are in <em>terms of the caller’s context</em></li>
+<li>(Bonus) have good <em>phase separation</em> to enforce clear separation between complex macro systems</li>
+</ul>
+<p>Different languages have different features in their macro systems; some languages make it easy to use macros sensibly, while for others macros are a formidable challenge to use properly—make sure you know what your language provides and the trade-offs involved.</p>
+<h3 id="why-shouldn-t-you-use-macros">Why shouldn’t you use macros?</h3>
+<p>Turns out you can do a <em>lot</em> with functions. Powerful function programming languages let you do so much with first-class functions. If you can get access to <a href="/posts/2022-11-17_continutations/">first-class continuations</a>, as you can in Racket and Scheme, then you can create powerful new programming constructs without having to resort to macros.</p>
+<p>I came across the <a class="link-external" rel="external" href="https://www.youtube.com/watch?v=mSgXWpvQEHE&amp;t=579s">JuliaCon 2019 keynote</a> talk, where Steven Johnson explains how many of the things that you can do with macros can be solved just with Julia’s type dispatch.</p>
+<p>If you can do something with functions, you probably should: functions are first-class values in most languages these days, and you’ll enjoy increased composability, better error messages, and code that is easier to read and understand by your peers.</p>
+<p>Macros introduce little languages wherever you use them. For simple macros, you might not have <em>any</em> constraints on what you may write under the scope of a macro. As an example, consider a macro that adds a <code>while</code>-loop construct to a language by rewriting to another kind of looping mechanism: you shouldn’t have any restriction on what you can write inside the body of the <code>while</code> loop.</p>
+<p>However, more complex macros can impose more restrictions on what can and cannot be written under their lexical extent. These restrictions may or may not be obvious. Examples: accidental variable capture limits what can be safely written, and grammatical errors (e.g. using an expression where an identifier was expected) can lead to inscrutable errors.</p>
+<p>Better macro systems mitigate these problems. It’s not enough to just have a macro system that uses ASTs; you need a macro system that makes it easy to write <em>correct</em> macros with clear error messages so they truly feel like natural extensions of the language. Few languages do this right.</p>
+<h3 id="why-should-you-use-macros">Why should you use macros?</h3>
+<p>Macro systems have improved since the 1960s. While Lisp excluded many of the pitfalls of C macros <em>by construction</em>, you still had to use kluges like <code>gensym</code> to manually avoid variable capture. Scheme got rid of that with hygienic macros, and Racket improved matters further by improving macro hygiene through scope sets and introducing phase separation. It is so much easier to build robust macro-based abstractions.</p>
+<p>Macros are good—anyone can write macros and experiment with new syntactic constructs. This makes development and extension of the language no longer the sole domain of the language designer and maintainer—library authors can experiment with different approaches to various problems.</p>
+<p>We see this a lot with Elixir: Elixir’s core language is really rather small; most of the magic powering popular libraries like <a class="link-external" rel="external" href="https://hexdocs.pm/ecto/getting-started.html">Ecto</a> or <a class="link-external" rel="external" href="https://www.phoenixframework.org/">Phoenix</a> comes from a choice set of macro abstractions. These and other libraries are free to experiment with novel syntax without fear of cluttering and coupling the core language with bad abstractions that would then need to be maintained in perpetuity.</p>
+<p>Macros can be powerful when used correctly—something made much easier by modern macro systems.</p>
+<h2 id="references">References</h2>
+<style>.csl-left-margin{float: left; padding-right: 0em;}
+ .csl-right-inline{margin: 0 0 0 1em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>
+    <div class="csl-left-margin">[1]</div><div class="csl-right-inline">Adams, M.D. 2015. <a href="https://doi.org/10.1145/2676726.2677013">Towards the Essence of Hygiene</a>. <i>Proceedings of the 42nd Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages</i> (Mumbai India, Jan. 2015), 457–469.</div>
+  </div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>
+    <div class="csl-left-margin">[2]</div><div class="csl-right-inline">Barzilay, E., Culpepper, R. and Flatt, M. Keeping it Clean with Syntax Parameters.</div>
+  </div>
+  <div class="csl-entry"><a id="citeproc_bib_item_3"></a>
+    <div class="csl-left-margin">[3]</div><div class="csl-right-inline">Flatt, M. 2002. <a href="https://doi.org/10.1145/581478.581486">Composable and compilable macros: You want it when?</a> <i>Proceedings of the seventh ACM SIGPLAN international conference on Functional programming</i> (New York, NY, USA, Sep. 2002), 72–83.</div>
+  </div>
+  <div class="csl-entry"><a id="citeproc_bib_item_4"></a>
+    <div class="csl-left-margin">[4]</div><div class="csl-right-inline">Krishnamurthi, S. 2006. EDUCATIONAL PEARL: Automata via macros. <i>Journal of functional programming</i>. 16, 03 (May 2006), 253. DOI:<a href="https://doi.org/10.1017/S0956796805005733">https://doi.org/10.1017/S0956796805005733</a>.</div>
+  </div>
+  <div class="csl-entry">NO_ITEM_DATA:flattBindingSetsScopes2016b</div>
+</div>
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn-1">
+<p>Breaking hygiene has some utility in some cases—for example, one might want to add a <code>break</code> form inside the body of a loop. There are ways around hygiene, but these are not without some problems. For more details see [<a href="#citeproc_bib_item_2">2</a>]. <a href="#fr-1-1">↩</a></p>
+</li>
+</ol>
+</section>

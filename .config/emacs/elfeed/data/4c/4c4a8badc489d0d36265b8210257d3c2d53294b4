@@ -1,0 +1,11 @@
+<p>
+Thanos Apollo has an interesting post about an almost forgotten Emacs battle: <a href="https://thanosapollo.org/posts/bzr-saga/">the choice between Bazaar and Git as the new version control system for Emacs</a>. Twenty years ago, Emacs was still using CVS, a venerable RCS that was well past its sell date.. It was clear to everyone that a new system was needed. The question was which one. The two contenders were Bazaar and Git.
+</p>
+<p>
+On the technical merits the choice was clear. Git was faster and more reliable and most, if not all, of the developers wanted to move to it. But there were political considerations. Bazaar was a GNU project and Git was not. RMS felt strongly that the GNU project should support its own applications and insisted that Bazaar be used and given a chance to improve. It was maintained by <a href="https://en.wikipedia.org/wiki/Canonical_(company)">Canonical</a> but they eventually abandoned the effort. Even though the development was stalled and error reports were piling up unresolved for years, RMS insisted on staying the course.
+</p>
+<p>
+The saga would probably still be going on were it not for Eric Raymond (ESR). He had been working for some time on a utility to import various RCS systems into Git while maintaining whatever metadata the old system offered. At one point he decided to convert Emacs to Git. It was a particularly difficult problem because there was more than one source RCS in play and because some of the records were old and incomplete.
+</p>
+<p>
+Nonetheless, ESR managed the conversion and in 2014 announced that he had the conversion scripts ready and was set to go. In November 2014 he ran his scripts and suddenly Emacs was available as a Git repo. The developers started using it and the battle was over.</p>

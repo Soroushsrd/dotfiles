@@ -1,0 +1,11 @@
+<p>
+I&rsquo;ve been using ICanHazShortcut for  years. I originally started using it to have an easy way to switch to Emacs from anywhere in my system. Eventually, I added Safari and HomeKit to the list of apps I can invoke with a simple keypress but most of my ICanHazShortcut shortcuts are Emacs related. For example, I have <kbd>F9</kbd> mapped to Emacs capture so that I can invoke any Org capture template from anywhere on my system. That&rsquo;s really handy and I use it several times a day. I also have a shortcut to invoke <a href="https://github.com/tecosaur/emacs-everywhere">Emacs Everywhere</a> so that I can escape into the comfort of Emacs when entering data in some other app.
+</p>
+<p>
+Today (Sunday, as I write this) I received a notification that a new version of ICanHazShortcut was available. It&rsquo;s completely rewritten in Swift from Basic and has some new capabilities. You can read about them at the above link. For me, not much has changed. The new version continues doing what ICanHazShortcut has always done.
+</p>
+<p>
+ICanHazShortcut is a minimal app that simply provides a shortcut for any command that you can specify in the terminal. There are plenty of more full featured key mappers available that may be better for more complicated situations but I find ICanHazShortcut perfect. It&rsquo;s light weight and easy to configure. I almost never mess with ICanHazShortcut&rsquo;s configuration. The last time I changed it—to add HomeKit, I think—was years ago. It truly is a set it and forget it app.
+</p>
+<p>
+If you want a simple app for invoking Emacs—or anything else—in various ways, take a look at ICanHazShortcut; it&rsquo;s worked very well for me.</p>

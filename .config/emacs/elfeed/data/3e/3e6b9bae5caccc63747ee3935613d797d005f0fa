@@ -1,0 +1,237 @@
+<p><a href="https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/pvclogo.webp"><img decoding="async" class="alignnone wp-image-36641 size-full" src="https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/pvclogo.webp" alt="Pure Virtual C++ Conference 2026 logo image" width="1047" height="275" srcset="https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/pvclogo.webp 1047w, https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/pvclogo-300x79.webp 300w, https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/pvclogo-1024x269.webp 1024w, https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/pvclogo-768x202.webp 768w" sizes="(max-width: 1047px) 100vw, 1047px" /></a></p>
+<p><strong>Pure Virtual C++ 2026</strong>, our free, one-day virtual conference for the whole C++
+community, goes live <strong>tomorrow, Tuesday, July 21, 2026 at 9:00 AM PT (16:00 UTC)</strong> on YouTube (Microsoft Reactor) and Twitch, hosted by <strong>Mads Kristensen</strong> and <strong>Sinem Akinci</strong>.
+<strong><a href="https://aka.ms/VirtualCpp/Conf/b">Register now →</a></strong></p>
+<p>But you don&#8217;t have to wait until tomorrow to start watching. Our full slate of <strong>on-demand
+sessions is available right now</strong> on the Visual Studio YouTube channel. These talks aren&#8217;t
+aired during the live broadcast. They&#8217;re yours to watch on your own schedule, today or any
+day after.</p>
+<p><strong><a href="https://www.youtube.com/playlist?list=PLDd6OJEZ3V7c"><div  class="d-flex justify-content-left"><a class="cta_button_link btn-primary mb-24" href="https://www.youtube.com/playlist?list=PLDd6OJEZ3V7c" target="_blank">Watch the on-demand playlist</a></div></a></strong></p>
+<h2>And tomorrow, we go live</h2>
+<p>Before we dive into the on-demand sessions, here&#8217;s our conference schedule for tomorrow. The
+broadcast runs about three hours starting at <strong>9:00 AM PT (16:00 UTC)</strong> on Tuesday, July 21. During the five <strong>featured sessions</strong>, we&#8217;ll run <strong>live Q&amp;A in the chat with each speaker</strong>, so
+bring your curiosity and your questions.</p>
+<table>
+<thead>
+<tr>
+<th style="width: 74.8646px;">Time (PT)</th>
+<th style="width: 427.792px;">Session</th>
+<th style="width: 194.667px;">Speaker</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="width: 74.8646px;">9:00 AM</td>
+<td style="width: 427.792px;">Welcome &amp; opening</td>
+<td style="width: 194.667px;">Mads Kristensen, Sinem Akinci</td>
+</tr>
+<tr>
+<td style="width: 74.8646px;">9:00 AM</td>
+<td style="width: 427.792px;">C++ semantic awareness in the CLI: From Project Load to Code Change</td>
+<td style="width: 194.667px;">Sinem Akinci</td>
+</tr>
+<tr>
+<td style="width: 74.8646px;">9:20 AM</td>
+<td style="width: 427.792px;">Mind The Gap: C++/Rust Interop</td>
+<td style="width: 194.667px;">Victor Ciura</td>
+</tr>
+<tr>
+<td style="width: 74.8646px;">9:45 AM</td>
+<td style="width: 427.792px;">From Completions to Agents: AI-Driven C++ in Visual Studio</td>
+<td style="width: 194.667px;">Augustin Popa</td>
+</tr>
+<tr>
+<td style="width: 74.8646px;">10:25 AM</td>
+<td style="width: 427.792px;">Cut Your Build Times Without Becoming a Build Expert</td>
+<td style="width: 194.667px;">David Li</td>
+</tr>
+<tr>
+<td style="width: 74.8646px;">10:40 AM</td>
+<td style="width: 427.792px;">C++/WinRT: Build faster and smaller with C++20 modules</td>
+<td style="width: 194.667px;">Ryan Shepherd</td>
+</tr>
+<tr>
+<td style="width: 74.8646px;">11:00 AM</td>
+<td style="width: 427.792px;">Closing remarks</td>
+<td style="width: 194.667px;">Mads Kristensen, Sinem Akinci</td>
+</tr>
+</tbody>
+</table>
+<p><em>Times are approximate and may shift slightly on the day.</em></p>
+<p>Want the backstory on the featured speakers? Catch up on our <a href="https://devblogs.microsoft.com/cppblog/category/pure-virtual-c/">Meet the Speakers series</a>.</p>
+<p><strong><a href="https://aka.ms/VirtualCpp/Conf/b">Register and add it to your calendar → </a>. </strong>Can&#8217;t make it live? All sessions, featured and on-demand, will be available afterward on the <a href="https://www.youtube.com/playlist?list=PLDd6OJEZ3V7c">YouTube playlist</a>.</p>
+<hr />
+<h2>On-demand guide: Build faster, run faster</h2>
+<p>Below is a guide to every on-demand session: what it covers, who&#8217;s presenting, and where to
+go to learn more.</p>
+<h3>Armin Gerritsen — <em>Sample Profile-Guided Optimization in Practice: from prototype to production</em></h3>
+<table style="border-collapse: collapse; width: 100%;">
+<tbody>
+<tr>
+<td style="width: 300;"><img decoding="async" class="alignnone" src="https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/vipai-spgo-in-practice-armin-gerritsen-pic01-round-256x256-1.webp" alt="Armin Gerritsen" width="300" height="300" /></td>
+<td style="width: 84.6329%;">Armin Gerritsen is a Principal Software Engineer on the Windows Silicon and OS Fundamentals team, focused on delivering the best performance on Windows devices. Over the years he has tuned Profile-Guided technology and expanded its use across the Windows OS, along with many other optimizations throughout the OS stack.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What the session is about.</strong> When real profile data drives optimization, the compiler spends
+its effort exactly where your users spend their time. Traditional Profile-Guided Optimization (PGO) works, but instrumented
+builds, slow runs, and synthetic workloads kept many teams away. <strong>Sample Profile-Guided Optimization
+(SPGO)</strong>, now generally available in MSVC, flips the model: collect lightweight hardware
+samples from your normal release build, feed them to the linker, and let the compiler
+re-optimize hot paths, code layout, and inlining based on what really happens at runtime.
+Armin walks the full loop on a small C++ sample, shows how the same approach scaled to
+Windows and to apps like Adobe Photoshop (delivering up to ~20% CPU uplift on selected workflows), and
+shares adoption best practices.</p>
+<p><strong>Why watch.</strong> SPGO offers PGO-class speedups with a fraction of the friction. If you&#8217;ve wanted
+data-driven performance without instrumented builds, this is the on-ramp.</p>
+<p><strong>Learn more</strong></p>
+<ul>
+<li><a href="https://devblogs.microsoft.com/cppblog/introducing-sample-profile-guided-optimization-in-msvc/">Introducing Sample Profile Guided Optimization in MSVC — C++ Team Blog</a></li>
+<li><a href="https://learn.microsoft.com/cpp/build/sample-profile-guided-optimization">SPGO Tutorial: Improve C++ performance — Microsoft Learn</a></li>
+<li><a href="https://devblogs.microsoft.com/cppblog/boosting-adobe-photoshops-performance-with-msvc-and-spgo/">Boosting Adobe Photoshop&#8217;s performance with MSVC and SPGO — C++ Team Blog</a></li>
+</ul>
+<hr />
+<h2>On-demand guide: The AI-native C++ workflow</h2>
+<h3>Augustin Popa — <em>C++ Dependencies Without the Headache: vcpkg + Copilot CLI</em></h3>
+<table style="border-collapse: collapse; width: 100%;">
+<tbody>
+<tr>
+<td style="width: 300;"><img decoding="async" class="alignnone" src="https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/aupopa-vcpkg-copilot-cli-Augustin-photo-round-256x256-1.webp" alt="Augustin Popa" width="300" height="300" /></td>
+<td style="width: 84.6329%;">Augustin Popa is a Senior Product Manager on the Microsoft C++ team, working across the Visual Studio IDE, Microsoft C++ (MSVC) Build Tools, and vcpkg, the cross-platform C/C++ package manager. • Follow Augustin: <a href="https://www.linkedin.com/in/augustinpopa/">LinkedIn</a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>What the session is about.</strong> Managing C++ dependencies doesn&#8217;t have to mean wrestling with manual configuration, and in this talk it barely feels like work at all. Augustin builds a CMake project
+from scratch and uses <strong>vcpkg together with GitHub Copilot CLI</strong> to discover, add, and
+manage C++ library dependencies without ever leaving the terminal. Along the way he shows how
+an AI agent in the command line can &#8220;autocomplete&#8221; everyday tasks, from discovering and integrating libraries to keeping your build reproducible, and he introduces a new <strong>vcpkg skill</strong> you can
+start using today.</p>
+<p><strong>Why watch.</strong> Dependency management is one of the oldest friction points in C++. Pairing
+vcpkg with an agent in the CLI turns a fiddly, potentially error-prone chore into a few conversational
+steps, and the same workflow carries straight over to Visual Studio and VS Code.</p>
+<p><strong>Learn more</strong></p>
+<ul>
+<li><a href="https://aka.ms/vcpkg/copilot">vcpkg + GitHub Copilot CLI</a></li>
+</ul>
+<hr />
+<h3>Garrett Campbell &amp; Hannia Valera — <em>What&#8217;s new in VS Code CMake Tools: AI-powered development</em></h3>
+<table style="border-collapse: collapse; width: 100%;">
+<tbody>
+<tr>
+<td style="width: 300;"><img decoding="async" class="alignnone" src="https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/gcampbell-cmake-tools-ai-GarrettCampbellHeadshot-round-256x256-1.webp" alt="Garrett Campbell" width="300" height="300" /><img decoding="async" class="alignnone" src="https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/gcampbell-cmake-tools-ai-HanniaValeraHeadshot-round-256x256-1.webp" alt="Hannia Valera" width="300" height="300" /></td>
+<td style="width: 84.6329%;">Garrett Campbell and Hannia Valera are engineers on the Microsoft C++ team focused on C++ developer tools. Garrett is a Senior Software Engineer whose work spans embedded development, CMake support in Visual Studio and VS Code, and agentic build-performance tooling. Hannia is a Software Engineer working on CMake Tools in VS Code and on engineering productivity for C++, including CMake workflows, build and diagnostic reliability, release quality, and AI-assisted development. • Follow Garrett: <a href="https://www.linkedin.com/in/garrett-campbell-a1bb3b162">LinkedIn</a> · Follow Hannia: <a href="https://www.linkedin.com/in/hanniavalera/">LinkedIn</a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>What the session is about.</strong> The CMake Tools extension is central to the C++ experience in VS Code, and
+this session walks through what&#8217;s new: real performance gains, quality-of-life
+improvements, and, importantly, the hooks that make <strong>agentic AI workflows</strong> possible.
+Expect automatic <code>CMakeLists.txt</code> updates, broader test support, and live demos of the
+extension driving an agentic loop against a real project.</p>
+<p><strong>Why watch.</strong> If you build C++ in VS Code, these changes shrink the gap between &#8220;edit code&#8221;
+and &#8220;have a working, tested build&#8221;, and they make Copilot a far more capable collaborator
+inside your CMake projects.</p>
+<p><strong>Learn more</strong></p>
+<ul>
+<li><a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools">CMake Tools extension for VS Code</a></li>
+<li><a href="https://devblogs.microsoft.com/cppblog/c-symbol-context-and-cmake-build-configuration-awareness-for-github-copilot-in-vs-code/">C++ symbol context and CMake build configuration awareness for GitHub Copilot in VS Code — C++ Team Blog</a></li>
+</ul>
+<hr />
+<h2>On-demand guide: Modernizing C++</h2>
+<h3>Moyo Okeremi — <em>PackageReference for C++: Modernization Without the Performance Cost</em></h3>
+<table style="border-collapse: collapse; width: 100%;">
+<tbody>
+<tr>
+<td style="width: 300;"><img decoding="async" class="alignnone" src="https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/mookerem-packagereference-cpp-headshot-round-256x256-1.webp" alt="Moyo Okeremi" width="300" height="300" /></td>
+<td style="width: 84.6329%;">Moyosore Okeremi is a Senior Software Engineer on the Microsoft C++ team, focused on C++ developer tools. She has contributed significantly to AI-assisted C++ tooling in Visual Studio and to cross-platform project and build support. • Follow Moyo: <a href="https://www.linkedin.com/in/moyosore-okeremi">LinkedIn</a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>What the session is about.</strong> C++ projects in Visual Studio can now use <strong>PackageReference</strong>
+for a simpler, more modern NuGet experience. Moyo walks through the feature in a real
+project and explains how the team preserved <strong>project-load performance for large-scale
+solutions</strong>, the very concern that historically kept PackageReference out of native C++
+projects.</p>
+<p><strong>Why watch.</strong> This is dependency modernization without a tax: a cleaner NuGet workflow that
+doesn&#8217;t slow down the big solutions where it would hurt most. Moyo also covers how to enable
+it and where its current limits are.</p>
+<p><strong>Learn more</strong></p>
+<ul>
+<li><a href="https://devblogs.microsoft.com/cppblog/nuget-packagereference-for-c-projects-in-visual-studio/">NuGet PackageReference for C++ Projects in Visual Studio — C++ Team Blog</a></li>
+</ul>
+<hr />
+<h3>Michael Price — <em>Eliminate MSVC upgrade anxiety with Copilot agents</em></h3>
+<table style="border-collapse: collapse; width: 100%;">
+<tbody>
+<tr>
+<td style="width: 300;"><img decoding="async" class="alignnone" src="https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/miprice-msvc-upgrade-copilot-miprice-headshot-round-256x256-1.webp" alt="Michael Price" width="300" height="300" /></td>
+<td style="width: 84.6329%;">Michael Price is a Product Manager on the Microsoft C++ team where he uses his many years experience developing enterprise software and C++ compiler tools to shape what comes next for MSVC, Visual Studio, and VS Code. Lately he&#8217;s been exploring how AI agents can make C++ easier to use in practice. Away from work he&#8217;s into board games, video games, and soccer — and he thoroughly enjoyed this year&#8217;s World Cup, even participating in fan events for both the Algerian and Dutch national teams!. • Follow Michael: <a href="https://github.com/michaelbprice">GitHub @michaelbprice</a> · <a href="https://www.linkedin.com/in/michael-price-60b8324">LinkedIn</a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>What the session is about.</strong> Upgrading the build tools under an enterprise-grade codebase
+is the kind of task that&#8217;s easy to keep postponing: <em>what if it doesn&#8217;t compile, what if
+there are regressions, what if it blows past the two-week window we have?</em> Michael shows how
+<strong>GitHub Copilot agents</strong> and C++-specific tools defuse that anxiety: Copilot can update
+project files, assess the impact, classify any warnings and errors, and work with
+you to build and iterate on a concrete upgrade plan, potentially saving weeks or months.</p>
+<p><strong>Why watch.</strong> Upgrades are how your team unlocks new language features and performance wins.
+This session turns a dreaded, open-ended chore into a bounded, agent-assisted task you can
+actually schedule.</p>
+<p><strong>Learn more</strong></p>
+<ul>
+<li><a href="https://devblogs.microsoft.com/cppblog/github-copilot-app-modernization-cpp-public-preview/">GitHub Copilot app modernization for C++ is now in Public Preview — C++ Team Blog</a></li>
+<li><a href="https://devblogs.microsoft.com/cppblog/msvc-build-tools-preview-updates-july-2026/">MSVC Build Tools Preview updates – July 2026 — C++ Team Blog</a></li>
+</ul>
+<hr />
+<h3>Michael Price — <em>Always Be Upgrading: Living at HEAD with MSVC</em></h3>
+<table style="border-collapse: collapse; width: 100%;">
+<tbody>
+<tr>
+<td style="width: 300;"><img decoding="async" class="alignnone" src="https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/miprice-msvc-upgrade-copilot-miprice-headshot-round-256x256-1.webp" alt="Michael Price" width="300" height="300" /></td>
+<td style="width: 84.6329%;">Michael Price returns for a companion talk on staying current. • Follow Michael: <a href="https://github.com/michaelbprice">GitHub @michaelbprice</a> · <a href="https://www.linkedin.com/in/michael-price-60b8324">LinkedIn</a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>What the session is about.</strong> MSVC no longer ships once every few years; releases now arrive
+often enough that updating can be a routine, <strong>monthly maintenance task</strong> and the MSVC
+<strong>Preview</strong> channel lets you live even closer to HEAD, with the freshest bits and newest
+language features. Michael covers the recent work that makes staying current easier,
+including Visual Studio Insiders, the new MSVC lifecycle and support policies, the Setup
+Assistant, and upgrade-relevant agents.</p>
+<p><strong>Why watch.</strong> &#8220;Living at HEAD&#8221; sounds intimidating until you see the guardrails. This talk
+gives you a practical playbook for getting and staying up to date.</p>
+<p><strong>Learn more</strong></p>
+<ul>
+<li><a href="https://devblogs.microsoft.com/cppblog/microsoft-c-msvc-build-tools-v14-51-preview-released-how-to-opt-in/">MSVC Build Tools Preview: How to Opt In — C++ Team Blog</a></li>
+<li><a href="https://devblogs.microsoft.com/cppblog/msvc-build-tools-preview-updates-july-2026/">MSVC Build Tools Preview updates – July 2026 — C++ Team Blog</a></li>
+</ul>
+<hr />
+<h3>RanDair Porter — <em>MSVC, are we there yet? Status of C++23 and C++26 features</em></h3>
+<table style="border-collapse: collapse; width: 100%;">
+<tbody>
+<tr>
+<td style="width: 300;"><img decoding="async" class="alignnone" src="https://devblogs.microsoft.com/cppblog/wp-content/uploads/sites/9/2026/07/raporter-msvc-cpp23-cpp26-status-randair-round-256x256-1.webp" alt="RanDair Porter" width="300" height="300" /></td>
+<td style="width: 84.6329%;">RanDair Porter is a compiler engineer on the MSVC C++ compiler, focused on constexpr evaluation, initialization, and codebase refactoring. • Follow RanDair: <a href="https://www.linkedin.com/in/randair-porter/">LinkedIn</a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>What the session is about.</strong> This is a straight, matter-of-fact status report on where MSVC
+stands with <strong>C++23 and C++26</strong>, both language and library. RanDair demos new features in
+the IDE, is candid about trade-offs and unfinished work, nods to the last remaining C++23
+feature (<code>constexpr</code> cmath), and points you to the Developer Community post where you can vote on
+C++26 priorities.</p>
+<p><strong>Why watch.</strong> If you&#8217;re deciding when to adopt the newest standards, you want the unvarnished
+picture: what&#8217;s ready, what isn&#8217;t, and how to make your voice heard on what ships next.</p>
+<p><strong>Learn more</strong></p>
+<ul>
+<li><a href="https://aka.ms/cpp26-devcom">Share your feedback on C++26 features</a></li>
+<li><a href="https://devblogs.microsoft.com/cppblog/c23-support-in-msvc-build-tools-14-51/">C++23 Support in MSVC Build Tools 14.51 — C++ Team Blog</a></li>
+<li><a href="https://github.com/microsoft/STL/wiki/Changelog">STL Changelog on GitHub</a></li>
+<li><a href="https://en.cppreference.com/cpp/23">C++23 — cppreference</a></li>
+</ul>
+<hr />
+<p>Watch all these on-demand sessions in our <a href="https://www.youtube.com/playlist?list=PLDd6OJEZ3V7c">Pure Virtual C++ 2026 playlist</a> today.</p>
+<p><em>See you tomorrow!</em></p>
+<p>&nbsp;</p>
+<p>The post <a href="https://devblogs.microsoft.com/cppblog/pure-virtual-cpp-2026-is-tomorrow-and-on-demand-sessions-are-now-available/">Pure Virtual C++ 2026 Is Tomorrow and On-Demand Sessions Are Now Available</a> appeared first on <a href="https://devblogs.microsoft.com/cppblog">C++ Team Blog</a>.</p>

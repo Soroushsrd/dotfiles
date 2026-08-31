@@ -1,0 +1,147 @@
+<p>This is the first of what I think will be several follow-up posts to <a href="https://smallcultfollowing.com/babysteps/
+/blog/2024/06/21/claim-auto-and-otherwise/">&ldquo;Claiming, auto and otherwise&rdquo;</a>. This post is focused on clarifying and tweaking the design I laid out previously in response to some of the feedback I&rsquo;ve gotten. In future posts I want to lay out some of the alternative designs I&rsquo;ve heard.</p>
+<h2 id="tldr-people-like-it">TL;DR: People like it</h2>
+<p>If there&rsquo;s any one thing I can take away from what I&rsquo;ve heard, is that people really like the idea of making working with reference counted or cheaply cloneable data more ergonomic than it is today. A lot of people have expressed a lot of excitement.</p>
+<p>If you read only one additional thing from the post—well, don&rsquo;t do that, but if you <em>must</em>—read the <a href="#conclusion">Conclusion</a>. It attempts to restate what I was proposing to help make it clear.</p>
+<h2 id="clarifying-the-relationship-of-the-traits">Clarifying the relationship of the traits</h2>
+<p>I got a few questions about the relationship of the Copy/Clone/Claim traits to one another. I think the best way to show it is with a venn diagram:</p>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="300" height="300" viewBox="0 0 1080 1080" xml:space="preserve">
+
+  <style>
+    .heavy {
+      font: 70px sans-serif;
+    }
+  </style>
+
+<g transform="matrix(1 0 0 1 540 540)" id="ba299d2e-6da0-4fbf-8b73-fe1551fc4ac6"  >
+</g>
+<g transform="matrix(1 0 0 1 540 540)" id="1a096556-e035-4948-bda7-cdfa086a6429"  >
+<rect style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1; visibility: hidden;" vector-effect="non-scaling-stroke"  x="-540" y="-540" rx="0" ry="0" width="1080" height="1080" />
+</g>
+<g transform="matrix(13.37 0 0 13.37 541.67 541.67)" id="88b2d636-c1ba-4f61-ac16-7892c3ee8051"  >
+<circle style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(180,180,180); fill-rule: nonzero; opacity: 1;" vector-effect="non-scaling-stroke"  cx="0" cy="0" r="35" />
+</g>
+<g transform="matrix(6.74 0 0 6.74 404.3 565.37)" id="290c2dfd-0ee6-418a-8711-86389a0e2ecc"  >
+<circle style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(0,45,255); fill-rule: nonzero; opacity: 0.7;" vector-effect="non-scaling-stroke"  cx="0" cy="0" r="35" />
+</g>
+<g transform="matrix(6.49 0 0 6.49 699.6 569.67)" id="9006d9ac-4678-4099-af62-5692884165aa"  >
+<circle style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,8,177); fill-rule: nonzero; opacity: 0.7;" vector-effect="non-scaling-stroke"  cx="0" cy="0" r="35" />
+</g>
+<g transform="matrix(1 0 0 1 540 216.07)" style="" id="d417f05c-8db2-4516-a4f3-7dee5f72096f"  >
+		<text xml:space="preserve" class="heavy"><tspan x="-80.5" y="27.96" >Clone</tspan></text>
+</g>
+<g transform="matrix(1 0 0 1 339.71 557.45)" style="" id="e06f084b-f2d6-4909-a40d-da3467e12ca6"  >
+		<text xml:space="preserve" class="heavy"><tspan x="-80.48" y="21.99" >Copy</tspan></text>
+</g>
+<g transform="matrix(1 0 0 1 762.98 569.29)" style="" id="ade70649-ef99-4687-841d-48e71eefc645"  >
+		<text xml:space="preserve" class="heavy"><tspan x="-86.65" y="21.99" >Claim</tspan></text>
+</g>
+</svg>
+
+<ul>
+<li>The <code>Clone</code> trait is the most general, representing any way of duplicating the value. There are two important subtraits:
+<ul>
+<li><code>Copy</code> represents values that can be cloned via memcpy and which lack destructors (&ldquo;plain old data&rdquo;).</li>
+<li><code>Claim</code> represents values whose clones are cheap, infallible, and transparent; on the basis of these properties, claims are inserted automatically by the compiler.</li>
+</ul>
+</li>
+</ul>
+<p><code>Copy</code> and <code>Claim</code> overlap but do not have a strict hierarchical relationship. Some <code>Claim</code> types (like <code>Rc</code> and <code>Arc</code>) are not &ldquo;plain old data&rdquo;. And while all <code>Copy</code> operations are infallible, some of them fail to meet claim&rsquo;s other conditions:</p>
+<ul>
+<li>Copying a large type like <code>[u8; 1024]</code> is not cheap.</li>
+<li>Copying a type with interior mutability like <code>Cell&lt;u8&gt;</code> is not transparent.</li>
+</ul>
+<h2 id="on-heuristics">On heuristics</h2>
+<p>One challenge with the <code>Claim</code> trait is that the choice to implement it involves some heuristics:</p>
+<ul>
+<li>What exactly is <em>cheap?</em> I tried to be specific by saying &ldquo;O(1) and doesn&rsquo;t copy more than a few cache lines&rdquo;, but clearly it will be hard to draw a strict line.</li>
+<li>What exactly is <em>infallible?</em> It was pointed out to me that <code>Arc</code> will abort if the ref count overflows (which is one reason why the Rust-for-Linux project <a href="https://rust-for-linux.com/arc-in-the-linux-kernel">rolled their own alternative</a>). And besides, any Rust code can abort on stack overflow. So clearly we need to have some reasonable compromise.</li>
+<li>What exactly is <em>transparent?</em> Again, I tried to specify it, but iterator types are an example of types that are <em>technically</em> transparent to copy but where it is nontheless very confusing to claim them.</li>
+</ul>
+<p>An aversion to heuristics is the reason we have the current copy/clone split. We couldn&rsquo;t figure out where to draw the line (&ldquo;how much data is too much?&rdquo;) so we decided to simply make it &ldquo;memcpy or custom code&rdquo;. This was a reasonable starting point, but we&rsquo;ve seen that it is imperfect, leading to uncomfortable compromises.</p>
+<p>The thing about &ldquo;cheap, infallible, and transparent&rdquo; is that I think it represents <strong>exactly</strong> the criteria that we really want to represent when something can be automatically claimed. And it seems inherent that those criteria are a bit squishy.</p>
+<p>One implication of this is that <code>Claim</code> should rarely if ever appear as a bound on a function. Writing <code>fn foo&lt;T: Claim&gt;(t: T)</code> doesn&rsquo;t really feel like it adds a lot of value to me, since, given the heuristical nature of claim, it&rsquo;s going to rule out some uses that may make sense. <a href="https://github.com/eternaleye">eternaleye</a> proposed an <a href="https://github.com/nikomatsakis/babysteps/issues/43">interesting twist</a> on the original proposal, suggesting we introducing stricter versions of <code>Claim</code> for, say, O(1) <code>Clone</code>, although I don&rsquo;t yet see what code would want to use that as a bound either.</p>
+<h2 id="infallible-ought-to-be-does-not-unwind-and-we-ought-to-abort-if-it-does">&ldquo;Infallible&rdquo; ought to be &ldquo;does not unwind&rdquo; (and we ought to abort if it does)</h2>
+<p>I originally laid out the conditions for claim as &ldquo;cheap, infallible, and transparent&rdquo;, where &ldquo;infallible&rdquo; means &ldquo;cannot panic or abort&rdquo;. But it was pointed out to me that <code>Arc</code> and <code>Rc</code> in the standard library will indeed abort if the ref-count exceeds <code>std::usize::MAX</code>! This obviously can&rsquo;t work, since reference counted values are the prime candidate to implement <code>Claim</code>.</p>
+<p>Therefore, I think infallible ought to say that &ldquo;Claim operations should never panic&rdquo;. This almost doesn&rsquo;t need to be said, since panics are <strong>already</strong> meant to represent impossible or extraordinarily unlikely conditions, but it seems worth reiterating since it is particularly important in this case.</p>
+<p>In fact, I think we should go further and have the compiler insert an abort if an automatic <code>claim</code> operation does unwind.<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> My reasoning here is the same as I gave in my <a href="https://smallcultfollowing.com/babysteps/
+/blog/2024/05/02/unwind-considered-harmful/">post on unwinding</a><sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup>:</p>
+<ul>
+<li>Reasoning about unwinding is already very hard, it becomes nigh impossible if the sources of unwinding are hidden.</li>
+<li>It would make for more efficient codegen if the compiler doesn&rsquo;t have to account for unwinding, which would make code using <code>claim()</code> (automatically or explicitly) mildly more efficient than code using <code>clone()</code>.</li>
+</ul>
+<p>I was originally thinking of the Rust For Linux project when I wrote the wording on infallible, but their requirements around aborting are really orthogonal and much broader than <code>Claim</code> itself. They already don&rsquo;t use the Rust standard library, or most dependencies, because they want to limit themselves to code that treats abort as an absolute last resort. Rather than abort on overflow, their version of reference counting opts simply to leak, for example, and their memory allocators return a <code>Result</code> to account for OOM conditions. I think the <code>Claim</code> trait will work just fine for them whatever we say on this point, as they&rsquo;ll already have to screen for code that meets their more stringent criteria.</p>
+<h2 id="clarifying-claim-codegen">Clarifying <code>claim</code> codegen</h2>
+<p>In my post, I noted almost in passing that I would expect the compiler to still use memcpy at monomorphization time when it knew that the type being claimed implements <code>Copy</code>. One interesting bit of feedback I got was anecdotal evidence that this will indeed be cricital for performance.</p>
+<p>To model the semantics I want for <code>claim</code> we would need specialization<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>. I&rsquo;m going to use a variant of specialized that <a href="https://github.com/lcnr">lcnr</a> first proposed to me; the idea is to have an <code>if impl</code> expression that, at monomorphization time, either takes the <code>true</code> path (if the type implements <code>Foo</code> via <a href="https://smallcultfollowing.com/babysteps/blog/2018/02/09/maximally-minimal-specialization-always-applicable-impls/">always applicable</a> impls) or the <code>false</code> path (otherwise). This is a cleaner formulation for specialization when the main thing you want to do is provide more optimized or alternative implementations.</p>
+<p>Using that, we could write a function <code>use_claim_value</code> that defines the code the compiler should insert:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="k">fn</span> <span class="nf">use_claim_value</span><span class="o">&lt;</span><span class="n">T</span>: <span class="nc">Claim</span><span class="o">&gt;</span><span class="p">(</span><span class="n">t</span>: <span class="kp">&amp;</span><span class="nc">T</span><span class="p">)</span><span class="w"> </span>-&gt; <span class="nc">T</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">std</span>::<span class="n">panic</span>::<span class="n">catch_unwind</span><span class="p">(</span><span class="o">||</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="k">impl</span><span class="w"> </span><span class="n">T</span>: <span class="nb">Copy</span> <span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="c1">// Copy T if we can
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="o">*</span><span class="n">t</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="c1">// Otherwise clone
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">t</span><span class="p">.</span><span class="n">clone</span><span class="p">()</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}).</span><span class="n">unwrap_or_else</span><span class="p">(</span><span class="o">||</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">// Do not allow unwinding
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">abort</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">})</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>This has three important properties:</p>
+<ul>
+<li>No unwinding, for easier reasoning and better codegen.</li>
+<li>Copies if it can.</li>
+<li>Always calls <code>clone</code> otherwise.</li>
+</ul>
+<h2 id="conclusion">Conclusion</h2>
+<h3 id="what-i-really-proposed">What I really proposed</h3>
+<p>Effectively I proposed to change what it means to &ldquo;use something by value&rdquo; in Rust. This has always been a kind of awkward concept in Rust without a proper name, but I&rsquo;m talking about what happens to the value <code>x</code> in any of these scenarios:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rust" data-lang="rust"><span class="line"><span class="cl"><span class="kd">let</span><span class="w"> </span><span class="n">x</span>: <span class="nc">SomeType</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Scenario A: passing as an argument
+</span></span></span><span class="line"><span class="cl"><span class="k">fn</span> <span class="nf">consume</span><span class="p">(</span><span class="n">x</span>: <span class="nc">SomeType</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">consume</span><span class="p">(</span><span class="n">x</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Scenario B: assigning to a new place
+</span></span></span><span class="line"><span class="cl"><span class="kd">let</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Scenario C: captured by a &#34;move&#34; closure
+</span></span></span><span class="line"><span class="cl"><span class="kd">let</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">move</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">x</span><span class="p">.</span><span class="n">operation</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Scenario D: used in a non-move closure
+</span></span></span><span class="line"><span class="cl"><span class="c1">// in a way that requires ownership
+</span></span></span><span class="line"><span class="cl"><span class="kd">let</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">consume</span><span class="p">(</span><span class="n">x</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></div><p>No matter which way you do it, the rules today are the same:</p>
+<ul>
+<li>If <code>SomeType: Copy</code>, then <code>x</code> is <em>copied</em>, and you can go on using it later.</li>
+<li>Else, <code>x</code> is <em>moved</em>, and you cannot.</li>
+</ul>
+<p>I am proposing that, modulo the staging required for backwards compatibility, we change those rules to the following:</p>
+<ul>
+<li>If <code>SomeType: Claim</code>, then <code>x</code> is <em>claimed</em>, and you can go on using it later.</li>
+<li>Else, <code>x</code> is <em>moved</em>, and you cannot.</li>
+</ul>
+<p>To a first approximation, &ldquo;claiming&rdquo; something means calling <code>x.claim()</code> (which is the same as <code>x.clone()</code>). But in reality we can be more efficient, and the definition I would use is as follows:</p>
+<ul>
+<li>If the compiler sees <code>x</code> is &ldquo;live&rdquo; (may be used again later), it transforms the use of <code>x</code> to <code>use_claimed_value(&amp;x)</code> (<a href="#clarifying-claim-codegen">as defined earlier</a>).</li>
+<li>If <code>x</code> is dead, then it is just moved.</li>
+</ul>
+<h3 id="why-i-proposed-it">Why I proposed it</h3>
+<p>There&rsquo;s a reason I proposed this change in the way that I did. I really value the way Rust handles &ldquo;by value consumption&rdquo; in a consistent way across all those contexts. It fits with Rust&rsquo;s ethos of orthogonal, consistent rules that fit together to make a harmonious, usable whole.</p>
+<p>My goal is to retain Rust&rsquo;s consistency while also improving the gaps in the current rule, which neither highlights the things I want to pay attention to (large copies), hides the things I (almost always) don&rsquo;t (reference count increments), nor covers all the patterns I sometimes want (e.g., being able to <code>get</code> and <code>set</code> a <code>Cell&lt;Range&lt;u32&gt;&gt;</code>, which doesn&rsquo;t work today because making <code>Range&lt;u32&gt;: Copy</code> would introduce footguns). My <em>hope</em> is that we can do this in a way that it benefits most every Rust program, whether it be low-level or high-level in nature.</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>In fact, I wonder if we could extend <a href="https://github.com/rust-lang/rfcs/pull/3288">RFC #3288</a> to apply this retroactively to all operations invoked automatically by the compiler, like <code>Deref</code>, <code>DerefMut</code>, and <code>Drop</code>. Obviously this is technically backwards incompatible, but the benefits here could well be worth it in my view, and the code impacted seems very small (who intentionally panics in <code>Deref</code>?).&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>Another blog post for which I ought to post a follow-up!&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p>Specialization has definitely acquired that &ldquo;vaporware&rdquo; reputation and for good reason—but I still think we can add it! That said, my thinking on the topic has evolved quite a bit. It&rsquo;d be worth another post sometime. /me adds it to the queue.&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>

@@ -1,0 +1,19 @@
+<p>
+Randy Ridenour is living proof that you don&rsquo;t have to be a young nerd to master Emacs and Elisp. Ridenour, a professor of Philosophy, has shown repeatedly that it&rsquo;s possible for a nontechnical person to become sufficiently proficient with Emacs and Elisp to bend the editor to his will and make it work as he needs it to.
+</p>
+<p>
+Irreal has recounted some examples of Ridenour&rsquo;s past use of Elisp to customize his work environment and <a href="https://randyridenour.net/posts/2026-06-23-toggle-ghostel.html">now there&rsquo;s a new one</a>. Lately he decided to try <a href="https://dakra.github.io/ghostel/">ghostel</a> for his terminal emulator. He was already using <a href="https://ghostty.org/">ghostty</a> as his macOS terminal emulator so the change made sense.
+</p>
+<p>
+The change worked out well and Ridenour was pleased with the result except for one thing. With his previous Emacs terminal emulator, <a href="https://github.com/kephale/emacs-eat">eat</a>, he was able to toggle the emulator on and off easily but it didn&rsquo;t work with ghostel. Rather than look for another package to solve this, he decided to fix it himself.
+</p>
+<p>
+The desired functionality was
+</p>
+<ol class="org-ol">
+<li>If no instance of ghostel is running, start one in the current window.</li>
+<li>If there is already a ghostel instance running in another window, switch to it.</li>
+<li>If there is a ghostel instance running in the current window, bury it.</li>
+</ol>
+<p>
+Ridenour implemented that functionality with two functions. The first gets the active buffer of any running instance of ghostel or returns <code>nil</code> if there is none. The second function implements the three steps above in a straightforward way. The code is in his post and easy to understand so take a look if you have a similar need.</p>

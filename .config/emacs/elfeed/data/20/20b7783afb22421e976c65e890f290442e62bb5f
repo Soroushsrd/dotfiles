@@ -1,0 +1,53 @@
+<p>I got a paper published at <a class="link-external" rel="external" href="https://2024.ecoop.org/">ECOOP</a> this year! This is my first big paper published at a big conference. As such, I wanted to write down some things that I learned so that in the future I can remember a bit better what was hard for me. That way, should I one day advise PhD students working on <em>their</em> first papers, I can help them through the learning curve better.</p>
+<div class="marginnote">
+<p>For us, this artifact took the form of a Docker container with a bash script that ran all the code examples from our paper to support the claims we made. I really like that reproducibility like this is often an option in CS.</p>
+</div>
+<dl>
+<dt>Conference deadlines may be flexible if you talk to the right people.</dt>
+<dd>
+<p>We submitted an artifact along with our paper But some of the deadlines were <em>really</em> close. My advisor reached out to the folks in charge of the conference<sup class="footnote-reference" id="fr-fn:1-1"><a href="#fn-fn:1">1</a></sup> and asked if the artifact submission date could be moved back. The organizers agreed, and everyone got a little more breathing room between when the paper was due and when the artifact was supposed to be submitted.</p>
+</dd>
+<dt>Conferences are run by humans—you can talk to them.</dt>
+<dd>
+<p>Along the same lines, the conferences are run by <em>people</em>, and you can talk to the organizers to request clarification. You shouldn’t be a whiny jerk, of course, but the people running these things <em>want</em> people to submit good papers and will work to help you overcome blockers.</p>
+</dd>
+<dt>The Call for Papers has everything you need.</dt>
+<dd>
+<p>The “Call for Papers” describes what kinds of submissions fit the conference, as well as <em>how</em> to format and submit your paper. You can see the CfP for ECOOP <a class="link-external" rel="external" href="https://2024.ecoop.org/track/ecoop-2024-papers#Call-for-Papers">here</a>. Absorbing everything in the CfP can be challenging for first-timers. I was unclear about something and my advisor asked me if I had read the CfP. I had, but that didn’t mean that I remembered <em>everything</em> from it. It takes time and experience to absorb the salient parts of the CfP.</p>
+</dd>
+<dt>Papers get easier to read as time goes on.</dt>
+<dd>
+<p>When I first started research, I struggled to make it through a single paper. Moreover, I had a hard time understanding the point the paper was trying to make.</p>
+<p>I think part of the difficulty stems from the sheer amount of new terminology and dense technical material present in a typical paper. Everything is new and therefore requires effort to comprehend. As you get familiar with the field, however, previously arcane concepts become easy to grasp. This also makes it easier to see the main idea of the paper: you can tune out the noise and focus on what is novel.</p>
+<p>Part of it comes from how unfamiliar the <em>form</em> of papers is. When I started research, papers felt arbitrarily formulaic. Now, I can recognize common structures in papers and use these patterns to understand the paper quicker. I actually find that papers are an efficient way for me to learn about cutting-edge research. I hoped, but did not know, that that would eventually be the case when I started.</p>
+</dd>
+<dt>Keep track of where <em>every</em> claim comes from.</dt>
+<dd>
+<p>I did not do a very good job keeping a lab notebook for this paper. When I started writing the paper, I had to go back to my work and try and remember where I got a particular number or why I made a particular claim. I am doing a lot better with my current project, I think. I hope the next paper is a little smoother in this regard.</p>
+</dd>
+<dt>Writing takes a long time!</dt>
+<dd>
+<p>We started working on this paper about 7 months ago, according to <code>git log</code>. There were so many drafts, edits, and revisions.</p>
+</dd>
+<dt>Get your contributions clear.</dt>
+<dd>
+<p>Simon Peyton-Jones <a class="link-external" rel="external" href="https://simon.peytonjones.org/great-research-paper/">gives this advice</a>: your list of contributions should drive the paper. Moreover, writing the paper drives the research. Research is useless unless shared!</p>
+</dd>
+<dt>Collaboration is challenging.</dt>
+<dd>
+<p>Writing joint papers can be tricky. I am really glad we were using <code>git</code> to track changes. I met with my advisor twice a week in person, as well as a few times remotely to hammer out the ideas and drafts in the paper. We sent lots of messages in Slack.</p>
+<p>Asking for feedback can be hard—and I don’t just mean in the emotional pride-bruising sense: prompting the people you ask for feedback can be tricky. I asked someone for some help on a different piece of writing, and they weren’t able to give me much useful help and instead focused on trivial issues. Part of that is on me: I should have prompted better. But it is hard to prompt well.</p>
+<p>I find it a little curious that different kinds of people have different affinities to methods of giving feedback. With this paper, there’s a flag in LaTeX that adds line numbers to the PDF. So, if someone wants to comment on something, they can write:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="plain"><span class="giallo-l"><span>l 42: &quot;that&quot; → &quot;which&quot;; the phrase is not essential, so use &quot;which&quot; instead of &quot;that&quot;</span></span>
+<span class="giallo-l"><span>l 46: &quot;rocks are a kind of vegetable&quot; do we have a citation for this?</span></span>
+<span class="giallo-l"><span>…</span></span></code></pre>
+<p>This seems natural to me. I like that it’s software-agnostic. I guess some fields are tied to particular technologies (e.g. suggested edits in Word) and that seems burdensome to me.</p>
+</dd>
+</dl>
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn-fn:1">
+<p>Specifically, the program chair. <a href="#fr-fn:1-1">↩</a></p>
+</li>
+</ol>
+</section>

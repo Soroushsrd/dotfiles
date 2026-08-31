@@ -1,0 +1,17 @@
+<p>
+Rahul M. Juliato has an informative post <a href="https://www.rahuljuliato.com/posts/emacs-31-around-the-corner#">on what&rsquo;s coming in Emacs 31</a>. Juliato doesn&rsquo;t mind living on the edge and has been tracking and using Emacs from the Master and emacs-31 branches. He says he likes to know &ldquo;what&rsquo;s in the box&rdquo; and the way to learn what&rsquo;s coming is to is to live in it. That&rsquo;s a little too exciting for me and perhaps for you but Juliato&rsquo;s post gives us a view of what to expect.
+</p>
+<p>
+The list is a long one and his post reflects that. It&rsquo;s a lengthy post but it does a good job of describing what to expect. The thing he&rsquo;s happiest about is that with this release tree-sitter &ldquo;just works&rdquo;. Now installing new grammars is pretty much automatic and there are grammars for more languages.
+</p>
+<p>
+For those of you who have to—or for some reason, choose to—use Markdown instead of Org mode, the new markdown-ts-mode will be a welcome addition. The new mode has an Org mode feel so Org users will feel comfortable using it.
+</p>
+<p>
+For those of you who like the completion system making your mind up for you, there are many enhancements to eager completion. That definitely not something I would want; I hate having the system change what I&rsquo;m typing without my asking for it.
+</p>
+<p>
+There are several other changes. Check out Juliato&rsquo;s post for the details. It looks to be a nice release with plenty of improvements. People like Juliato help the development process by thoroughly testing new features for bugs and for suggested improvements.
+</p>
+<p>
+The minions are insisting that I let you know that you can and should view Juliato&rsquo;s post in light mode by flipping the switch at the top of the page. Sorry for the boring announcement but none of us wants to deal with disgruntled minions.</p>

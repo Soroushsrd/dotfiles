@@ -1,0 +1,14 @@
+<p>
+Mode lines. Everybody complains about them and a few brave souls—like Prot—have even <a href="https://irreal.org/blog/?p=11531">taken the time and effort to do something about them</a>. The problem is that they&rsquo;re so tricky to configure that it&rsquo;s not worthwhile so we just suffer with the default.
+</p>
+<p>
+Now Bozhidar Batsov writes about an easy change that anyone can make. As of Emacs 30, <a href="https://emacsredux.com/blog/2026/07/21/right-aligned-mode-line-elements/">it&rsquo;s possible to right align given elements of the mode line</a>. That was always possible, of course, but it required some tricky padding that was particularly fragile. Now there&rsquo;s <code>mode-line-format-right-align</code>, which serves as a marker in your mode line definition. Everything before it is left aligned and everything after it is right aligned.
+</p>
+<p>
+Even the right edge is customizable. You can choose the right edge of the window, the left end of the fringe, or the left edge of the right margin. This facility is going to be useful to those who want a customized mode line.
+</p>
+<p>
+My main problem with the mode line is getting all the items I want to fit on it. Even though I make liberal use of <code>diminish</code>, a lot of useful information always seems to fall off the right end. That probably means I need to watch Prot&rsquo;s video again and buckle down to customizing it the way I want it.
+</p>
+<p>
+In any event, it you&rsquo;d like to place some items at the right side of the mode line, take a look at Batsov&rsquo;s post to see how to do it.</p>

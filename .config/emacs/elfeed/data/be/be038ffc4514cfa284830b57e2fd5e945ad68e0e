@@ -1,0 +1,43 @@
+<p>If you ask anyone what the best Emacs packages are, you’ll almost definitely hear <a class="link-external" rel="external" href="https://magit.vc/">Magit</a> (the only Git porcelain worth using) and <a class="link-external" rel="external" href="https://orgmode.org/">Org Mode</a> (a way to organize anything and everything in plain text) listed as #1 and #2. And they’re right! I use those packages extensively every day.</p>
+<p>Besides those two powerhouses, there are a handful of packages that make using Emacs a delight. If I had to ever use something else, I would miss these packages most:</p>
+<dl>
+<dt><a class="link-external" rel="external" href="https://github.com/abo-abo/avy">Avy</a></dt>
+<dd>Jump around your screen crazy fast. Teleport to any character with ~5 key presses. See <a class="link-external" rel="external" href="https://karthinks.com/software/avy-can-do-anything/">this blog post by Karthink</a> for more reasons why it’s awesome. I almost exclusively rely on <code>avy-goto-char-timer</code> and have it bound to <code>s-j</code>.</dd>
+<dt><a class="link-external" rel="external" href="https://github.com/oantolin/embark">Embark</a></dt>
+<dd>Kind of like a super-charged right-click for Emacs. Works beautifully in dired, when selecting files in the minibuffer. There’s an easy way to make it play well with Avy which is just the best.</dd>
+<dt><a class="link-external" rel="external" href="https://codeberg.org/akib/emacs-eat">Eat</a></dt>
+<dd>Eat is a terminal emulator that’s faster almost all the other terminal emulators for Emacs.<sup class="footnote-reference" id="fr-1-1"><a href="#fn-1">1</a></sup> Additionally, it can make a terminal emulator <em>in a particular region</em>, so if you use Eshell, you can get a little terminal emulator for every command you run. Normally, if you run, say, <code>cal</code>, you see the ugly terminal escape characters printed as text. With Eat, however, those terminal escape characters get interpreted correctly. Interactive programs (e.g. the Julia and Elixir REPLs) work flawlessly with it.</dd>
+<dt><a class="link-external" rel="external" href="https://github.com/minad/jinx">Jinx</a></dt>
+<dd>Best spellchecking ever. It can spellcheck based off of the fontlock face; I keep this on when I program to get on-the-fly spellchecking of code comments and strings. I keep <code>jinx-correct</code> bound to <code>C-;</code> à la flyspell because it is so darn helpful. Supports checking documents with mixed languages. This is one of the packages I miss most when I’m editing text outside of Emacs.</dd>
+<dt><a class="link-external" rel="external" href="https://github.com/emacs-citar/citar">Citar</a></dt>
+<dd>The best way to add citations in Emacs, hands-down. Reads bibtex, inserts in org-mode, LaTeX, whatever.</dd>
+</dl>
+<h2 id="user-interface-enhancement">User interface enhancement</h2>
+<p>These next packages are all by <a class="link-external" rel="external" href="https://github.com/minad">Daniel Mendler</a>. These packages improve selecting commands, buffers, files, etc. from the <code>completing-read</code> and <code>completion-at-point</code> interfaces. These make Emacs insanely ergonomic and excellent.</p>
+<p>These replace packages like <a class="link-external" rel="external" href="https://github.com/emacs-helm/helm">Helm</a>, <a class="link-external" rel="external" href="https://github.com/abo-abo/swiper">Ivy/Counsel/Swiper</a>, and <a class="link-external" rel="external" href="https://github.com/company-mode/company-mode">Company</a>. In comparison to these packages, Vertico + Consult + Corfu are lighter-weight, faster, less buggy (in my experience; I’ve tried them all!), and work better with other Emacs packages because they follow the default built-in APIs.</p>
+<dl>
+<dt><a class="link-external" rel="external" href="https://github.com/minad/vertico">Vertico</a></dt>
+<dd>Lighter-weight, less buggy vertical completing-read interface. Replaces Ivy. Incredibly flexible. Works out-of-the-box with everything that has a <code>completing-read</code> interface, so you don’t need special <code>*-ivy</code> packages to make it play nice. Recommend adding <a class="link-external" rel="external" href="https://github.com/minad/marginalia/">Marginalia</a> as well by the same author to add extra infos.</dd>
+<dt><a class="link-external" rel="external" href="https://github.com/minad/consult">Consult</a></dt>
+<dd>Better than counsel. The live preview is amazing; I use <code>consult-buffer</code> instead of <code>switch-to-buffer</code>, <code>consult-line</code> instead of Swiper. <code>consult-ripgrep</code> is :fire: for searching large projects with instant previewable results. Pairs well with Embark to save results to a buffer.</dd>
+<dt><a class="link-external" rel="external" href="https://github.com/minad/corfu">Corfu</a></dt>
+<dd>Lightweight pop-up library. Pairs well with <a class="link-external" rel="external" href="https://github.com/minad/cape">Cape</a> by the same author.</dd>
+</dl>
+<p>See also <a class="link-external" rel="external" href="https://github.com/oantolin/orderless">Orderless</a> which enhances everything from <code>M-x</code> to <code>consult-line</code> to the Corfu popup. Vertico + Consult + Orderless + Marginalia + Corfu + Cape + Embark is sometimes called the “minad stack”.<sup class="footnote-reference" id="fr-2-1"><a href="#fn-2">2</a></sup> It’s the new hotness—that said, it’s gotten really really stable over the past two years.</p>
+<p>If you like these packages, consider sponsoring their maintainers! These are some of my favorite open-source projects and I try to support them when I can.</p>
+<h2 id="a-starter-kit-built-on-these">A starter kit built on these</h2>
+<p>If you like these packages, you might like my <a class="link-external" rel="external" href="https://codeberg.org/ashton314/emacs-bedrock">Emacs Bedrock</a> starter kit which, unlike many other starter kits, is meant to be a no-nonsense no-fluff no-abstraction bare-bones start for you to fork and tinker with to your liking. The stock configuration only installs <em>one</em> package (<a class="link-external" rel="external" href="https://github.com/justbur/emacs-which-key">which-key</a>, which is amazing) but includes some extra example configuration. The <a class="link-external" rel="external" href="https://codeberg.org/ashton314/emacs-bedrock/src/branch/main/extras/base.el">extras/base.el</a> file includes sample starter configuration for most of the above packages. (I should add <code>eat</code> to it, come to think of it…)</p>
+<h2 id="errata">Errata</h2>
+<ul>
+<li>Eat is not the fastest terminal emulator, Vterm is. Thanks to a Redditor who pointed this out.</li>
+</ul>
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn-1">
+<p>The only emulator it’s <em>not</em> faster than is Vterm, which is pretty dang speedy. Eat has been more than fast enough for all my needs however. <a href="#fr-1-1">↩</a></p>
+</li>
+<li id="fn-2">
+<p>Embark and Orderless are both developed by <a class="link-external" rel="external" href="https://github.com/oantolin">Omar Camarena</a> (oantolin) who frequently collaborates with Daniel Mendler. When I asked Omar on Reddit about the name, Omar replied that “minad stack” is fine; another name they’ve tried for the stack is “iceberg”, which I think is a good name too. <a href="#fr-2-1">↩</a></p>
+</li>
+</ol>
+</section>

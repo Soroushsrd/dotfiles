@@ -1,0 +1,82 @@
+<p>Or: Further Musings on the Tedium of Long Key-Chords.  In the past I&rsquo;ve covered various bespoke approaches to the problem of repeating long key sequences: <a href="https://github.com/magit/transient">Transient</a>, <a href="https://github.com/abo-abo/hydra">Hydra</a>, <a href="https://karthinks.com/software/it-bears-repeating/">repeat-mode</a> (and <a href="https://tildegit.org/acdw/define-repeat-map.el">repeat-mode&rsquo;s helpers</a>) require progressively less forethought and custom elisp chops to set up.  Today we continue our aggressive descent into laziness with the simplest way yet to use any Emacs key prefix as a springboard for one-key access to commands.</p>
+<details>
+<summary>A quick glossary</summary>
+<div class="details">
+<ul>
+<li>
+<p><code>keymap</code>: A <em>&ldquo;keymap&rdquo;</em> is an Emacs data structure that maps a collection of keybindings (<em>i.e.</em> keyboard shortcuts) to commands.</p>
+</li>
+<li>
+<p><code>key-chord</code>: This is a sequence of keys, some or all of which can require modifier keys to be held down. Examples:</p>
+<ul>
+<li><code>C-x C-f</code> (<code>control + x</code>, followed by <code>control + f</code>), which runs the <code>find-file</code> command</li>
+<li><code>C-c @ C-t</code> (<code>control + c</code>, <code>@</code>, followed by <code>control + t</code>), which runs the command <code>outline-hide-body</code>.</li>
+</ul>
+<p>Needless to say, these can get pretty tedious for repeated invocations, even if you avoid the modifiers by using Vim-style leader keys.</p>
+</li>
+<li>
+<p><code>prefix-key</code>: Any &ldquo;incomplete&rdquo; part of a <code>key-chord</code> that will cause Emacs to wait for further keyboard input. In the above examples, <code>C-x</code>, <code>C-c</code> and <code>C-c @</code> are all prefix keys.</p>
+</li>
+</ul>
+</div>
+</details>
+<p><code>repeat-mode</code>, Hydra, Hercules and Transient all enable variations of the following interaction:</p>
+<ul>
+<li>You (the user) define a special keymap &ndash; a set of mappings from key bindings to commands,</li>
+<li>where the bindings are short and mnemonic/ergonomic,</li>
+<li>where the commands are related at some conceptual level in your mind,</li>
+<li>which are displayed in some kind of menu or table,</li>
+<li>and can be invoked in quick succession if required without exiting this menu.  Additionally,</li>
+<li>this menu (and associated editor state) can be enabled by using a dedicated keybinding, or</li>
+<li>(<code>repeat-mode</code> only) by calling any one of these commands the long way.</li>
+</ul>
+<p>The price you pay for this convenience is that you have to create this command group and specify the menu elements manually.  This is not a tall order if you only need a few such menus, and the results can be pretty neat.  In this situation these packages solve the tedium issue almost incidentally, since easing repetition is not even their primary purpose.</p>
+<figure><img src="https://karthinks.com/img/repeat-help-toggle-transient.png"
+         alt="Figure 1: Pictured: A Transient for assorted tasks. Not pictured: Its long and messy definition." width="700px"/><figcaption>
+            <p><span class="figure-number">Figure 1: </span>Pictured: A Transient for assorted tasks. Not pictured: Its long and messy definition.</p>
+        </figcaption>
+</figure>
+
+<p>As I&rsquo;ve <a href="https://karthinks.com/software/it-bears-repeating/">written at length</a> before, Emacs&rsquo; built-in <code>repeat-mode</code> straddles the divide between requiring a bespoke menu with associated elisp configuration and a minimally specified approach to repeating commands.</p>
+<p>But Emacs is full of prefix maps, and we still don&rsquo;t have the ability to enter a persistent state &ndash; on the fly and <em>without premeditation</em> &ndash; where an arbitrary keymap can be &ldquo;activated&rdquo; until we are done running or repeating commands in this map.</p>
+<p>As it turns out, a 90% solution for this is actually really straightforward, no <code>repeat-mode</code> needed. With some inspiration from Embark:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">repeated-prefix-help-command</span> ()
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">interactive</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#963">when-let*</span> ((<span style="color:#963">keys</span> (<span style="color:#06b;font-weight:bold">this-command-keys-vector</span>))
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">prefix</span> (<span style="color:#963">seq-take</span> <span style="color:#963">keys</span> (<span style="color:#06b;font-weight:bold">1-</span> (<span style="color:#06b;font-weight:bold">length</span> <span style="color:#963">keys</span>))))
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">orig-keymap</span> (<span style="color:#06b;font-weight:bold">key-binding</span> <span style="color:#963">prefix</span> <span style="color:#a60;background-color:#fff0f0">&#39;accept-default</span>))
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">keymap</span> (<span style="color:#06b;font-weight:bold">copy-keymap</span> <span style="color:#963">orig-keymap</span>))
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">exit-func</span> (<span style="color:#963">set-transient-map</span> <span style="color:#963">keymap</span> <span style="color:#036;font-weight:bold">t</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">which-key-abort</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">keymap</span> [<span style="color:#963">remap</span> <span style="color:#963">keyboard-quit</span>]
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">lambda</span> () (<span style="color:#007020">interactive</span>) (<span style="color:#06b;font-weight:bold">funcall</span> <span style="color:#963">exit-func</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">which-key--create-buffer-and-show</span> <span style="color:#036;font-weight:bold">nil</span> <span style="color:#963">keymap</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">setq</span> <span style="color:#963">prefix-help-command</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">repeated-prefix-help-command</span>)
+</span></span></code></pre></div><p>That&rsquo;s all of it.  Here&rsquo;s how it works:</p>
+<ol>
+<li>When you&rsquo;ve typed <em>any</em> prefix key (say <code>C-c @</code>) and Emacs is waiting for further input, press <code>C-h</code>.</li>
+<li>Emacs now remembers whatever you&rsquo;ve already typed, activates a &ldquo;repeat state&rdquo;
+<span class="sidenote-number"><small class="sidenote">
+or <code>repeat-mode</code>, as it were.  This is basically modal editing with bespoke modes.
+</small></span>
+and a <code>which-key</code> prompt/menu with available keybindings.</li>
+<li>You can now continue to call available commands in sequence without having to re-type the annoying prefix key.</li>
+<li>This state persists until you exit it with <code>C-g</code> (bound to <code>keyboard-quit</code>).</li>
+</ol>
+<details open>
+<summary>Note:</summary>
+<div class="details">
+<p><code>which-key</code> is only a visual aid here &ndash; this works if you replace it with a different prompter or if you remove it from the code entirely.</p>
+</div>
+</details>
+<p>Here is a demo of creating a &ldquo;repeat state&rdquo; on the fly, in this case for the ever annoying <code>outline-minor-mode</code> commands on the <code>C-c @</code> prefix. (The keypresses are shown at the top of the window.)</p>
+<video style="center" width="700" controls>
+<source src="https://karthinks.com/img/repeated-prefix-help-command.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/repeated-prefix-help-command.mp4">[Repeated-prefix demo]</a></video>
+<p>In principle, <code>repeated-prefix-help-command</code> functions similar to <code>repeat-mode</code>, but with one difference.  The latter requires that you specify beforehand which prefix keymaps should automatically enter the &ldquo;repeat state&rdquo;, and define maps that group together related commands if they don&rsquo;t exist already.  The above method lacks this automaticity, but is more flexible: you can enter this state at any time (and for any keymap) with an additional keypress (here <code>C-h</code>).</p>
+<p><code>repeated-prefix-help-command</code> also has an advantage over <code>repeat-mode</code>: pressing keys that are not bound in the &ldquo;repeat state&rdquo; will cause <code>repeat-mode</code> to end, and you will have to start over with the full, long key sequence to enter it again.
+<span class="sidenote-number"><small class="sidenote">
+Although this can be remedied with some monkey patching. See <a href="https://github.com/karthink/repeat-help">repeat-help</a>.
+</small></span>
+The keymap we activate above stays active until we call <code>keyboard-quit</code>, so we can freely mix regular Emacs editing commands and the ones we have temporary one-key access to.</p>
+<p>We could, of course, use both approaches together.  We are approaching peak laziness, but I don&rsquo;t think we&rsquo;re there yet!</p>

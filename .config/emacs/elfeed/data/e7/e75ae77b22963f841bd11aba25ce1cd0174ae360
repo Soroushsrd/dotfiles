@@ -1,0 +1,38 @@
+
+<p class="wp-block-paragraph">BeCPP just posted <a href="https://www.youtube.com/watch?v=QWqfJtjTAdw"><strong>this video</strong></a> of my talk at their March 30 Symposium. This is the first time I&#8217;ve given this material on camera &#8212; it&#8217;s extension of themes in my <a href="https://herbsutter.com/2025/12/30/software-taketh-away-faster-than-hardware-giveth-why-c-programmers-keep-growing-fast-despite-competition-safety-and-ai/">New Year&#8217;s Eve blog post</a>, with major updates because some big industry changes happened in the first quarter of 2026.</p>
+
+
+
+<figure class="wp-block-embed is-type-video is-provider-youtube wp-block-embed-youtube wp-embed-aspect-16-9 wp-has-aspect-ratio"><div class="wp-block-embed__wrapper">
+<iframe loading="lazy" class="youtube-player" width="1100" height="619" src="https://www.youtube.com/embed/QWqfJtjTAdw?version=3&#038;rel=1&#038;showsearch=0&#038;showinfo=1&#038;iv_load_policy=1&#038;fs=1&#038;hl=en&#038;autohide=2&#038;wmode=transparent" allowfullscreen="true" style="border:0;" sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-popups-to-escape-sandbox"></iframe>
+</div></figure>
+
+
+
+<p class="wp-block-paragraph">This talk is different from other talks I&#8217;ve given before because it&#8217;s focused, not on C++ code examples, but on three major industry trends that are fundamentally shifting our world right now and that directly affect C++:</p>
+
+
+
+<ul class="wp-block-list">
+<li>record-shattering CapEx in 2026 especially for power generation; </li>
+
+
+
+<li>a security sea change from 2021 to 2026; </li>
+
+
+
+<li>and, of course, AI&#8217;s impact (and non-impact).</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph"><a href="https://becpp.org/Symposium2026/material/BeCPP%20-%202026-03-30%20-%20Herb%20Sutter%20-%20C++%20Growing%20in%20a%20world%20of%20competition,%20safety,%20and%20AI.pdf">The slides are here (PDF).</a> I&#8217;ve pasted the key summary slide below. I hope you find the talk interesting and useful.</p>
+
+
+<div class="wp-block-image">
+<figure class="aligncenter size-large is-resized"><a href="https://herbsutter.com/wp-content/uploads/2026/04/image.png"><img loading="lazy" width="1024" height="563" data-attachment-id="6197" data-permalink="https://herbsutter.com/2026/04/19/becpp/image-22/" data-orig-file="https://herbsutter.com/wp-content/uploads/2026/04/image.png" data-orig-size="1541,848" data-comments-opened="0" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;,&quot;alt&quot;:&quot;&quot;}" data-image-title="image" data-image-description="" data-image-caption="" data-large-file="https://herbsutter.com/wp-content/uploads/2026/04/image.png?w=1024" src="https://herbsutter.com/wp-content/uploads/2026/04/image.png?w=1024" alt="" class="wp-image-6197" style="aspect-ratio:1.8171493469619535;width:594px;height:auto" srcset="https://herbsutter.com/wp-content/uploads/2026/04/image.png?w=1024 1024w, https://herbsutter.com/wp-content/uploads/2026/04/image.png?w=150 150w, https://herbsutter.com/wp-content/uploads/2026/04/image.png?w=300 300w, https://herbsutter.com/wp-content/uploads/2026/04/image.png?w=768 768w, https://herbsutter.com/wp-content/uploads/2026/04/image.png?w=1440 1440w, https://herbsutter.com/wp-content/uploads/2026/04/image.png 1541w" sizes="auto, (max-width: 1024px) 100vw, 1024px" /></a></figure>
+</div>
+
+
+<p class="wp-block-paragraph"></p>

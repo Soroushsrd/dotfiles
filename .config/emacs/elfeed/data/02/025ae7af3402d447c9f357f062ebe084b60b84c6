@@ -1,0 +1,27 @@
+<p>
+Nicolas Cavigneaux has an excellent post on <a href="https://www.bounga.org/emacs/2026/06/30/sign-always-encrypt-when-possible-in-mu4e/">signing and optionally encrypting emails sent with mu4e</a>. The idea is to sign each email you send and if you have a GPG key for every recipient, encrypt it was well. As Cavigneaux says, it&rsquo;s pretty easy to sign and/or encrypt messages with mu4e but you have to remember to do it and most people, including him, don&rsquo;t always remember.
+</p>
+<p>
+The solution, of course, is to automate the process so that you don&rsquo;t have to remember. That turns out to be pretty easy to do. Cavigneaux has the necessary code in his post. The basic flow is to check if you have everyone&rsquo;s encryption key and, if so, encrypt the message. Regardless of whether or not everyone&rsquo;s encryption key is available sign the message. There are calls available for both the signing and encryption. The process is kicked off with the <code>send-message-hook</code> every time you send a message.
+</p>
+<p>
+There was a time when encrypting all your messages was <i>the thing to do</i> but difficulties with key distribution have pretty much put an end to the encrypt all emails movement. Most people don&rsquo;t have keys and those who do will probably be annoyed to receive mundane emails that are encrypted. For those sensitive emails being sent to people you know have keys, you pretty much automatically remember to encrypt them.
+</p>
+<p>
+That leaves signing. It mostly doesn&rsquo;t hurt anything<sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></sup> so it probably doesn&rsquo;t matter if you always sign your messages, especially if you have reasons to suspect that their contents might come into dispute. I&rsquo;ve stopped doing even that because, as I say, no one has any idea what it means.
+</p>
+<p>
+So my takeaway is that if you&rsquo;re paranoid about certifying the content of your emails or you regularly deal with people who want to ensure themselves that they&rsquo;re communication with you, it may make sense to automatically sign your emails. Except in special circumstances, I don&rsquo;t see any reason to encrypt all your emails.
+</p>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1" role="doc-backlink">1</a></sup> </p>
+<div class="footpara" role="doc-footnote">
+<p class="footpara">
+Although I do remember being queried about those unreadable binary blobs at the end of my emails.
+</p>
+</div>
+</div>
+</div>
+</div>

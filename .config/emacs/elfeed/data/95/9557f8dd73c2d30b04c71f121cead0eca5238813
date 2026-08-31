@@ -1,0 +1,8 @@
+<p>
+Over at <a href="https://ray-on-emacs.blogspot.com">Ray on Emacs</a>, Raymond Zeitler has an interesting post on <a href="https://ray-on-emacs.blogspot.com/2026/08/display-active-clock-in-emacs-frame.html">displaying the Org clocked in status</a>. The default is to display it in the mode line but Zeitler wanted to display it in the title bar too. It turns out you can turn it off, display it in the mode line, display it in the title bar, or display it in both the mode line and title bar. These choices are controlled by the <code>org-clock-clocked-in-display</code> variable.
+</p>
+<p>
+If you regularly clock in your tasks, having flexibility in where the status is displayed could be useful. The problem is I couldn&rsquo;t find any reference to this variable in the help system or in <code>timeclock.el</code>, which handles the seemingly related <code>timeclock-mode-line-display</code>.
+</p>
+<p>
+I updated my packages to make sure I had the latest Org Mode (I&rsquo;m on Org 9.8.8) but I got the same results. I&rsquo;m guessing that Zeitler is using one of the Emacs 31 prereleases, which implements this. If you&rsquo;re interested in this feature and are on Emacs 31Try it on your system and see what happens. If it works for you, leave a comment.</p>

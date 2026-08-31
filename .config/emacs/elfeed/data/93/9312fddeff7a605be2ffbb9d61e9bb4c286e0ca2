@@ -1,0 +1,11 @@
+<p>
+Charles Choi has a nice post <a href="http://yummymelon.com/devnull/scheduling-future-tasks-in-emacs.html">on simulating the Unix <code>at</code> command with Emacs</a>. Back in the old days, Choi used to use the Unix <code>at</code> command to notify himself of various events. In macOS, the <code>at</code> command is disabled by default because its use can deplete the battery. Old habits die hard though, and Choi wanted a way to get the same behavior.
+</p>
+<p>
+He started with the Emacs <code>run-at-time</code> function that does roughly the same thing as the <code>at</code> command except it runs an Emacs function instead of a command line function. Choi filled that gap with a macOS shortcut that he calls <code>nota</code>. The idea is that a small Emacs function schedules <code>nota</code> with the desired message at whatever time you want.
+</p>
+<p>
+If you&rsquo;d like to use his workflow, his post has a link to his shortcut that you can download. Of course, the shortcut bit works only with macOS but I doubt it would be hard to adapt to any Unix-like system. As far as I can see, the shortcut mechanism is merely a convenience and could probably be replaced with something like the Unix <code>message</code> command.
+</p>
+<p>
+Regardless, if you&rsquo;re looking for a handy way to serve a notification at a certain time and, like Choi and me, you have Emacs running all the time, take a look at his post.</p>

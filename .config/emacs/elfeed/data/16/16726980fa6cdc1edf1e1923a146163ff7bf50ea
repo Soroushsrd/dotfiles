@@ -1,0 +1,356 @@
+
+
+<p>There are a lot of “12 CS books every programmer must read” lists floating around out there. That's nonsense. The field is too broad for almost any topic to be required reading for all programmers, and even if a topic is that important, people's learning preferences differ too much for any book on that topic to be the best book on the topic for all people.</p>
+
+<p>This is a list of topics and books <a href="https://twitter.com/danluu/status/1574819407058325505">where I've read the book</a>, am familiar enough with the topic to say what you might get out of learning more about the topic, and have read other books and can say why you'd want to read one book over another.</p>
+
+<h3 id="algorithms-data-structures-complexity">Algorithms / Data Structures / Complexity</h3>
+
+<p>Why should you care? Well, there's the pragmatic argument: even if you never use this stuff in your job, most of the best paying companies will quiz you on this stuff in interviews. On the non-bullshit side of things, I find algorithms to be useful in the same way I find math to be useful. The probability of any particular algorithm being useful for any particular problem is low, but having a general picture of what kinds of problems are solved problems, what kinds of problems are intractable, and when approximations will be effective, is often useful.</p>
+
+<h4 id="mcdowell-cracking-the-coding-interview-https-www-amazon-com-gp-product-0984782850-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0984782850-linkid-a34501f41a8ccd1ba8d604198c026551">McDowell; <a href="https://www.amazon.com/gp/product/0984782850/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0984782850&amp;linkId=a34501f41a8ccd1ba8d604198c026551">Cracking the Coding Interview</a></h4>
+
+<p>Some problems and solutions, with explanations, matching the level of questions you see in entry-level interviews at Google, Facebook, Microsoft, etc. I usually recommend this book to people who want to pass interviews but not really learn about algorithms. It has just enough to get by, but doesn't really teach you the <em>why</em> behind anything. If you want to actually learn about algorithms and data structures, see below.</p>
+
+<h4 id="dasgupta-papadimitriou-and-vazirani-algorithms-https-www-amazon-com-gp-product-0073523402-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0073523402-linkid-51557d68c39707af447ec02339249dd1">Dasgupta, Papadimitriou, and Vazirani; <a href="https://www.amazon.com/gp/product/0073523402/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0073523402&amp;linkId=51557d68c39707af447ec02339249dd1">Algorithms</a></h4>
+
+<p>Everything about this book seems perfect to me. It breaks up algorithms into classes (e.g., divide and conquer or greedy), and teaches you how to recognize what kind of algorithm should be used to solve a particular problem. It has a good selection of topics for an intro book, it's the right length to read over a few weekends, and it has exercises that are appropriate for an intro book. Additionally, it has sub-questions in the middle of chapters to make you reflect on non-obvious ideas to make sure you don't miss anything.</p>
+
+<p>I know some folks don't like it because it's relatively math-y/proof focused. If that's you, you'll probably prefer Skiena.</p>
+
+<h4 id="skiena-the-algorithm-design-manual-https-www-amazon-com-gp-product-1848000693-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-1848000693-linkid-59bca0c3da96693a0c5384c97f6e59bb">Skiena; <a href="https://www.amazon.com/gp/product/1848000693/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=1848000693&amp;linkId=59bca0c3da96693a0c5384c97f6e59bb">The Algorithm Design Manual</a></h4>
+
+<p>The longer, more comprehensive, more practical, less math-y version of Dasgupta. It's similar in that it attempts to teach you how to identify problems, use the correct algorithm, and give a clear explanation of the algorithm. Book is well motivated with “war stories” that show the impact of algorithms in real world programming.</p>
+
+<h4 id="clrs-introduction-to-algorithms-https-www-amazon-com-gp-product-0262033844-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0262033844-linkid-f7dc38d160a69e72427774682d9c0bc6">CLRS; <a href="https://www.amazon.com/gp/product/0262033844/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0262033844&amp;linkId=f7dc38d160a69e72427774682d9c0bc6">Introduction to Algorithms</a></h4>
+
+<p>This book somehow manages to make it into half of these “N books all programmers must read” lists despite being so comprehensive and rigorous that almost no practitioners actually read the entire thing. It's great as a textbook for an algorithms class, where you get a selection of topics. As a class textbook, it's nice bonus that it has exercises that are hard enough that they can be used for graduate level classes (about half the exercises from my grad level algorithms class were pulled from CLRS, and the other half were from Kleinberg &amp; Tardos), but this is wildly impractical as a standalone introduction for most people.</p>
+
+<p>Just for example, there's an entire chapter on Van Emde Boas trees. They're really neat -- it's a little surprising that a balanced-tree-like structure with <code>O(lg lg n)</code> insert, delete, as well as find, successor, and predecessor is possible, but a first introduction to algorithms shouldn't include Van Emde Boas trees.</p>
+
+<h4 id="kleinberg-tardos-algorithm-design-https-www-amazon-com-gp-product-9332518645-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-9332518645-linkid-284dc1e6677bb43997fac393456bbc70">Kleinberg &amp; Tardos; <a href="https://www.amazon.com/gp/product/9332518645/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=9332518645&amp;linkId=284dc1e6677bb43997fac393456bbc70">Algorithm Design</a></h4>
+
+<p>Same comments as for CLRS -- it's widely recommended as an introductory book even though it doesn't make sense as an introductory book. Personally, I found the exposition in Kleinberg to be much easier to follow than in CLRS, but plenty of people find the opposite.</p>
+
+<h4 id="demaine-advanced-data-structures-http-courses-csail-mit-edu-6-851-spring14">Demaine; <a href="http://courses.csail.mit.edu/6.851/spring14/">Advanced Data Structures</a></h4>
+
+<p>This is a set of lectures and notes and not a book, but if you want a coherent (but not intractably comprehensive) set of material on data structures that you're unlikely to see in most undergraduate courses, this is great. The notes aren't designed to be standalone, so you'll want to watch the videos if you haven't already seen this material.</p>
+
+<h4 id="okasaki-purely-functional-data-structures-https-www-amazon-com-gp-product-0521663504-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0521663504-linkid-2638d1c24b973d9ddf71f9968a309fea">Okasaki; <a href="https://www.amazon.com/gp/product/0521663504/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0521663504&amp;linkId=2638d1c24b973d9ddf71f9968a309fea">Purely Functional Data Structures</a></h4>
+
+<p>Fun to work through, but, unlike the other algorithms and data structures books, I've yet to be able to apply anything from this book to a problem domain where performance really matters.</p>
+
+<p>For a couple years after I read this, when someone would tell me that it's not that hard to reason about the performance of purely functional lazy data structures, I'd ask them about part of a proof that stumped me in this book. I'm not talking about some obscure super hard exercise, either. I'm talking about something that's in the main body of the text that was considered too obvious to the author to explain. No one could explain it. Reasoning about this kind of thing is harder than people often claim.</p>
+
+<h4 id="dominus-higher-order-perl-http-hop-perl-plover-com-book">Dominus; <a href="http://hop.perl.plover.com/book/">Higher Order Perl</a></h4>
+
+<p>A gentle introduction to functional programming that happens to use Perl. You could probably work through this book just as easily in Python or Ruby.</p>
+
+<p>If you keep up with what's trendy, this book might seem a bit dated today, but only because so many of the ideas have become mainstream. If you're wondering why you should care about this &quot;functional programming&quot; thing people keep talking about, and some of the slogans you hear don't speak to you or are even off-putting (types are propositions, it's great because it's math, etc.), give this book a chance.</p>
+
+<h4 id="levitin-algorithms-https-www-amazon-com-gp-product-0132316811-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0132316811-linkid-26aa7611b1a13ec1c73c2ffe0512a777">Levitin; <a href="https://www.amazon.com/gp/product/0132316811/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0132316811&amp;linkId=26aa7611b1a13ec1c73c2ffe0512a777">Algorithms</a></h4>
+
+<p>I ordered this off amazon after seeing these two blurbs: “Other learning-enhancement features include chapter summaries, hints to the exercises, and a detailed solution manual.” and “Student learning is further supported by exercise hints and chapter summaries.” One of these blurbs is even printed on the book itself, but after getting the book, the only self-study resources I could find were some yahoo answers posts asking where you could find hints or solutions.</p>
+
+<p>I ended up picking up Dasgupta instead, which was available off an author's website for free.</p>
+
+<h4 id="mitzenmacher-upfal-probability-and-computing-randomized-algorithms-and-probabilistic-analysis-https-www-amazon-com-gp-product-0521835402-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0521835402-linkid-d65b4aa027a011a1a5875776aee9b9d7">Mitzenmacher &amp; Upfal; Probability and Computing: <a href="https://www.amazon.com/gp/product/0521835402/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0521835402&amp;linkId=d65b4aa027a011a1a5875776aee9b9d7">Randomized Algorithms and Probabilistic Analysis</a></h4>
+
+<p>I've probably gotten more mileage out of this than out of any other algorithms book. A lot of randomized algorithms are <a href="http://danluu.com/2choices-eviction/">trivial to port to other applications</a> and can simplify things a lot.</p>
+
+<p>The text has enough of an intro to probability that you don't need to have any probability background. Also, the material on tails bounds (e.g., Chernoff bounds) is useful for a lot of CS theory proofs and isn't covered in the intro probability texts I've seen.</p>
+
+<h4 id="sipser-introduction-to-the-theory-of-computation-https-www-amazon-com-gp-product-113318779x-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-113318779x-linkid-aaee0c6fd8df18a1372efdb8295bb426">Sipser; <a href="https://www.amazon.com/gp/product/113318779X/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=113318779X&amp;linkId=aaee0c6fd8df18a1372efdb8295bb426">Introduction to the Theory of Computation</a></h4>
+
+<p>Classic intro to theory of computation. Turing machines, etc. Proofs are often given at an intuitive, “proof sketch”, level of detail. A lot of important results (e.g,  Rice's Theorem) are pushed into the exercises, so you really have to do the key exercises. Unfortunately, most of the key exercises don't have solutions, so you can't check your work.</p>
+
+<p>For something with a more modern topic selection, maybe see <a href="http://theory.cs.princeton.edu/complexity/">Aurora &amp; Barak</a>.</p>
+
+<h4 id="bernhardt-computation-https-www-destroyallsoftware-com-screencasts-catalog-introduction-to-computation">Bernhardt; <a href="https://www.destroyallsoftware.com/screencasts/catalog/introduction-to-computation">Computation</a></h4>
+
+<p>Covers a few theory of computation highlights. The explanations are delightful and I've watched some of the videos more than once just to watch Bernhardt explain things. Targeted at a general programmer audience with no background in CS.</p>
+
+<h4 id="kearns-vazirani-an-introduction-to-computational-learning-theory-https-www-amazon-com-gp-product-0262111934-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0262111934-linkid-373c1d6780793c4552728116254da17c">Kearns &amp; Vazirani; <a href="https://www.amazon.com/gp/product/0262111934/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0262111934&amp;linkId=373c1d6780793c4552728116254da17c">An Introduction to Computational Learning Theory</a></h4>
+
+<p>Classic, but dated and riddled with errors, with no errata available. When I wanted to learn this material, I ended up cobbling together notes from a couple of courses, one by <a href="http://www.cs.utexas.edu/~klivans/cl.html">Klivans</a> and one by <a href="https://www.cs.cmu.edu/~avrim/ML14/">Blum</a>.</p>
+
+<h3 id="operating-systems">Operating Systems</h3>
+
+<p>Why should you care? Having a bit of knowledge about operating systems can save days or week of debugging time. This is a regular theme on <a href="http://jvns.ca/">Julia Evans's blog</a>, and I've found the same thing to be true of my experience. I'm hard pressed to think of anyone who builds practical systems and knows a bit about operating systems who hasn't found their operating systems knowledge to be a time saver. However, there's a bias in who reads operating systems books -- it tends to be people who do related work! It's possible you won't get the same thing out of reading these if you do really high-level stuff.</p>
+
+<h4 id="silberchatz-galvin-and-gagne-operating-system-concepts-https-www-amazon-com-gp-product-1118063333-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-1118063333-linkid-c60719f7dd6b3355d7f8535a25d74f07">Silberchatz, Galvin, and Gagne; <a href="https://www.amazon.com/gp/product/1118063333/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=1118063333&amp;linkId=c60719f7dd6b3355d7f8535a25d74f07">Operating System Concepts</a></h4>
+
+<p>This was what we used at Wisconsin before <a href="http://pages.cs.wisc.edu/~remzi/OSTEP/">the comet book</a> became standard. I guess it's ok. It covers concepts at a high level and hits the major points, but it's lacking in technical depth, details on how things work, advanced topics, and clear exposition.</p>
+
+<h4 id="cox-kasshoek-and-morris-xv6-https-pdos-csail-mit-edu-6-828-2014-xv6-book-rev8-pdf">Cox, Kasshoek, and Morris; <a href="https://pdos.csail.mit.edu/6.828/2014/xv6/book-rev8.pdf">xv6</a></h4>
+
+<p>This book is great! It explains how you can actually implement things in a real system, and it <a href="https://en.wikipedia.org/wiki/Xv6">comes with its own implementation of an OS that you can play with</a>. By design, the authors favor simple implementations over optimized ones, so the algorithms and data structures used are often quite different than what you see in production systems.</p>
+
+<p>This book goes well when paired with a book that talks about how more modern operating systems work, like Love's Linux Kernel Development or Russinovich's Windows Internals.</p>
+
+<h4 id="arpaci-dusseau-and-arpaci-dusseau-operating-systems-three-easy-pieces-https-www-amazon-com-gp-product-b0722mjycb-ref-as-li-qf-sp-asin-il-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-b0722mjycb-linkid-ed01591ad6b853092462c17fb987f11e">Arpaci-Dusseau and Arpaci-Dusseau; <a href="https://www.amazon.com/gp/product/B0722MJYCB/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=B0722MJYCB&amp;linkId=ed01591ad6b853092462c17fb987f11e">Operating Systems: Three Easy Pieces</a></h4>
+
+<p>Nice explanation of a variety of OS topics. Goes into much more detail than any other intro OS book I know of. For example, the chapters on file systems describe the details of multiple, real, filessytems, and discusses the major implementation features of <code>ext4</code>. If I have one criticism about the book, it's that it's very *nix focused. Many things that are described are simply how things are done in *nix and not inherent, but the text mostly doesn't say when something is inherent vs. when it's a *nix implementation detail.</p>
+
+<h4 id="love-linux-kernel-development-https-www-amazon-com-gp-product-0672329468-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0672329468-linkid-e20733e35b36d9e4fb51b5db3b74058d">Love; <a href="https://www.amazon.com/gp/product/0672329468/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0672329468&amp;linkId=e20733e35b36d9e4fb51b5db3b74058d">Linux Kernel Development</a></h4>
+
+<p>The title can be a bit misleading -- this is basically a book about how the Linux kernel works: how things fit together, what algorithms and data structures are used, etc. I read the 2nd edition, which is now quite dated. The 3rd edition has some updates, but <a href="https://lwn.net/Articles/419855/">introduced some errors and inconsistencies</a>, and is still dated (it was published in 2010, and covers 2.6.34). Even so, it's a nice introduction into how a relatively modern operating system works.</p>
+
+<p>The other downside of this book is that the author loses all objectivity any time Linux and Windows are compared. Basically every time they're compared, the author says that Linux has clearly and incontrovertibly made the right choice and that Windows is doing something stupid. On balance, I prefer Linux to Windows, but there are a number of areas where Windows is superior, as well as areas where there's parity but Windows was ahead for years. You'll never find out what they are from this book, though.</p>
+
+<h4 id="russinovich-solomon-and-ionescu-windows-internals-https-www-amazon-com-gp-product-0735648735-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0735648735-linkid-0d5e22fbe4c2130f4f19196ef2082f57">Russinovich, Solomon, and Ionescu; <a href="https://www.amazon.com/gp/product/0735648735/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0735648735&amp;linkId=0d5e22fbe4c2130f4f19196ef2082f57">Windows Internals</a></h4>
+
+<p>The most comprehensive book about how a modern operating system works. It just happens to be about Windows. Coming from a *nix background, I found this interesting to read just to see the differences.</p>
+
+<p>This is definitely not an intro book, and you should have some knowledge of operating systems before reading this. If you're going to buy a physical copy of this book, you might want to wait until the 7th edition is released (early in 2017).</p>
+
+<h4 id="downey-the-little-book-of-semaphores-http-greenteapress-com-wp-semaphores">Downey; <a href="http://greenteapress.com/wp/semaphores/">The Little Book of Semaphores</a></h4>
+
+<p>Takes a topic that's normally one or two sections in an operating systems textbook and turns it into its own 300 page book. The book is a series of exercises, a bit like The Little Schemer, but with more exposition. It starts by explaining what semaphore is, and then has a series of exercises that builds up higher level concurrency primitives.</p>
+
+<p>This book was very helpful when I first started to write threading/concurrency code. I subscribe to the <a href="http://danluu.com/butler-lampson-1999/">Butler Lampson school of concurrency</a>, which is to say that I prefer to have all the concurrency-related code stuffed into a black box that someone else writes. But sometimes you're stuck writing the black box, and if so, this book has a nice introduction to the style of thinking required to write maybe possibly not totally wrong concurrent code.</p>
+
+<p>I wish someone would write a book in this style, but both lower level and higher level. I'd love to see exercises like this, but starting with instruction-level primitives for a couple different architectures with different memory models (say, x86 and Alpha) instead of semaphores. If I'm writing grungy low-level threading code today, I'm overwhelmingly likely to be using <code>c++11</code> threading primitives, so I'd like something that uses those instead of semaphores, which I might have used if I was writing threading code against the <code>Win32</code> API. But since that book doesn't exist, this seems like the next best thing.</p>
+
+<p>I've heard that Doug Lea's <a href="https://www.amazon.com/gp/product/0201310090/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0201310090&amp;linkId=72b21afe79c9b254cd4383310cff1e42">Concurrent Programming in Java</a> is also quite good, but I've only taken a quick look at it.</p>
+
+<h3 id="computer-architecture">Computer architecture</h3>
+
+<p>Why should you care? The specific facts and trivia you'll learn will be useful when you're doing low-level performance optimizations, but the real value is learning how to reason about tradeoffs between performance and other factors, whether that's power, cost, size, weight, or something else.</p>
+
+<p>In theory, that kind of reasoning should be taught regardless of specialization, but my experience is that comp arch folks are much more likely to “get” that kind of reasoning and do back of the envelope calculations that will save them from throwing away a 2x or 10x (or 100x) factor in performance for no reason. This sounds obvious, but I can think of multiple production systems at large companies that are giving up 10x to 100x in performance which are operating at a scale where even a 2x difference in performance could pay a VP's salary -- all because people didn't think through the performance implications of their design.</p>
+
+<h4 id="hennessy-patterson-computer-architecture-a-quantitative-approach">Hennessy &amp; Patterson; Computer Architecture: A Quantitative Approach</h4>
+
+<p>This book teaches you how to do systems design with multiple constraints (e.g., performance, TCO, and power) and how to reason about tradeoffs. It happens to mostly do so using microprocessors and supercomputers as examples.</p>
+
+<p>New editions of this book have substantive additions and you really want the latest version. For example, the latest version added, among other things, a chapter on data center design, and it answers questions like, <a href="//danluu.com/datacenter-power/">how much opex/capex is spent on power, power distribution, and cooling, and how much is spent on support staff and machines</a>, what's the effect of using lower power machines on tail latency and result quality (bing search results are used as an example), and what other factors should you consider when designing a data center.</p>
+
+<p>Assumes some background, but that background is presented in the appendices (which are available online for free).</p>
+
+<h4 id="shen-lipasti-modern-processor-design-https-www-amazon-com-gp-product-1478607831-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-1478607831-linkid-415aef1c0fccd4f6b5f931dbd63a1852">Shen &amp; Lipasti: <a href="https://www.amazon.com/gp/product/1478607831/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=1478607831&amp;linkId=415aef1c0fccd4f6b5f931dbd63a1852">Modern Processor Design</a></h4>
+
+<p>Presents most of what you need to know to architect a high performance Pentium Pro (1995) era microprocessor. That's no mean feat, considering the complexity involved in such a processor. Additionally, presents some more advanced ideas and bounds on how much parallelism can be extracted from various workloads (and how you might go about doing such a calculation). Has an unusually large section on <a href="http://pharm.ece.wisc.edu/mikko/oldpapers/asplos7.pdf">value prediction</a>, because the authors invented the concept and it was still hot when the first edition was published.</p>
+
+<p>For pure CPU architecture, this is probably the best book available.</p>
+
+<h4 id="hill-jouppi-and-sohi-readings-in-computer-architecture-https-www-amazon-com-gp-product-1558605398-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-1558605398-linkid-c066a06415728c60470dbee9a41c79fa">Hill, Jouppi, and Sohi, <a href="https://www.amazon.com/gp/product/1558605398/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=1558605398&amp;linkId=c066a06415728c60470dbee9a41c79fa">Readings in Computer Architecture</a></h4>
+
+<p>Read for historical reasons and to see how much better we've gotten at explaining things. For example, compare Amdahl's paper on Amdahl's law (two pages, with a single non-obvious graph presented, and no formulas), vs. the presentation in a modern textbook (one paragraph, one formula, and maybe one graph to clarify, although it's usually clear enough that no extra graph is needed).</p>
+
+<p>This seems to be worse the further back you go; since comp arch is a relatively young field, nothing here is really hard to understand. If you want to see a dramatic example of how we've gotten better at explaining things, compare Maxwell's original paper on Maxwell's equations to a modern treatment of the same material. Fun if you like history, but a bit of slog if you're just trying to learn something.</p>
+
+<h3 id="algorithmic-game-theory-auction-theory-mechanism-design">Algorithmic game theory / auction theory / mechanism design</h3>
+
+<p>Why should you care? Some of the world's biggest tech companies run on ad revenue, and those ads are sold through auctions. This field explains how and why they work. Additionally, this material is useful any time you're trying to figure out how to design systems that allocate resources effectively.<sup class="footnote-ref" id="fnref:B"><a rel="footnote" href="#fn:B">1</a></sup></p>
+
+<p>In particular, incentive compatible mechanism design (roughly, how to create systems that provide globally optimal outcomes when people behave in their own selfish best interest) should be required reading for anyone who designs internal incentive systems at companies. If you've ever worked at a large company that &quot;gets&quot; this and one that doesn't, you'll see that the company that doesn't get it has giant piles of money that are basically being lit on fire because the people who set up incentives created systems that are hugely wasteful. This field gives you the background to understand what sorts of mechanisms give you what sorts of outcomes; reading case studies gives you a very long (and entertaining) list of mistakes that can cost millions or even billions of dollars.</p>
+
+<h4 id="krishna-auction-theory-https-www-amazon-com-gp-product-0123745071-ref-as-li-tl-ie-utf8-camp-1789-creative-9325-creativeasin-0123745071-linkcode-as2-tag-abroaview-20-linkid-cc4354c8796c223d9612f5dc12e7afd8">Krishna; <a href="https://www.amazon.com/gp/product/0123745071/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=0123745071&amp;linkCode=as2&amp;tag=abroaview-20&amp;linkId=cc4354c8796c223d9612f5dc12e7afd8">Auction Theory</a></h4>
+
+<p>The last time I looked, this was the only game in town for a comprehensive, modern, introduction to auction theory. Covers the classic <a href="https://en.wikipedia.org/wiki/Vickrey_auction">second price auction result</a> in the first chapter, and then moves on to cover risk aversion, bidding rings, interdependent values, multiple auctions, asymmetrical information, and other real-world issues.</p>
+
+<p>Relatively dry. Unlikely to be motivating unless you're already interested in the topic. Requires an understanding of basic probability and calculus.</p>
+
+<h4 id="steighlitz-snipers-shills-and-sharks-ebay-and-human-behavior-https-www-amazon-com-gp-product-0691127131-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0691127131-linkid-a0ed27b464ee65f5551f60e3a796cf26">Steighlitz; <a href="https://www.amazon.com/gp/product/0691127131/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0691127131&amp;linkId=a0ed27b464ee65f5551f60e3a796cf26">Snipers, Shills, and Sharks: eBay and Human Behavior</a></h4>
+
+<p>Seems designed as an entertaining introduction to auction theory for the layperson. Requires no mathematical background and relegates math to the small print. Covers maybe, 1/10th of the material of Krishna, if that. Fun read.</p>
+
+<h4 id="crampton-shoham-and-steinberg-combinatorial-auctions-ftp-cramton-umd-edu-ca-book-cramton-shoham-steinberg-combinatorial-auctions-pdf">Crampton, Shoham, and Steinberg; <a href="ftp://cramton.umd.edu/ca-book/cramton-shoham-steinberg-combinatorial-auctions.pdf">Combinatorial Auctions</a></h4>
+
+<p>Discusses things like how FCC spectrum auctions got to be the way they are and how “bugs” in mechanism design can leave hundreds of millions or billions of dollars on the table. This is one of those books where each chapter is by a different author. Despite that, it still manages to be coherent and I didn't mind reading it straight through. It's self-contained enough that you could probably read this without reading Krishna first, but I wouldn't recommend it.</p>
+
+<h4 id="shoham-and-leyton-brown-multiagent-systems-algorithmic-game-theoretic-and-logical-foundations-http-www-masfoundations-org">Shoham and Leyton-Brown; <a href="http://www.masfoundations.org/">Multiagent Systems: Algorithmic, Game-Theoretic, and Logical Foundations</a></h4>
+
+<p>The title is the worst thing about this book. Otherwise, it's a nice introduction to algorithmic game theory. The book covers basic game theory, auction theory, and other classic topics that CS folks might not already know, and then covers the intersection of CS with these topics. Assumes no particular background in the topic.</p>
+
+<h4 id="nisan-roughgarden-tardos-and-vazirani-algorithmic-game-theory-https-www-amazon-com-gp-product-0521872820-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0521872820-linkid-7caf296d20541c2fc320dd423ecff19a">Nisan, Roughgarden, Tardos, and Vazirani; <a href="https://www.amazon.com/gp/product/0521872820/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0521872820&amp;linkId=7caf296d20541c2fc320dd423ecff19a">Algorithmic Game Theory</a></h4>
+
+<p>A survey of various results in algorithmic game theory. Requires a fair amount of background (consider reading Shoham and Leyton-Brown first). For example, chapter five is basically Devanur, Papadimitriou, Saberi, and Vazirani's JACM paper, <em>Market Equilibrium via a Primal-Dual Algorithm for a Convex Program</em>, with a bit more motivation and some related problems thrown in. The exposition is good and the result is interesting (if you're into that kind of thing), but it's not necessarily what you want if you want to read a book straight through and get an introduction to the field.</p>
+
+<h3 id="misc">Misc</h3>
+
+<h4 id="beyer-jones-petoff-and-murphy-site-reliability-engineering-https-www-amazon-com-gp-product-149192912x-ref-as-li-qf-sp-asin-il-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-149192912x-linkid-3bfad60d002c35ba1809816e159efd77">Beyer, Jones, Petoff, and Murphy; <a href="https://www.amazon.com/gp/product/149192912X/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=149192912X&amp;linkId=3bfad60d002c35ba1809816e159efd77">Site Reliability Engineering</a></h4>
+
+<p>A description of how Google handles operations. Has the typical Google tone, which is off-putting to a lot of folks with a “traditional” ops background, and assumes that many things can only be done with the SRE model when they can, in fact, be done without going full SRE.</p>
+
+<p>For a much longer description, <a href="//danluu.com/google-sre-book/">see this 22 page set of notes on Google's SRE book</a>.</p>
+
+<h4 id="fowler-beck-brant-opdyke-and-roberts-refactoring-https-www-amazon-com-gp-product-0201485672-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0201485672-linkid-72ba04417a765056c7e41111361dcfba">Fowler, Beck, Brant, Opdyke, and Roberts; <a href="https://www.amazon.com/gp/product/0201485672/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0201485672&amp;linkId=72ba04417a765056c7e41111361dcfba">Refactoring</a></h4>
+
+<p>At the time I read it, it was worth the price of admission for the section on code smells alone. But this book has been so successful that the ideas of refactoring and code smells have become mainstream.</p>
+
+<p>Steve Yegge has <a href="https://sites.google.com/site/steveyegge2/ten-great-books">a great pitch for this book</a>:</p>
+
+<blockquote>
+<p>When I read this book for the first time, in October 2003, I felt this horrid cold feeling, the way you might feel if you just realized you've been coming to work for 5 years with your pants down around your ankles. I asked around casually the next day: &quot;Yeah, uh, you've read that, um, Refactoring book, of course, right? Ha, ha, I only ask because I read it a very long time ago, not just now, of course.&quot; Only 1 person of 20 I surveyed had read it. Thank goodness all of us had our pants down, not just me.</p>
+
+<p>...</p>
+
+<p>If you're a relatively experienced engineer, you'll recognize 80% or more of the techniques in the book as things you've already figured out and started doing out of habit. But it gives them all names and discusses their pros and cons objectively, which I found very useful. And it debunked two or three practices that I had cherished since my earliest days as a programmer. Don't comment your code? Local variables are the root of all evil? Is this guy a madman? Read it and decide for yourself!</p>
+</blockquote>
+
+<h4 id="demarco-lister-peopleware-https-www-amazon-com-gp-product-0321934113-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0321934113-linkid-37e2eb92615c6926852e31fa057c3df5">Demarco &amp; Lister, <a href="https://www.amazon.com/gp/product/0321934113/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0321934113&amp;linkId=37e2eb92615c6926852e31fa057c3df5">Peopleware</a></h4>
+
+<p>This book seemed convincing when I read it in college. It even had <a href="//danluu.com/dunning-kruger/">all sorts of studies</a> backing up what they said. No deadlines is better than having deadlines. Offices are better than cubicles. Basically all devs I talk to agree with this stuff.</p>
+
+<p>But virtually every successful company is run the opposite way. Even Microsoft is remodeling buildings from individual offices to open plan layouts. Could it be that all of this stuff just doesn't matter that much? If it really is that important, how come companies that are true believers, like Fog Creek, aren't running roughshod over their competitors?</p>
+
+<p>This book agrees with my biases and I'd love for this book to be right, but the meta evidence makes me want to re-read this with a critical eye and look up primary sources.</p>
+
+<h4 id="drummond-renegades-of-the-empire-https-www-amazon-com-gp-product-0609604163-ref-as-li-qf-sp-asin-il-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0609604163-linkid-367bcc7edf76352c97b6050c04af4aaa">Drummond; <a href="https://www.amazon.com/gp/product/0609604163/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0609604163&amp;linkId=367bcc7edf76352c97b6050c04af4aaa">Renegades of the Empire</a></h4>
+
+<p>This book explains how Microsoft's aggressive culture got to be the way it is today. The intro reads:</p>
+
+<blockquote>
+<p>Microsoft didn't necessarily hire clones of Gates (although there were plenty on the corporate campus) so much as recruiter those who shared some of Gates's more notable traits -- arrogance, aggressiveness, and high intelligence.</p>
+
+<p>…</p>
+
+<p>Gates is infamous for ridiculing someone's idea as “stupid”, or worse, “random”, just to see how he or she defends a position. This hostile managerial technique invariably spread through the chain of command and created a culture of conflict.</p>
+
+<p>…</p>
+
+<p>Microsoft nurtures a Darwinian order where resources are often plundered and hoarded for power, wealth, and prestige. A manager who leaves on vacation might return to find his turf raided by a rival and his project put under a different command or canceled altogether</p>
+</blockquote>
+
+<p>On interviewing at Microsoft:</p>
+
+<blockquote>
+<p>“What do you like about Microsoft?”
+“Bill kicks ass”, St. John said. “I like kicking ass. I enjoy the feeling of killing competitors and dominating markets”.</p>
+
+<p>…</p>
+
+<p>He was unsure how he was doing and thought he stumbled then asked if he was a &quot;people person&quot;.
+&quot;No, I think most people are idiots&quot;, St. John replied.</p>
+</blockquote>
+
+<p>These answers were exactly what Microsoft was looking for. They resulted in a strong offer and an aggresive courtship.</p>
+
+<p>On developer evangalism at Microsoft:</p>
+
+<blockquote>
+<p>At one time, Microsoft evangelists were also usually chartered with disrupting competitors by showing up at their conferences, securing positions on and then tangling standards commitees, and trying to influence the media.</p>
+
+<p>…</p>
+
+<p>&quot;We're the group at Microsoft whose job is to fuck Microsoft's competitors&quot;</p>
+</blockquote>
+
+<p>Read this book if you're considering a job at Microsoft. Although it's been a long time since the events described in this book, you can still see strains of this culture in Microsoft today.</p>
+
+<h4 id="bilton-hatching-twitter-https-www-amazon-com-gp-product-1591847087-ref-as-li-qf-sp-asin-il-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-1591847087-linkid-19754f59bce55c3f588419feffb68c87">Bilton; <a href="https://www.amazon.com/gp/product/1591847087/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=1591847087&amp;linkId=19754f59bce55c3f588419feffb68c87">Hatching Twitter</a></h4>
+
+<p>An entertaining book about the backstabbing, mismangement, and random firings that happened in Twitter's early days. When I say random, I mean that there were instances where critical engineers were allegedly fired so that the &quot;decider&quot; could show other important people that current management was still in charge.</p>
+
+<p>I don't know folks who were at Twitter back then, but I know plenty of folks who were at the next generation of startups in their early days and there are a couple of companies where people had eerily similar experiences. Read this book if you're considering a job at a trendy startup.</p>
+
+<h4 id="galenson-old-masters-and-young-geniuses-https-www-amazon-com-gp-product-0691133808-ref-as-li-qf-sp-asin-il-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0691133808-linkid-9c6bc8a67b097a8f79bc4b10e0243fa0">Galenson; <a href="https://www.amazon.com/gp/product/0691133808/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0691133808&amp;linkId=9c6bc8a67b097a8f79bc4b10e0243fa0">Old Masters and Young Geniuses</a></h4>
+
+<p>This book is about art and how productivity changes with age, but if its thesis is valid, it probably also applies to programming. Galenson applies statistics to determine the &quot;greatness&quot; of art and then uses that to draw conclusions about how the productivty of artists change as they age. I don't have time to go over the data in detail, so I'll have to remain skeptical of this until I have more free time, but I think it's interesting reading even for a skeptic.</p>
+
+<h3 id="math">Math</h3>
+
+<p>Why should you care? From a pure ROI perspective, I doubt learning math is “worth it” for 99% of jobs out there. AFAICT, I use math more often than most programmers, and I don't use it all that often. But having the right math background sometimes comes in handy and I really enjoy learning math. YMMV.</p>
+
+<h4 id="bertsekas-introduction-to-probability-https-www-amazon-com-gp-product-188652923x-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-188652923x-linkid-31f59f124c2c8a7ee7917b01c7fbed52">Bertsekas; <a href="https://www.amazon.com/gp/product/188652923X/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=188652923X&amp;linkId=31f59f124c2c8a7ee7917b01c7fbed52">Introduction to Probability</a></h4>
+
+<p>Introductory undergrad text that tends towards intuitive explanations over epsilon-delta rigor. For anyone who cares to do more rigorous derivations, there are some exercises at the back of the book that go into more detail.</p>
+
+<p>Has many exercises with available solutions, making this a good text for self-study.</p>
+
+<h4 id="ross-a-first-course-in-probability-https-www-amazon-com-gp-product-013603313x-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-013603313x-linkid-ba9a3635504a6aadc9f40d3faf3c8785">Ross; <a href="https://www.amazon.com/gp/product/013603313X/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=013603313X&amp;linkId=ba9a3635504a6aadc9f40d3faf3c8785">A First Course in Probability</a></h4>
+
+<p>This is one of those books where they regularly crank out new editions to make students pay for new copies of the book (this is presently priced at a whopping $174 on Amazon)<sup class="footnote-ref" id="fnref:C"><a rel="footnote" href="#fn:C">2</a></sup>. This was the standard text when I took probability at Wisconsin, and I literally cannot think of a single person who found it helpful. Avoid.</p>
+
+<h4 id="brualdi-introductory-combinatorics-https-www-amazon-com-gp-product-0136020402-ref-as-li-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0136020402-linkid-9910ad28e52b0c86afa82f449644458a">Brualdi; <a href="https://www.amazon.com/gp/product/0136020402/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0136020402&amp;linkId=9910ad28e52b0c86afa82f449644458a">Introductory Combinatorics</a></h4>
+
+<p>Brualdi is a great lecturer, one of the best I had in undergrad, but this book was full of errors and not particularly clear. There have been two new editions since I used this book, but according to the Amazon reviews the book still has a lot of errors.</p>
+
+<p>For an alternate introductory text, I've heard good things about <a href="https://www.amazon.com/gp/product/B00F5QU8W4/ref=as_li_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=B00F5QU8W4&amp;linkId=77558d398300005cc19a20780da38822">Camina &amp; Lewis's book</a>, but I haven't read it myself. Also, <a href="http://www.amazon.com/Combinatorial-Problems-Exercises-Chelsea-Publishing/dp/0821842625">Lovasz</a> is a great book on combinatorics, but it's not exactly introductory.</p>
+
+<h4 id="apostol-calculus-https-www-amazon-com-gp-product-0471000051-ref-as-li-qf-sp-asin-il-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0471000051-linkid-cf7635e3dcc9e368a8ca72ee7a8af3a0">Apostol; <a href="https://www.amazon.com/gp/product/0471000051/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0471000051&amp;linkId=cf7635e3dcc9e368a8ca72ee7a8af3a0">Calculus</a></h4>
+
+<p>Volume 1 covers what you'd expect in a calculus I + calculus II book. Volume 2 covers linear algebra and multivariable calculus. It covers linear algebra before multivariable calculus, which makes multi-variable calculus a lot easier to understand.</p>
+
+<p>It also makes a lot of sense from a programming standpoint, since a lot of the value I get out of calculus is its applications to approximations, etc., and that's a lot clearer when taught in this sequence.</p>
+
+<p>This book is probably a rough intro if you don't have a professor or TA to help you along. The Spring SUMS series tends to be pretty good for self-study introductions to various areas, but I haven't actually read their intro calculus book so I can't actually recommend it.</p>
+
+<h4 id="stewart-calculus-https-www-amazon-com-gp-product-0538497815-ref-as-li-qf-sp-asin-il-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0538497815-linkid-e25774196137c043bb638fdf39bcf473">Stewart; <a href="https://www.amazon.com/gp/product/0538497815/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0538497815&amp;linkId=e25774196137c043bb638fdf39bcf473">Calculus</a></h4>
+
+<p>Another one of those books where they crank out new editions with trivial changes to make money. This was the standard text for non-honors calculus at Wisconsin, and the result of that was I taught a lot of people to do complex integrals with the methods covered in Apostol, which are much more intuitive to many folks.</p>
+
+<p>This book takes the approach that, for a type of problem, you should pattern match to one of many possible formulas and then apply the formula. Apostol is more about teaching you a few tricks and some intuition that you can apply to a wide variety of problems. I'm not sure why you'd buy this unless you were required to for some class.</p>
+
+<h3 id="hardware-basics">Hardware basics</h3>
+
+<p>Why should you care? People often claim that, <a href="https://news.ycombinator.com/item?id=12095869">to be a good programmer, you have to understand every abstraction you use</a>. That's nonsense. Modern computing is too complicated for any human to have a real full-stack understanding of what's going on. In fact, one reason modern computing can accomplish what it does is that it's possible to be productive without having a deep understanding of much of the stack that sits below the level you're operating at.</p>
+
+<p>That being said, if you're curious about what sits below software, here are a few books that will get you started.</p>
+
+<h4 id="nisan-shocken-nand2tetris-http-www-nand2tetris-org">Nisan &amp; Shocken; <a href="http://www.nand2tetris.org/">nand2tetris</a></h4>
+
+<p>If you only want to read one single thing, this should probably be it. It's a “101” level intro that goes down to gates and Boolean logic. As implied by the name, it takes you from <a href="https://en.wikipedia.org/wiki/NAND_gate">NAND gates</a> to a working tetris program.</p>
+
+<h4 id="roth-fundamentals-of-logic-design-https-www-amazon-com-gp-product-0534378048-ref-as-li-qf-sp-asin-il-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0534378048-linkid-c60cb3be0ffa6e190224ffce81ece8f8">Roth; <a href="https://www.amazon.com/gp/product/0534378048/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0534378048&amp;linkId=c60cb3be0ffa6e190224ffce81ece8f8">Fundamentals of Logic Design</a></h4>
+
+<p>Much more detail on gates and logic design than you'll see in nand2tetris. The book is full of exercises and appears to be designed to work for self-study. Note that the link above is to the 5th edition. There are newer, more expensive, editions, but they don't seem to be much improved, have a lot of errors in the new material, and are much more expensive.</p>
+
+<h4 id="weste-harris-and-bannerjee-cmos-vlsi-design-https-www-amazon-com-gp-product-0321547748-ref-as-li-qf-sp-asin-il-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0321547748-linkid-6019b50b8c3474e0939bd14e6eabf6bb">Weste; Harris, and Bannerjee; <a href="https://www.amazon.com/gp/product/0321547748/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0321547748&amp;linkId=6019b50b8c3474e0939bd14e6eabf6bb">CMOS VLSI Design</a></h4>
+
+<p>One level below Boolean gates, you get to VLSI, a historical acronym (very large scale integration) that doesn't really have any meaning today.</p>
+
+<p>Broader and deeper than the alternatives, with clear exposition. Explores the design space (e.g., the section on adders doesn't just mention a few different types in an ad hoc way, it explores all the tradeoffs you can make. Also, has both problems and solutions, which makes it great for self study.</p>
+
+<h4 id="kang-leblebici-cmos-digital-integrated-circuits">Kang &amp; Leblebici; CMOS Digital Integrated Circuits</h4>
+
+<p>This was the standard text at Wisconsin way back in the day. It was hard enough to follow that the TA basically re-explained pretty much everything necessary for the projects and the exams. I find that it's ok as a reference, but it wasn't a great book to learn from.</p>
+
+<p>Compared to West et al., Weste spends a lot more effort talking about tradeoffs in design (e.g., when creating a parallel prefix tree adder, what does it really mean to be at some particular point in the design space?).</p>
+
+<h4 id="pierret-semiconductor-device-fundamentals-https-www-amazon-com-gp-product-0201543931-ref-as-li-qf-sp-asin-il-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0201543931-linkid-bb2f39f1f5776a37b62a2c7e5841d065">Pierret; <a href="https://www.amazon.com/gp/product/0201543931/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0201543931&amp;linkId=bb2f39f1f5776a37b62a2c7e5841d065">Semiconductor Device Fundamentals</a></h4>
+
+<p>One level below VLSI, you have how transistors actually work.</p>
+
+<p>Really beautiful explanation of solid state devices. The text nails the fundamentals of what you need to know to really understand this stuff (e.g., band diagrams), and then uses those fundamentals along with clear explanations to give you a good mental model of how different types of junctions and devices work.</p>
+
+<h4 id="streetman-bannerjee-solid-state-electronic-devices-https-www-amazon-com-gp-product-013149726x-ref-as-li-qf-sp-asin-il-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-013149726x-linkid-467c5ec3606c2fd43280ac8b81cc4c44">Streetman &amp; Bannerjee; <a href="https://www.amazon.com/gp/product/013149726X/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=013149726X&amp;linkId=467c5ec3606c2fd43280ac8b81cc4c44">Solid State Electronic Devices</a></h4>
+
+<p>Covers the same material as Pierret, but seems to substitute mathematical formulas for the intuitive understanding that Pierret goes for.</p>
+
+<h4 id="ida-engineering-electromagnetics-https-www-amazon-com-gp-product-3319078054-ref-as-li-qf-sp-asin-il-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-3319078054-linkid-700743f63b21bf95abcaa8b4f80dee0d">Ida; <a href="https://www.amazon.com/gp/product/3319078054/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=3319078054&amp;linkId=700743f63b21bf95abcaa8b4f80dee0d">Engineering Electromagnetics</a></h4>
+
+<p>One level below transistors, you have electromagnetics.</p>
+
+<p>Two to three times thicker than other intro texts because it has more worked examples and diagrams. Breaks things down into types of problems and subproblems, making things easy to follow. For self-study, A much gentler introduction than Griffiths or Purcell.</p>
+
+<h4 id="shanley-pentium-pro-and-pentium-ii-system-architecture-https-www-amazon-com-gp-product-0201309734-ref-as-li-qf-sp-asin-il-tl-ie-utf8-tag-abroaview-20-camp-1789-creative-9325-linkcode-as2-creativeasin-0201309734-linkid-60d8203080d940d21a7191d5195513a7">Shanley; <a href="https://www.amazon.com/gp/product/0201309734/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0201309734&amp;linkId=60d8203080d940d21a7191d5195513a7">Pentium Pro and Pentium II System Architecture</a></h4>
+
+<p>Unlike the other books in this section, this book is about practice instead of theory. It's a bit like Windows Internals, in that it goes into the details of a real, working, system. Topics include hardware bus protocols, how I/O actually works (e.g., <a href="https://en.wikipedia.org/wiki/Advanced_Programmable_Interrupt_Controller">APIC</a>), etc.</p>
+
+<p>The problem with a practical introduction is that there's been an exponential increase in complexity ever since the 8080. The further back you go, the easier it is to understand the most important moving parts in the system, and the more irrelevant the knowledge. This book seems like an ok compromise in that the bus and I/O protocols had to handle multiprocessors, and many of the elements that are in modern systems were in these systems, just in a simpler form.</p>
+
+<h3 id="not-covered">Not covered</h3>
+
+<p>Of the books that I've liked, I'd say this captures at most 25% of the software books and 5% of the hardware books. On average, the books that have been left off the list are more specialized. This list is also missing many entire topic areas, like PL, practical books on how to learn languages, networking, etc.</p>
+
+<p>The reasons for leaving off topic areas vary; I don't have any PL books listed because I don't read PL books. I don't have any networking books because, although I've read a couple, I don't know enough about the area to really say how useful the books are. The vast majority of hardware books aren't included because they cover material that you wouldn't care about unless you were a specialist (e.g., <a href="https://www.amazon.com/gp/product/155860636X/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=155860636X&amp;linkId=495e99808323168df92ec8d4b0b31fca">Skew-Tolerant Circuit Design</a> or <a href="https://www.amazon.com/gp/product/0471415391/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&amp;tag=abroaview-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0471415391&amp;linkId=8087c8c45edba5ee615b4043388c9adf">Ultrafast Optics</a>). The same goes for areas like math and CS theory, where I left off a number of books that I think are great but have basically zero probability of being useful in my day-to-day programming life, e.g., <a href="http://www.thi.informatik.uni-frankfurt.de/~jukna/EC_Book_2nd/index.html">Extremal Combinatorics</a>. I also didn't include books I didn't read all or most of, unless I stopped because the book was atrocious. This means that I don't list classics I haven't finished like SICP and The Little Schemer, since those book seem fine and I just didn't finish them for one reason or another.</p>
+
+<p>This list also doesn't include many books on history and culture, like Inside Intel or Masters of Doom. I'll probably add more at some point, but I've been trying an experiment where I try to write more like Julia Evans (stream of consciousness, fewer or no drafts). I'd have to go back and re-read the books I read 10+ years ago to write meaningful comments, which doesn't exactly fit with the experiment. On that note, since this list is from memory and I got rid of almost all of my books a couple years ago, I'm probably forgetting a lot of books that I meant to add.</p>
+
+<p>_If you liked this, you might also like Thomas Ptacek's <a href="https://www.amazon.com/gp/richpub/listmania/fullview/R2EN4JTQOCHNBA/ref=cm_lm_pthnk_view?ie=UTF8&amp;lm_bb=">Application Security Reading List</a> or <a href="//danluu.com/programming-blogs/">this list of programming blogs</a>, which is written in a similar style_</p>
+
+<p>_Thanks to @tytr<em>dev for comments/corrections/discussion.</em></p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:B">Also, if you play board games, auction theory explains why fixing game imbalance via an auction mechanism is non-trivial and often makes the game worse.
+ <a class="footnote-return" href="#fnref:B"><sup>[return]</sup></a></li>
+<li id="fn:C">I talked to the author of one of these books. He griped that the used book market destroys revenue from textbooks after a couple years, and that authors don't get much in royalties, so you have to charge a lot of money and keep producing new editions every couple of years to make money. That griping goes double in cases where a new author picks up a book classic book that someone else originally wrote, since the original author often has a much larger share of the royalties than the new author, despite doing no work no the later editions.
+ <a class="footnote-return" href="#fnref:C"><sup>[return]</sup></a></li>
+</ol>
+</div>

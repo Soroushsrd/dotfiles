@@ -1,0 +1,11 @@
+<p>
+Marcin Borkowski (mbork) has a <a href="https://mbork.pl/2026-07-11_Fast_spell-checking_in_Emacs_with_Jinx">nice post</a> on the <a href="https://github.com/minad/jinx/blob/main/README.org">Jinx spell corrector</a>. Mbork has tried fly-spell but found it too laggy for his purposes. That was back in the days when he had a Pentium class machine running at 100 Mhz so he thought, in view of his more modern hardware, that it was worth trying out fly-spell again.
+</p>
+<p>
+He still found it too slow and decided to try Jinx instead. I&rsquo;ve always found fly-spell snappy and I hadn&rsquo;t heard of Jinx until I read Prot&rsquo;s post <a href="https://irreal.org/blog/?p=13924">on writing (and spell correcting) foreign languages in Emacs</a> but mbork wasn&rsquo;t satisfied until he tried Jinx. He found that it was fast enough for his use cases and decided to embrace it as his spell corrector.
+</p>
+<p>
+He discovered that Jinx interfered with some of his work flows but it turned out to be pretty easy to fix those. You can check out mbork&rsquo;s post for the details.
+</p>
+<p>
+If you are writing in multiple languages with Emacs, then Jinx may be an excellent solution as a spell checker. If, like me, you mostly write in your native tongue, you&rsquo;ll probably find fly-spell is all you need. As I said above, it&rsquo;s more than fast enough for me and provides a wonderfully interactive spell correction system.</p>

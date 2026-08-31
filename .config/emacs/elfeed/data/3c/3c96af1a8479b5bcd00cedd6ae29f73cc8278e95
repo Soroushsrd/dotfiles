@@ -1,0 +1,22 @@
+<p>For me, listening to music whenever I’m working on a computer is a commonplace, daresay essential activity. Much of my work is done using Emacs, so the idea of having it control music playback to mitigate an app switch seemed reasonable. Such was the motivation for my latest project, <code>now-playing.el</code>, a <a href="https://docs.magit.vc/transient/">Transient</a> interface for the macOS Music (nee iTunes) app.</p>
+<p><img alt="img" src="images/announcing-now-playing/now-playing-screenshot.png"></p>
+<p><code>now-playing.el</code> takes inspiration from the many mini-client interfaces provided by Apple to control the Music app. The idea was to have a compact and simple interface:</p>
+<ul>
+<li>Show what is currently playing (song, artist, album)</li>
+<li>Offer basic controls (play/pause, next/previous track, volume control)</li>
+<li>Optionally log what was played.</li>
+</ul>
+<p><code>now-playing.el</code> takes advantage of AppleScript support in the Music app, providing the needed controllability and observability of it from Emacs. The sequence diagram below illustrates how these programs relate to each other by showing a request/response transaction between Emacs and the Music app using the <code>osascript</code> command line tool.</p>
+<p><img alt="img" src="images/announcing-now-playing/now-playing-arch.svg"></p>
+<p>If Emacs is built with <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Mac-OS-_002f-GNUstep.html">NextStep (NS) support</a>, then Emacs can send a direct AppleScript message to the Music app via <code>ns-do-applescript</code> to avoid making a shell call to <code>osascript</code>.</p>
+<p><img alt="img" src="images/announcing-now-playing/now-playing-direct-arch.svg"></p>
+<p>State synchronization for <code>now-playing.el</code> is fairly simple, with client updates done in a pull fashion. More details about what <code>now-playing.el</code> can do can be found in the <a href="https://kickingvegas.github.io/now-playing/">now-playing.el User Guide</a>.</p>
+<h1>Closing Thoughts</h1>
+<p>It is not coincidental that writing this mini-client for the Music app works into my <a href="http://yummymelon.com/devnull/malleable-computing-emacs-and-you.html">recent explorations and musings on malleable computing</a> with Emacs. As of this writing, <code>now-playing.el</code> weighs in at <a href="https://github.com/kickingvegas/now-playing/blob/main/lisp/now-playing.el">326 lines of code</a> (<code>cloc</code> measured), taking full advantage of Elisp libraries to construct the following client subsystems:</p>
+<ul>
+<li>UI: Transient for menu, <code>cus-edit.el</code> for customization UI</li>
+<li>Client Edge: <code>shell-command-to-string</code> to <code>osascript</code>, <code>ns-do-applescript</code></li>
+<li>Local Database: Elisp variables</li>
+</ul>
+<p><code>now-playing.el</code> explores integration with <a href="https://en.wikipedia.org/wiki/AppleScript">AppleScript</a>, itself a mechanism to allow for orchestration between <a href="https://en.wikipedia.org/wiki/Cocoa_(API)">Cocoa applications</a>. Expect some future posts documenting my explorations in this area, particularly with the more contemporary Apple Shortcuts and Intents.</p>
+<p><code>now-playing.el</code> v1.0 is <a href="https://melpa.org/#/now-playing">now available on MELPA</a>.</p>

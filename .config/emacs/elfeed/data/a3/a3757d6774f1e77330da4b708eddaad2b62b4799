@@ -1,0 +1,11 @@
+<p>
+If you follow writers at all, you&rsquo;ll have noticed that many prefer to write their prose in long hand even if they began their writing career with a computer. Tess Gerretsen and Neal Stephenson are two examples that come to mind. Both are serious, established writers who have no need for performative resistance to computers. Indeed, they both use computers to produce the final manuscript. They say they write in longhand to slow things down or to avoid premature editing.
+</p>
+<p>
+I understand their urge but could never work that way. Writing by hand is excruciatingly slow and even painful to me. I didn&rsquo;t start writing a lot until I got a computer and could do it without so much effort and discomfort. A middle ground is what&rsquo;s often called a &ldquo;writerdeck&rdquo;. The idea is that it&rsquo;s a device that&rsquo;s completely dedicated to writing and is as simple as possible.
+</p>
+<p>
+Chris Maiorana wrote an article that <a href="https://chrismaiorana.com/writerdecks-distraction-free-writing-environments/">argued a pad and pen is the ultimate writedeck</a>. I reject that for the reasons I stated above. Maiorana recognizes that often a computer is a good idea and has <a href="https://chrismaiorana.com/tmux-wm-emacs-no-gui/">an article that describes building his own writerdeck.</a> He wanted something free or cheap so he used a Raspberry Pi 4 that he had lying around, put Linux and Emacs on it, and restricted it to text mode. Later he added a few utilities such as Git but it remains a text only machine dedicated to writing with Emacs. Maiorana considers it the &ldquo;maximum digital minimalism&rdquo; but I&rsquo;m more inclined to think of it as a minimal acceptable writing environment.
+</p>
+<p>
+I don&rsquo;t do social media other than Irreal, if you consider that social media, so I have no difficulty concentrating on my writing while using my everyday laptop. Not everybody is like that, of course, so if you find it&rsquo;s hard to resist doom scrolling while you&rsquo;re supposed to be writing, you may want to take a look at Maiorana&rsquo;s post on his writerdeck.</p>

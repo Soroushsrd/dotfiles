@@ -1,0 +1,19 @@
+<p>
+Marcin Borkowski (mbork) has an <a href="https://mbork.pl/2026-05-09_describe-personal-keybindings">interesting post on the describe-personal-keybindings command</a>. The idea is that the command lists the keybindings that you have set in your configuration. It&rsquo;s convenient, mbork says, for checking that new Emacs releases haven&rsquo;t stolen one of your bindings. It&rsquo;s also interesting to see what bindings you&rsquo;ve added and what, if anything, they&rsquo;ve replaced.
+</p>
+<p>
+But there&rsquo;s a catch. In order for a personal keybinding to show up, it must have been set with the <code>bind-key</code> macro. That&rsquo;s a problem for those of us who are long term users. Those who use <code>use-package</code> exclusively have no problem since the <code>:bind</code> command  uses <code>bind-key</code> automatically but bindings set with, say, <code>define-key</code> will not appear in the <code>describe-personal-keybindings</code> output.
+</p>
+<p>
+That&rsquo;s inspired mbork to refactor his <code>init.el</code> to use <code>use-pacjkage</code> and for stand-alone bindings, the <code>bind-key</code> macro.
+</p>
+<p>
+The minions are insisting that I mention what they consider the best part of mbork&rsquo;s post. That, of course, concerned dark mode. Mbork begins his post by mentioning a Web app that provides a Web based cheat sheet of Emacs commands. Mbork says it&rsquo;s a cool command but not for him because
+</p>
+<blockquote>
+<p>
+if I were to create something like that, it would run in Emacs and not in the browser, it would definitely mention transpose-.* commands, and it would never be dark-mode-only;-).
+</p>
+</blockquote>
+<p>
+The minions haven&rsquo;t been causing much trouble lately so I thought it only fair to indulge their desire to get mbork&rsquo;s dislike of dark mode on the record.</p>

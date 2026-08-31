@@ -1,0 +1,8 @@
+<p>
+Marcin Borkowski (mbork) <i>really</i> likes being able to cycle folding in Org buffers. Of course, then he wanted to be able to do the same thing in any buffer. In particular, he wanted to be able to fold and unfold groups of functions as a set. <a href="https://mbork.pl/2026-07-27_Outlining_in_programs">He experimented with all sorts of solutions</a> including the builtin <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Outline-Minor-Mode.html">outline minor mode</a>.
+</p>
+<p>
+None of them were quite what he wanted. Then he found <a href="https://github.com/jdtsmith/outli">outli</a>. It was perfect for his needs. It&rsquo;s a third party package but appears to be well maintained and is less than 400 lines of code. What he really likes, though, is the keybindings. Most important to him is that <kbd>Tab</kbd> cycles the folding just like in Org mode.
+</p>
+<p>
+Although I like and use headline folding in Org mode, I&rsquo;ve never been able warm up to code folding. On those rare occasions when I want to narrow focus to a single function—usually to delimit searches—I simply narrow to the function or region in question. Of course, others, like mbork, disagree and those folks may want to check out mbork&rsquo;s post to get the details of his solution.</p>

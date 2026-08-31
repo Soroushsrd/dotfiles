@@ -1,0 +1,55 @@
+<p>Heads up for readers of this blog who are using <a href="https://github.com/kickingvegas/anju">Anju</a> or are mouse-curious Emacs users. I’ve recently released the <a href="https://github.com/kickingvegas/anju/discussions/121">v1.5.0 update</a> for it, now available on <a href="https://melpa.org/#/anju">MELPA</a>.</p>
+<p>Many new features and enhancements are in this update as outlined below:</p>
+<ul>
+<li>
+<p>Context Menus</p>
+<ul>
+<li><a href="https://kickingvegas.github.io/anju/Selected-Text-Commands.html">Enhancements to selected text</a><ul>
+<li>Query Replace (Regexp)…</li>
+</ul>
+</li>
+<li>Enhancements to Org mode support<ul>
+<li><a href="https://kickingvegas.github.io/anju/Org-Headline-Context-Menu.html">Headline</a><ul>
+<li>Change to Body</li>
+<li>Sort…</li>
+</ul>
+</li>
+<li><a href="https://kickingvegas.github.io/anju/Org-Item-Context-Menu.html">Item</a><ul>
+<li>Cycle Bullet…</li>
+<li>Sort…</li>
+</ul>
+</li>
+<li><a href="https://kickingvegas.github.io/anju/Org-Table-Context-Menu.html">Table</a><ul>
+<li>Sort…</li>
+</ul>
+</li>
+<li><a href="https://kickingvegas.github.io/anju/Org-_201cCopy-as_2026_201d-Context-Menu.html">Copy as…</a></li>
+<li><a href="https://kickingvegas.github.io/anju/Org-Insert-Link.html">Link…</a></li>
+</ul>
+</li>
+<li>Added support for <a href="https://kickingvegas.github.io/anju/Makefile-Context-Menu.html">Makefile mode</a></li>
+<li>Added support for <a href="https://kickingvegas.github.io/anju/Info-Context-Menu.html">Info mode</a></li>
+<li>Added support for <a href="https://kickingvegas.github.io/anju/Compilation_002fGrep-Context-Menu.html">Compilation/Grep mode</a></li>
+</ul>
+</li>
+<li>
+<p>Main Menu</p>
+<ul>
+<li>Tools menu enhancements<ul>
+<li><a href="https://kickingvegas.github.io/anju/Tools-Menu-Features.html">Global Org Commands</a></li>
+<li><a href="https://kickingvegas.github.io/anju/Macro-Recorder-Menu.html">Macro Recorder</a></li>
+</ul>
+</li>
+<li>Edit › Delete menu enhancement<ul>
+<li><a href="https://kickingvegas.github.io/anju/Edit-Menu-Features.html">Delete Duplicate Lines</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Users who work with both Org mode and Markdown formatted text should find interest in the <a href="https://kickingvegas.github.io/anju/Org-_201cCopy-as_2026_201d-Context-Menu.html">Copy as…</a> capability added to the Org mode context menu. This feature lets one use Org mode as the primary means of authoring text, exporting to Markdown (or another format) using a right-click mouse copy action.</p>
+<p><img alt="img" src="images/anju-1-5/anju-context-menu-org-copy-as.png"></p>
+<p>Thanks to Marcin Borkowski whose post <a href="https://mbork.pl/2021-05-02_Org-mode_to_Markdown_via_the_clipboard">“Org-mode to Markdown via the clipboard”</a>, inspired this feature.</p>
+<p>Anju also provides a complementary command “Paste Markdown as Org” for Org mode which lets one paste copied Markdown text into an Org file, doing the conversion of Markdown to Org under the hood using <code>pandoc</code>.</p>
+<p><img alt="img" src="images/anju-1-5/anju-paste-markdown-as-org.png"></p>
+<p>In summary, this is a big release with many changes. I invite you to explore all the links above to see what’s available in Anju.</p>

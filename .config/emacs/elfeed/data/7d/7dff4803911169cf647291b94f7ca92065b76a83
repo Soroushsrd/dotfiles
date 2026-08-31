@@ -1,0 +1,11 @@
+<p>
+Jonas Bernoulli is announcing <a href="https://emacsair.me/2026/07/01/magit-4.6/">the release of Magit 4.6</a>. It includes, he says, over 300 commits since the last release 6 months ago. You can check Bernoulli&rsquo;s post for the details but an overview is that the main changes were in
+</p>
+<ul class="org-ul">
+<li>Blob handling. Working with blobs should be easier and make more sense with this release.</li>
+<li>Experimental syntax highlighting in diffs.</li>
+<li>Improved hook handling that allows for the calling of Elisp hooks from Git hooks.</li>
+<li>Improved commit message processing. List of changed definitions in a diff are now available for composing a git commit message.</li>
+</ul>
+<p>
+As I&rsquo;ve said before, Magit and Org Mode are responsible for luring many new users into the Emacs event horizon so these improvements are important. Moreover, they raise again the need for supporting this effort. Bernoulli spends full time on Magit on a few other open source projects and depends on contributors for his livelihood Take a look at <a href="https://magit.vc/donate/">his support page</a> to see how you can help out.</p>

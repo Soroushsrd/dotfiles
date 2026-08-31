@@ -1,0 +1,16 @@
+<p>As much as I <a href="http://yummymelon.com/devnull/take-two-eshell.html">enjoy using Eshell</a>, it is not without its annoyances. In this case, I’m writing about the common shell convention of using <code>!n</code> to recall a previously entered command.</p>
+<p>In Eshell, entering the <code>history</code> command will show you all of your previously entered commands alongside a number <code>n</code>.</p>
+<p>The problem is in attempting to use <code>!n</code> to recall a specific command in Eshell as one would do in <code>bash</code> or <code>zsh</code>. By default it will not work as described in <a href="https://www.gnu.org/software/emacs/manual/html_node/eshell/History.html">Info (eshell) History</a> without configuring <code>eshell-expand-input-functions</code> first. (My current configuration is GNU Emacs 30.2.)</p>
+<p>To get <code>!n</code> to work requires adding the function <code>eshell-expand-history-references</code> to the customizable variable <code>eshell-expand-input-functions</code>.</p>
+<p>The following configuration Elisp will achieve this.</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="p">(</span><span class="nv">add-to-list</span><span class="w"> </span><span class="ss">&#39;eshell-expand-input-functions</span>
+<span class="w"> </span><span class="nf">#&#39;</span><span class="nv">eshell-expand-history-references</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+
+<p>A nice feature of <code>eshell-expand-history-references</code> is that it will expand using the content of an actual command instead of a number reference. So <code>!foo</code> will invoke the last command that you entered the string “foo” in.</p>
+<p>It’s not clear to me whether coupling n<sup>th</sup> history support to <code>eshell-expand-history-references</code> is intentional or a bug. If the former, then I’d consider this yet another example of staying “on brand” with Emacs’ tendency to <a href="http://yummymelon.com/devnull/surprise-and-emacs-defaults.html">ship with questionable defaults</a>. That shade aside, Eshell is still an amazing package that I could not imagine using Emacs without.</p>
+<h1>Links</h1>
+<ul>
+<li><a href="https://www.gnu.org/software/emacs/manual/html_node/eshell/History.html">History (Eshell: The Emacs Shell)</a></li>
+</ul>

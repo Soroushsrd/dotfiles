@@ -1,0 +1,88 @@
+<p>A recent Mastodon post showing the days until the next U.S. election got me to wonder, “how can I compute that in Emacs?” Turns out, this is trivial with the Org mode function <code>org-time-stamp-to-now</code> doing the timestamp computation for you.</p>
+<p>We can wrap <code>org-time-stamp-to-now</code> in an internal function <code>cc/--days-until</code> that generates a formatted string of the days until a target date.</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="p">(</span><span class="nb">defun</span><span class="w"> </span><span class="nv">cc/--days-until</span><span class="w"> </span><span class="p">(</span><span class="nv">target</span><span class="w"> </span><span class="kp">&amp;optional</span><span class="w"> </span><span class="nv">template</span><span class="p">)</span>
+<span class="w">  </span><span class="s">&quot;Formatted string of days until TARGET.</span>
+
+<span class="s">- TARGET: date string that conforms to </span><span class="ss">`parse-time-string&#39;</span><span class="s">.</span>
+<span class="s">- TEMPLATE : format string that includes ‘%d’ specifier.</span>
+
+<span class="s">If TEMPLATE is nil, then a predefined format string will be</span>
+<span class="s">used.&quot;</span>
+<span class="w">  </span><span class="p">(</span><span class="k">let*</span><span class="w"> </span><span class="p">((</span><span class="nv">template</span><span class="w"> </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="nv">template</span>
+<span class="w">                       </span><span class="nv">template</span>
+<span class="w">                     </span><span class="p">(</span><span class="nf">concat</span><span class="w"> </span><span class="s">&quot;%d days until &quot;</span><span class="w"> </span><span class="nv">target</span><span class="p">)))</span>
+<span class="w">         </span><span class="p">(</span><span class="nv">days</span><span class="w"> </span><span class="p">(</span><span class="nv">org-time-stamp-to-now</span><span class="w"> </span><span class="nv">target</span><span class="p">))</span>
+<span class="w">         </span><span class="p">(</span><span class="nv">msg</span><span class="w"> </span><span class="p">(</span><span class="nf">format</span><span class="w"> </span><span class="nv">template</span><span class="w"> </span><span class="nv">days</span><span class="p">)))</span>
+<span class="w">    </span><span class="nv">msg</span><span class="p">))</span>
+</code></pre></div></td></tr></table></div>
+
+<p>From there we can then start defining commands that use <code>cc/--days-until</code>. The command cc/days-until shown below will prompt you with a date picker to enter a date. Note that you can enter a date value (e.g. “Dec 25, 2026”) in the mini-buffer prompt for <code>org-read-date</code>.</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="p">(</span><span class="nb">defun</span><span class="w"> </span><span class="nv">cc/days-until</span><span class="w"> </span><span class="p">(</span><span class="nv">arg</span><span class="p">)</span>
+<span class="w">  </span><span class="s">&quot;Prompt user for date and show days until in the mini-buffer.</span>
+
+<span class="s">Use </span><span class="ss">`org-read-date&#39;</span><span class="s"> to compute days until to display in the mini-buffer.</span>
+
+<span class="s">If prefix ARG is non-nil, then the computed result is stored in the</span>
+<span class="s"> </span><span class="ss">`kill-ring&#39;</span><span class="s">.&quot;</span>
+<span class="w">  </span><span class="p">(</span><span class="k">interactive</span><span class="w"> </span><span class="s">&quot;P&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="k">let*</span><span class="w"> </span><span class="p">((</span><span class="nv">target</span><span class="w"> </span><span class="p">(</span><span class="nv">org-read-date</span><span class="p">))</span>
+<span class="w">         </span><span class="p">(</span><span class="nv">msg</span><span class="w"> </span><span class="p">(</span><span class="nv">cc/--days-until</span><span class="w"> </span><span class="nv">target</span><span class="p">)))</span>
+<span class="w">    </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="nv">arg</span>
+<span class="w">        </span><span class="p">(</span><span class="nv">kill-new</span><span class="w"> </span><span class="nv">msg</span><span class="p">))</span>
+<span class="w">    </span><span class="p">(</span><span class="nf">message</span><span class="w"> </span><span class="nv">msg</span><span class="p">)))</span>
+</code></pre></div></td></tr></table></div>
+
+<p>Going back to the original motivator for this post, here’s an implementation of days until the next two major U.S. election dates with the command <code>cc/days-until-voting</code>.</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="p">(</span><span class="nb">defun</span><span class="w"> </span><span class="nv">cc/days-until-voting</span><span class="w"> </span><span class="p">(</span><span class="nv">arg</span><span class="p">)</span>
+<span class="w">  </span><span class="s">&quot;Days until U.S. elections in 2026 and 2028.</span>
+
+<span class="s">If prefix ARG is non-nil, then the computed result is stored in the</span>
+<span class="s"> </span><span class="ss">`kill-ring&#39;</span><span class="s">.&quot;</span>
+<span class="w">  </span><span class="p">(</span><span class="k">interactive</span><span class="w"> </span><span class="s">&quot;P&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="k">let*</span><span class="w"> </span><span class="p">((</span><span class="nv">midterms</span><span class="w"> </span><span class="p">(</span><span class="nv">cc/--days-until</span><span class="w"> </span><span class="s">&quot;2026-11-03&quot;</span><span class="w"> </span><span class="s">&quot;%d days until 2026 midterms&quot;</span><span class="p">))</span>
+<span class="w">         </span><span class="p">(</span><span class="nv">election</span><span class="w"> </span><span class="p">(</span><span class="nv">cc/--days-until</span><span class="w"> </span><span class="s">&quot;2028-11-07&quot;</span><span class="w"> </span><span class="s">&quot;%d days until 2028 presidential election&quot;</span><span class="p">))</span>
+<span class="w">         </span><span class="p">(</span><span class="nv">msg</span><span class="w"> </span><span class="p">(</span><span class="nf">format</span><span class="w"> </span><span class="s">&quot;%s, %s&quot;</span><span class="w"> </span><span class="nv">midterms</span><span class="w"> </span><span class="nv">election</span><span class="p">)))</span>
+<span class="w">    </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="nv">arg</span>
+<span class="w">        </span><span class="p">(</span><span class="nv">kill-new</span><span class="w"> </span><span class="nv">msg</span><span class="p">))</span>
+<span class="w">    </span><span class="p">(</span><span class="nf">message</span><span class="w"> </span><span class="nv">msg</span><span class="p">)))</span>
+</code></pre></div></td></tr></table></div>
+
+<p>The result of <code>M-x cc/days-until-voting</code> as of 8 April 2026 is:</p>
+<p><code>209 days until 2026 midterms, 944 days until 2028 presidential election</code></p>
+<p>It’s so human to want to know how long it’s going to take. Feel free to build your own countdown clocks using the code above. May your journey to whatever you plan be a happy one!</p>

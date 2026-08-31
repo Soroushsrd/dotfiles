@@ -1,0 +1,8 @@
+<p>
+Years ago, <a href="https://irreal.org/blog/?p=9035">when I learned from mbork how to get my own copy of Webster&rsquo;s 1923 dictionary</a> my dictionary use was vastly improved. If you don&rsquo;t know why having Webster&rsquo;s 1923 is a big thing, here&rsquo;s <a href="https://irreal.org/blog/?p=4190">my original post on it from 2015</a>.
+</p>
+<p>
+For Emacs users, the package you need is <a href="https://github.com/jamescherti/quick-sdcv.el">quick-sdcv.el</a>, an update of the original sdcv package. Actually, quick-sdcv useful for a lot more than just Webster. You can even use it to <a href="https://github.com/jamescherti/quick-sdcv.el/discussions/6">access the Oxford English Dictionary from within Emacs.</a> Obviously, there&rsquo;s a lot to like.
+</p>
+<p>
+The point of this post is to pass on the announcement that sdcv-quick has been updated. If you do any writing at all you need sdcv and Webster&rsquo;s 1923. Having the OED is a bonus. Happily, it&rsquo;s easy to have it all in Emacs with sdcv.</p>

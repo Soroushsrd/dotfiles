@@ -1,0 +1,42 @@
+
+<p class="wp-block-paragraph">Also in April, I was interviewed by Jordi Mon Companys for Software Engineering Daily, and that interview was <a href="https://softwareengineeringdaily.com/2024/06/06/c-safety-with-herb-sutter/">just published on the SE Daily podcast</a>.</p>
+
+
+
+<p class="wp-block-paragraph">Here is a copy of the page&#8217;s additional details, including a transcript link at bottom.</p>
+
+
+
+<p class="wp-block-paragraph"></p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity is-style-wide" />
+
+
+
+<figure class="wp-block-image size-large is-resized is-style-rounded"><a href="https://herbsutter.com/wp-content/uploads/2024/06/image.png"><img loading="lazy" width="600" height="315" data-attachment-id="5147" data-permalink="https://herbsutter.com/2024/06/07/podcast-interview-with-software-engineering-daily/image-13/" data-orig-file="https://herbsutter.com/wp-content/uploads/2024/06/image.png" data-orig-size="600,315" data-comments-opened="0" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="image" data-image-description="" data-image-caption="" data-large-file="https://herbsutter.com/wp-content/uploads/2024/06/image.png?w=600" src="https://herbsutter.com/wp-content/uploads/2024/06/image.png?w=600" alt="" class="wp-image-5147" style="width:770px;height:auto" srcset="https://herbsutter.com/wp-content/uploads/2024/06/image.png 600w, https://herbsutter.com/wp-content/uploads/2024/06/image.png?w=150 150w, https://herbsutter.com/wp-content/uploads/2024/06/image.png?w=300 300w" sizes="auto, (max-width: 600px) 100vw, 600px" /></a></figure>
+
+
+
+<p class="wp-block-paragraph"><em>The U.S. government recently released a report calling on the technical community to proactively reduce the attack surface area of software infrastructure. The report emphasized memory safety vulnerabilities, which affect how memory can be accessed, written, allocated, or deallocated.</em></p>
+
+
+
+<p class="wp-block-paragraph"><em>The report cites this class of vulnerability as a common theme in the some of the most infamous cyber events, such as the Morris worm of 1988, the Heartbleed vulnerability in 2014, and the Blastpass exploit of 2023.</em></p>
+
+
+
+<p class="wp-block-paragraph"><em><a href="https://twitter.com/herbsutter">Herb Sutter</a> works at <a href="https://twitter.com/Microsoft">Microsoft</a> and chairs the ISO C++ standards committee. He joins the show to talk about C++ safety.</em></p>
+
+
+<div class="wp-block-image">
+<figure class="alignleft"><a href="https://i0.wp.com/softwareengineeringdaily.com/wp-content/uploads/2023/03/jordi.png"><img src="https://i0.wp.com/softwareengineeringdaily.com/wp-content/uploads/2023/03/jordi.png?resize=218%2C258&amp;ssl=1" alt="" class="wp-image-14908" /></a></figure>
+</div>
+
+
+<p class="wp-block-paragraph"><em><a href="https://www.linkedin.com/in/jordimoncompanys/">Jordi Mon Companys</a> is a product manager and marketer that specializes in software delivery, developer experience, cloud native and open source. He has developed his career at companies like GitLab, Weaveworks, Harness and other platform and devtool providers. His interests range from software supply chain security to open source innovation. You can reach out to him on Twitter at <a href="https://twitter.com/JordiMonPMM">@jordimonpmm</a>.</em></p>
+
+
+
+<p class="wp-block-paragraph"><a href="http://softwareengineeringdaily.com/wp-content/uploads/2024/05/SED1689-Herb-Sutter.txt"><em>Please click here to see the transcript of this episode.</em></a></p>

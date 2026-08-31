@@ -1,0 +1,381 @@
+<div class="subtitle">
+<p>TL;DR: &ldquo;We have X-references at home&rdquo;</p>
+</div>
+<p>Cross-references in Org mode are not as well developed as its (relatively) new citation system.  Org&rsquo;s built-in linking system is fairly comprehensive and exports to all formats well enough.  But if you&rsquo;re coming to Org from LaTeX, you might prefer something more familiar and oriented towards the label/references mental mapping than the anchor/link system.  Over the decades, I drifted into Org mode from writing LaTeX, and brought along RefTeX support.  <em>Sort of</em>.</p>
+<p>In the past few months I received a number of questions about my usage of LaTeX-style cross-references in Org, so here&rsquo;s a short explanation and, uh, reference.</p>
+<h2 id="just-give-me-the-code">Just give me the code</h2>
+<p>One half of my long-winded Emacs articles begin or end with a call to action:</p>
+<blockquote>
+<p>&hellip;and it&rsquo;s a package, and here&rsquo;s a link, it&rsquo;s on MELPA, try it out.</p>
+</blockquote>
+<p>This is not one of those.  There <em>is</em> a package, and more code besides.  But this is stuff extracted from my Emacs init file, which is a cross between a palimpsest, a crime scene and a dry-erase board that don&rsquo;t erase no more.  Use at your own peril, or better yet, reuse these ideas to make something coherent and plug-and-play:</p>
+<ol>
+<li><a href="https://github.com/karthink/consult-reftex"><code>consult-reftex</code></a>: A better interface to RefTeX, with <a href="https://github.com/minad/consult">Consult</a></li>
+<li><a href="https://github.com/karthink/reftex-xref"><code>reftex-xref</code></a>: xref and eldoc support for RefTeX</li>
+<li><a href="https://gist.github.com/karthink/d2419098c9312e3bf2c63b052464ef5f">Some configuration</a> to turn on these enhancements.</li>
+</ol>
+<p>Demos and explanations below.</p>
+<h2 id="background-org-link-org-ref-and-oxr">Background: <code>org-link</code>, <code>org-ref</code> and <code>oxr</code></h2>
+<p>There are other solutions &ndash; actual solutions &ndash; for cross-references in Org mode.  Org&rsquo;s built-in linking system can be repurposed for this, and it will export to all document formats.  Bruce D&rsquo;Arcus&rsquo; <a href="https://github.com/bdarcus/oxr"><code>oxr</code></a> is a proof of concept of a cross-referencing system built on top of Org&rsquo;s links.  For LaTeX exports, there&rsquo;s John Kitchin&rsquo;s frighteningly full-featured <a href="https://github.com/jkitchin/org-ref/"><code>org-ref</code></a>, with simple and elegant <a href="https://github.com/jkitchin/org-ref/blob/master/org-ref.org#ref-links-ref-links">cross-referencing syntax</a>.</p>
+<p>One of these is probably what you want.</p>
+<p>One of these is probably what I would have used if I had given my slow transition from LaTeX to Org any active thought.  Instead I just continued to use RefTeX.</p>
+<h2 id="what-s-a-reftex">What&rsquo;s a RefTeX?</h2>
+<blockquote>
+<p><a href="https://www.gnu.org/software/auctex/reftex.html">RefTeX</a> is an Emacs minor mode with distinct support for <code>\ref</code>, <code>\label</code>, <code>\cite</code>, and <code>\index</code> commands in (multi-file) LaTeX documents.  It is included with Emacs.</p>
+</blockquote>
+<p>The official description undersells it.  RefTeX is extensive: it supports cross-references and citations, semi-automatic label creation, reference tracking and updates, indexes, multi-file documents, references to external documents, a dynamic table of contents and more, and provides the means to do everything that we&rsquo;re about to do more clumsily below.</p>
+<p>In a happy coincidence, RefTeX works without a hitch in Org documents&hellip; to a point
+<span class="sidenote-number"><small class="sidenote">
+It gets dicey with multi-file Org documents.
+</small></span>
+.  This is an oft-ignored advantage of regexp-based, structure-agnostic parsing &ndash; once you iron out the many, many edge cases over a few years, it tends to work pretty much everywhere.  RefTeX&rsquo;s Org mode &ldquo;support&rdquo; is good enough for my purposes, and having it work the same in Org and LaTeX documents is a bonus.</p>
+<p>It even integrates with <a href="https://karthinks.com/software/latex-input-for-impatient-scholars/#step-2-cdlatex"><code>cdlatex</code> and <code>org-cdlatex</code></a>, with automatic label insertion when inserting environments.  (This is not a coincidence.)</p>
+<p>There are two limitations.</p>
+<ol>
+<li>
+<p>Obviously, LaTeX style cross-references only work with LaTeX exports.</p>
+</li>
+<li>
+<p>The other issue with RefTeX, and the main focus of this write-up, is the UI.  It&rsquo;s very&hellip; 90s, let&rsquo;s say.  Better previewing, faster navigation, integration into the modern Emacs API, some DWIM behavior &ndash; these are all achievable with a few band-aids.  The result is a patchwork, but that&rsquo;s most things Emacs.</p>
+</li>
+</ol>
+<p>Finally, there&rsquo;s one other deep connection between RefTeX, CDLaTeX and Org mode.  It&rsquo;s two words.  Take your guesses, or open up <code>reftex.el</code> and read the header!</p>
+<hr>
+<h2 id="sprucing-up-the-reftex-experience">Sprucing up the RefTeX experience</h2>
+<p>A reassertion: RefTeX already works reasonably well in Org mode, and you can work around edge cases if you encounter them.  The write-up until now was thus mainly a PSA.  What follows is minor improvements to the UI and the general experience of Org when using RefTeX.</p>
+<h3 id="insert-references-with-consult-reftex">Insert references with <code>consult-reftex</code></h3>
+<p>As mentioned above, RefTeX is a kitchen sink library &ndash; it provides everything you need to manage references, including a multi-step reference insertion menu.  But this process leaves a bit to be desired:</p>
+<img src="https://karthinks.com/img/reftex-insert-reference.png" style="box-shadow:0px -5px 5px #421D5D;margin-top:14px;margin-bottom:14px;border-radius:8px;">
+<p>I wrote <a href="https://github.com/karthink/consult-reftex">consult-reftex</a> a while ago to provide a better interface for reference creation:
+<span class="sidenote-number"><small class="sidenote">
+The LaTeX previews in the buffer, in <code>consult-reftex</code>&rsquo;s previews and elsewhere are from Org&rsquo;s <a href="https://www.youtube.com/watch?v=n-AfvuV-bYo">upcoming LaTeX preview system overhaul</a>.
+</small></span></p>
+<video preload="metadata" style="center" width="700" controls>
+<source src="https://karthinks.com/img/consult-reftex-insert-demo-small.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/consult-reftex-insert-demo-small.mp4">[VIDEO: consult-reftex label insertion]</a></video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ul>
+<li>Call <code>consult-reftex-insert-reference</code> to insert a reference at point.  I&rsquo;ve bound it to a snippet, so I invoke it by typing in <code>ref</code> and pressing <code>TAB</code> instead.</li>
+<li>This command presents a completing-read interface where you can narrow the candidates to just equations, figures, sections etc.  Candidate objects are previewed above the minibuffer.</li>
+<li>You can choose how to insert this reference (as a <code>\ref</code>, <code>\eqref</code>, <code>\cref</code> etc).</li>
+<li>Repeat this a couple of times.</li>
+</ul>
+</div>
+</details>
+<p>I wrote it for LaTeX documents, but thanks to RefTeX&rsquo;s flexibility it works all the same in Org mode.</p>
+<h4 id="looking-up-references-consult-reftex--again">Looking up references: <code>consult-reftex</code> (again)</h4>
+<p>The preview interface for <code>consult-reftex</code> serves a second purpose &ndash; you can use it as a listing of the equations in your document (by label), and act on labels via Embark.</p>
+<video preload="metadata" style="center" width="700" controls>
+<source src="https://karthinks.com/img/consult-reftex-lookup-demo-small.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/consult-reftex-lookup-demo-small.mp4">[VIDEO: consult-reftex to look up labels]</a></video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<p>Same usage pattern, different focus from the above</p>
+<ul>
+<li>Cycle through labeled objects (equations/sections etc) in the document</li>
+<li>Invoke <a href="https://karthinks.com/software/fifteen-ways-to-use-embark/">Embark</a> on a candidate to access additional RefTeX actions: change the label (and all references to it), reparse the file, etc.</li>
+</ul>
+</div>
+</details>
+<p>I don&rsquo;t do this when writing, but it&rsquo;s occasionally useful when reviewing work.</p>
+<h3 id="fontify-dot-dot-dot">Fontify&hellip;</h3>
+<p>RefTeX labels in Org are plain by default,</p>
+<img src="https://karthinks.com/img/reftex-hack-no-font-lock.png" style="box-shadow:0px -5px 5px #421D5D;margin-top:14px;margin-bottom:10px;border-radius:8px;">
+<p>so a little syntax highlighting goes a long way:</p>
+<img src="https://karthinks.com/img/reftex-hack-with-font-lock.png" style="box-shadow:0px -5px 5px #421D5D;margin-top:14px;margin-bottom:10px;border-radius:8px;">
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">font-lock-add-keywords</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#a60;background-color:#fff0f0">&#39;org-mode</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#333">&#39;</span>((<span style="background-color:#fff0f0">&#34;\\(\\(?:\\\\\\(?:label\\|ref\\|eqref\\)\\)\\){\\(.+?\\)}&#34;</span>
+</span></span><span style="display:flex;"><span>      (<span style="color:#00d;font-weight:bold">1</span> <span style="color:#963">font-lock-keyword-face</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#00d;font-weight:bold">2</span> <span style="color:#963">font-lock-constant-face</span>))))
+</span></span></code></pre></div><p>I didn&rsquo;t bother making a comprehensive regexp for font-locking here, you might want to thrown in more keywords.</p>
+<p>This is more than eye-candy: a little further below, we use the faces we specify here as anchors for jumping between references.  If you use different faces for the keywords, you&rsquo;ll need to update the <a href="#org-target--reftex-navigation-code">navigation code below</a>.</p>
+<h3 id="dot-dot-dot-and-prettify-tex-fold-mode">&hellip;and Prettify: <code>TeX-fold-mode</code></h3>
+<p><code>TeX-fold-mode</code>, provided with <a href="https://www.gnu.org/software/auctex">AucTeX</a>, is useful for shortening long references by placing overlays over them.</p>
+<p><strong>Before</strong>:</p>
+<img src="https://karthinks.com/img/TeX-fold-before.png" style="box-shadow:0px -5px 5px #421D5D;margin-top:14px;margin-bottom:10px;border-radius:8px;">
+<p><strong>After</strong> (with the mouse over one of the references):</p>
+<img src="https://karthinks.com/img/TeX-fold-after.png" style="box-shadow:0px -5px 5px #421D5D;margin-top:14px;margin-bottom:10px;border-radius:8px;">
+<p>The effect is purely visual, moving the cursor into the overlay reveals the full reference:</p>
+<video preload="metadata" style="center" width="700" controls>
+<source src="https://karthinks.com/img/TeX-fold-enable-small.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/TeX-fold-enable-small.mp4">[VIDEO TeX-fold-mode]</a></video>
+<p>This requires turning on <code>TeX-fold-mode</code>.</p>
+<p><a href="https://karthinks.com/software/latex-input-for-impatient-scholars/#the-rest-of-auctex">It can fold most LaTeX constructs</a>, including environments, sections, comments and even individual math symbols and operators.  We&rsquo;re only interested in folding references and labels here, though, so we can specify this:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">setq</span> <span style="color:#963">TeX-fold-type-list</span> <span style="color:#333">&#39;</span>(<span style="color:#963">macro</span>))
+</span></span></code></pre></div><p>You can make this Org mode-specific with a hook if you want to fold more constructs in LaTeX documents.</p>
+<p>Optional: we can tweak the overlay styling for labels and refs as well:</p>
+<details>
+<summary><span><img src="https://karthinks.com/img/lisp-icon.png" class=detail-icon></span> Reference/Label folding style: code</summary>
+<div class="details">
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span><span style="color:#888">;; Faces</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#963">set-face-attribute</span> <span style="color:#a60;background-color:#fff0f0">&#39;TeX-fold-folded-face</span> <span style="color:#036;font-weight:bold">nil</span> <span style="color:#007020">:foreground</span> <span style="color:#036;font-weight:bold">nil</span> <span style="color:#007020">:inherit</span> <span style="color:#a60;background-color:#fff0f0">&#39;shadow</span>)
+</span></span><span style="display:flex;"><span><span style="color:#888">;; Custom folded display for labels and refs</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">my/TeX-fold-ref</span> (<span style="color:#963">text</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let*</span> ((<span style="color:#963">m</span> (<span style="color:#06b;font-weight:bold">string-match</span> <span style="background-color:#fff0f0">&#34;^\\([^:]+:\\)\\(.*\\)&#34;</span> <span style="color:#963">text</span>))
+</span></span><span style="display:flex;"><span>         (<span style="color:#963">cat</span> (<span style="color:#007020">or</span> (<span style="color:#963">match-string</span> <span style="color:#00d;font-weight:bold">1</span> <span style="color:#963">text</span>) <span style="background-color:#fff0f0">&#34;&#34;</span>))
+</span></span><span style="display:flex;"><span>         (<span style="color:#963">ref</span> (<span style="color:#007020">or</span> (<span style="color:#963">match-string</span> <span style="color:#00d;font-weight:bold">2</span> <span style="color:#963">text</span>) <span style="color:#963">text</span>)))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">when</span> (<span style="color:#06b;font-weight:bold">&gt;</span> (<span style="color:#06b;font-weight:bold">length</span> <span style="color:#963">ref</span>) <span style="color:#00d;font-weight:bold">13</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">setq</span> <span style="color:#963">ref</span> (<span style="color:#06b;font-weight:bold">concat</span> (<span style="color:#06b;font-weight:bold">substring</span> <span style="color:#963">ref</span> <span style="color:#00d;font-weight:bold">0</span> <span style="color:#00d;font-weight:bold">6</span>) <span style="background-color:#fff0f0">&#34;...&#34;</span> (<span style="color:#06b;font-weight:bold">substring</span> <span style="color:#963">ref</span> <span style="color:#00d;font-weight:bold">-6</span>))))
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">concat</span> <span style="background-color:#fff0f0">&#34;[&#34;</span> (<span style="color:#06b;font-weight:bold">propertize</span> <span style="color:#963">cat</span> <span style="color:#a60;background-color:#fff0f0">&#39;face</span> <span style="color:#a60;background-color:#fff0f0">&#39;shadow</span>) <span style="color:#963">ref</span> <span style="background-color:#fff0f0">&#34;]&#34;</span>)))
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">my/TeX-fold-label</span> (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">texts</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">cl-loop</span> <span style="color:#963">for</span> <span style="color:#963">text</span> <span style="color:#963">in</span> <span style="color:#963">texts</span>
+</span></span><span style="display:flex;"><span>           <span style="color:#963">for</span> <span style="color:#963">m</span> <span style="color:#06b;font-weight:bold">=</span> (<span style="color:#06b;font-weight:bold">string-match</span> <span style="background-color:#fff0f0">&#34;^\\([^:]+:\\)\\(.*\\)&#34;</span> <span style="color:#963">text</span>)
+</span></span><span style="display:flex;"><span>           <span style="color:#963">for</span> <span style="color:#963">cat</span> <span style="color:#06b;font-weight:bold">=</span> (<span style="color:#007020">or</span> (<span style="color:#963">match-string</span> <span style="color:#00d;font-weight:bold">1</span> <span style="color:#963">text</span>) <span style="background-color:#fff0f0">&#34;&#34;</span>)
+</span></span><span style="display:flex;"><span>           <span style="color:#963">for</span> <span style="color:#963">ref</span> <span style="color:#06b;font-weight:bold">=</span> (<span style="color:#007020">or</span> (<span style="color:#963">match-string</span> <span style="color:#00d;font-weight:bold">2</span> <span style="color:#963">text</span>) <span style="color:#963">text</span>)
+</span></span><span style="display:flex;"><span>           <span style="color:#963">collect</span> (<span style="color:#06b;font-weight:bold">concat</span> <span style="background-color:#fff0f0">&#34;[&#34;</span> (<span style="color:#06b;font-weight:bold">propertize</span> <span style="color:#963">cat</span> <span style="color:#a60;background-color:#fff0f0">&#39;face</span> <span style="color:#a60;background-color:#fff0f0">&#39;shadow</span>) <span style="color:#963">ref</span> <span style="background-color:#fff0f0">&#34;]&#34;</span>) <span style="color:#963">into</span> <span style="color:#007020">labels</span>
+</span></span><span style="display:flex;"><span>           <span style="color:#963">finally</span> <span style="color:#007020">return</span> (<span style="color:#06b;font-weight:bold">mapconcat</span> <span style="color:#06b;font-weight:bold">#&#39;identity</span> <span style="color:#007020">labels</span> <span style="background-color:#fff0f0">&#34;,&#34;</span>)))
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">setq-default</span> <span style="color:#963">TeX-fold-macro-spec-list</span>
+</span></span><span style="display:flex;"><span>              <span style="color:#333">&#39;</span>((<span style="color:#963">my/TeX-fold-label</span> (<span style="background-color:#fff0f0">&#34;cite&#34;</span>))
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">my/TeX-fold-label</span> (<span style="background-color:#fff0f0">&#34;label&#34;</span>))
+</span></span><span style="display:flex;"><span>                (<span style="color:#963">my/TeX-fold-ref</span> (<span style="background-color:#fff0f0">&#34;ref&#34;</span> <span style="background-color:#fff0f0">&#34;pageref&#34;</span> <span style="background-color:#fff0f0">&#34;eqref&#34;</span> <span style="background-color:#fff0f0">&#34;footref&#34;</span>))))
+</span></span></code></pre></div></div>
+</details>
+<p>Lastly, you might want to turn folding on in Org buffers.  <code>TeX-fold</code> uses the <code>C-c C-o</code> key as a prefix, watch out for key conflicts with Org!</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">add-hook</span> <span style="color:#a60;background-color:#fff0f0">&#39;org-mode-hook</span> <span style="color:#a60;background-color:#fff0f0">&#39;TeX-fold-mode</span>)
+</span></span></code></pre></div><h3 id="moving-around-references-big-ol-pile-o-hacks">Moving around references: big ol&rsquo; pile o&rsquo;hacks</h3>
+<p>This is mostly to avoid having to use the mouse &ndash; Isearch or Avy aren&rsquo;t very useful if the reference is folded.  That said, its main advantage is not that it moves the cursor (for editing), but that it enables other actions we might want to take immediately after, such as jumping to the definition of a label <a href="#jumping-to-definition-xref-support-more-hacks">with <code>xref</code></a>.</p>
+<video preload="metadata" style="center" width="700" controls>
+<source src="https://karthinks.com/img/reftex-hack-jumping-around-small.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/reftex-hack-jumping-around-small.mp4">[VIDEO: Jumping around reftex references]</a></video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<p>I jump to the next reference with <code>M-g r</code>, and then jump forward and backward across references, labels and citations with <code>M-g r</code> and <code>M-g R</code>.  Actually, after invoking it once I jump forward and back with just <code>r</code> and <code>R</code>, thanks to <code>repeat-mode</code>.  The code is below.</p>
+</div>
+</details>
+<p>We want several things to happen when we jump to a reference:</p>
+<ul>
+<li>Org should open up folded/invisible text if the references is in a hidden region,</li>
+<li>Any TeX-fold overlay at the reference should be cleared,</li>
+<li>and if we jumped <em>from</em> a reference it should be folded again by TeX-fold.</li>
+<li>If a preview is available (via Eldoc, <a href="#auto-preview-reference-at-point-eldoc-support">see below</a>), it should be activated.</li>
+</ul>
+<p>The code for this is below.  It&rsquo;s not pretty.</p>
+<p><span class="org-target" id="org-target--reftex-navigation-code"></span></p>
+<details>
+<summary><span><img src="https://karthinks.com/img/lisp-icon.png" class=detail-icon></span> Jumping by reference: code</summary>
+<div class="details">
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">my/next-reference-or-label</span> (<span style="color:#963">_arg</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">interactive</span> <span style="background-color:#fff0f0">&#34;p&#34;</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">let*</span> ((<span style="color:#963">prop</span>))
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">pcase-let</span>
+</span></span><span style="display:flex;"><span>          ((<span style="color:#333">`</span>(<span style="color:#333">,</span><span style="color:#963">_</span> <span style="color:#333">.</span> <span style="color:#333">,</span><span style="color:#963">ov</span>)
+</span></span><span style="display:flex;"><span>           (<span style="color:#06b;font-weight:bold">get-char-property-and-overlay</span> (<span style="color:#06b;font-weight:bold">point</span>) <span style="color:#a60;background-color:#fff0f0">&#39;TeX-fold-type</span>)))
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">when</span> <span style="color:#963">ov</span> (<span style="color:#963">TeX-fold-hide-item</span> <span style="color:#963">ov</span>)))
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">save-excursion</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">and</span> (<span style="color:#007020">setq</span> <span style="color:#963">prop</span> (<span style="color:#963">text-property-search-forward</span>
+</span></span><span style="display:flex;"><span>                         <span style="color:#a60;background-color:#fff0f0">&#39;face</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>                         (<span style="color:#007020">lambda</span> (<span style="color:#963">_</span> <span style="color:#963">val</span>)
+</span></span><span style="display:flex;"><span>                           (<span style="color:#06b;font-weight:bold">memq</span> <span style="color:#963">val</span> <span style="color:#333">&#39;</span>(<span style="color:#963">font-lock-constant-face</span> <span style="color:#963">org-cite</span>)))
+</span></span><span style="display:flex;"><span>                         <span style="color:#036;font-weight:bold">t</span>))))
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">if</span> <span style="color:#963">prop</span>
+</span></span><span style="display:flex;"><span>          (<span style="color:#007020">progn</span> (<span style="color:#06b;font-weight:bold">goto-char</span> (<span style="color:#963">prop-match-beginning</span> <span style="color:#963">prop</span>))
+</span></span><span style="display:flex;"><span>                 (<span style="color:#007020">when</span> (<span style="color:#007020">and</span> (<span style="color:#963">derived-mode-p</span> <span style="color:#a60;background-color:#fff0f0">&#39;org-mode</span>) (<span style="color:#963">org-invisible-p</span>))
+</span></span><span style="display:flex;"><span>                   (<span style="color:#963">org-fold-show-context</span> <span style="color:#a60;background-color:#fff0f0">&#39;link-search</span>))
+</span></span><span style="display:flex;"><span>                 (<span style="color:#007020">when</span> <span style="color:#963">eldoc-mode</span> (<span style="color:#963">eldoc--invoke-strategy</span> <span style="color:#036;font-weight:bold">t</span>))
+</span></span><span style="display:flex;"><span>                 (<span style="color:#007020">pcase-let</span>
+</span></span><span style="display:flex;"><span>                     ((<span style="color:#333">`</span>(<span style="color:#333">,</span><span style="color:#963">_</span> <span style="color:#333">.</span> <span style="color:#333">,</span><span style="color:#963">ov</span>)
+</span></span><span style="display:flex;"><span>                      (<span style="color:#06b;font-weight:bold">get-char-property-and-overlay</span> (<span style="color:#06b;font-weight:bold">point</span>) <span style="color:#a60;background-color:#fff0f0">&#39;TeX-fold-type</span>)))
+</span></span><span style="display:flex;"><span>                   (<span style="color:#007020">when</span> <span style="color:#963">ov</span> (<span style="color:#963">TeX-fold-show-item</span> <span style="color:#963">ov</span>))))
+</span></span><span style="display:flex;"><span>        (<span style="color:#06b;font-weight:bold">message</span> <span style="background-color:#fff0f0">&#34;No more references/labels.&#34;</span>))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">my/previous-reference-or-label</span> (<span style="color:#963">_arg</span>)
+</span></span><span style="display:flex;"><span>   (<span style="color:#007020">interactive</span> <span style="background-color:#fff0f0">&#34;p&#34;</span>)
+</span></span><span style="display:flex;"><span>   (<span style="color:#007020">let</span> ((<span style="color:#963">p</span>))
+</span></span><span style="display:flex;"><span>     (<span style="color:#007020">save-excursion</span>
+</span></span><span style="display:flex;"><span>       (<span style="color:#007020">and</span> (<span style="color:#963">text-property-search-backward</span>
+</span></span><span style="display:flex;"><span>             <span style="color:#a60;background-color:#fff0f0">&#39;face</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>             (<span style="color:#007020">lambda</span> (<span style="color:#963">_</span> <span style="color:#963">val</span>)
+</span></span><span style="display:flex;"><span>               (<span style="color:#06b;font-weight:bold">memq</span> <span style="color:#963">val</span> <span style="color:#333">&#39;</span>(<span style="color:#963">font-lock-constant-face</span> <span style="color:#963">org-cite</span>
+</span></span><span style="display:flex;"><span>                           <span style="color:#963">TeX-fold-folded-face</span>)))
+</span></span><span style="display:flex;"><span>             <span style="color:#036;font-weight:bold">t</span>)
+</span></span><span style="display:flex;"><span>            (<span style="color:#007020">setq</span> <span style="color:#963">p</span> (<span style="color:#06b;font-weight:bold">point</span>))))
+</span></span><span style="display:flex;"><span>     (<span style="color:#007020">pcase-let</span>
+</span></span><span style="display:flex;"><span>         ((<span style="color:#333">`</span>(<span style="color:#333">,</span><span style="color:#963">_</span> <span style="color:#333">.</span> <span style="color:#333">,</span><span style="color:#963">ov</span>)
+</span></span><span style="display:flex;"><span>           (<span style="color:#06b;font-weight:bold">get-char-property-and-overlay</span> (<span style="color:#06b;font-weight:bold">point</span>) <span style="color:#a60;background-color:#fff0f0">&#39;TeX-fold-type</span>)))
+</span></span><span style="display:flex;"><span>       (<span style="color:#007020">when</span> <span style="color:#963">ov</span> (<span style="color:#963">TeX-fold-hide-item</span> <span style="color:#963">ov</span>)))
+</span></span><span style="display:flex;"><span>     (<span style="color:#007020">when</span> <span style="color:#963">p</span>
+</span></span><span style="display:flex;"><span>       (<span style="color:#06b;font-weight:bold">goto-char</span> <span style="color:#963">p</span>)
+</span></span><span style="display:flex;"><span>       (<span style="color:#007020">when</span> (<span style="color:#007020">and</span> (<span style="color:#963">derived-mode-p</span> <span style="color:#a60;background-color:#fff0f0">&#39;org-mode</span>) (<span style="color:#963">org-invisible-p</span>))
+</span></span><span style="display:flex;"><span>         (<span style="color:#963">org-fold-show-context</span> <span style="color:#a60;background-color:#fff0f0">&#39;link-search</span>))
+</span></span><span style="display:flex;"><span>       (<span style="color:#007020">when</span> <span style="color:#963">eldoc-mode</span> (<span style="color:#963">eldoc--invoke-strategy</span> <span style="color:#036;font-weight:bold">t</span>)))
+</span></span><span style="display:flex;"><span>     (<span style="color:#007020">pcase-let</span>
+</span></span><span style="display:flex;"><span>         ((<span style="color:#333">`</span>(<span style="color:#333">,</span><span style="color:#963">_</span> <span style="color:#333">.</span> <span style="color:#333">,</span><span style="color:#963">ov</span>)
+</span></span><span style="display:flex;"><span>           (<span style="color:#06b;font-weight:bold">get-char-property-and-overlay</span> (<span style="color:#06b;font-weight:bold">point</span>) <span style="color:#a60;background-color:#fff0f0">&#39;TeX-fold-type</span>)))
+</span></span><span style="display:flex;"><span>       (<span style="color:#007020">when</span> <span style="color:#963">ov</span> (<span style="color:#963">TeX-fold-show-item</span> <span style="color:#963">ov</span>)))))
+</span></span></code></pre></div><p>While we&rsquo;re at it, we might as well make this command repeatable, so you can navigate with just <code>r</code> and <code>R</code> after the first jump:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">keymap-set</span> <span style="color:#963">org-mode-map</span> <span style="background-color:#fff0f0">&#34;M-g r&#34;</span> <span style="color:#a60;background-color:#fff0f0">&#39;my/next-reference-or-label</span>)
+</span></span><span style="display:flex;"><span>(<span style="color:#963">keymap-set</span> <span style="color:#963">org-mode-map</span> <span style="background-color:#fff0f0">&#34;M-g R&#34;</span> <span style="color:#a60;background-color:#fff0f0">&#39;my/previous-reference-or-label</span>)
+</span></span><span style="display:flex;"><span>(<span style="color:#963">defvar-keymap</span> <span style="color:#963">my/TeX-ref-map</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#007020">:repeat</span> <span style="color:#036;font-weight:bold">t</span>
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;r&#34;</span> <span style="color:#a60;background-color:#fff0f0">&#39;my/next-reference-or-label</span>
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;R&#34;</span> <span style="color:#a60;background-color:#fff0f0">&#39;my/previous-reference-or-label</span>)
+</span></span></code></pre></div></div>
+</details>
+<h3 id="jumping-to-definition-xref-support-more-hacks">Jumping to definition: <code>xref</code> support, more hacks</h3>
+<p>With the cursor at a reference, jump to the corresponding label using Emacs&rsquo; standard <code>xref</code> mechanism:</p>
+<video preload="metadata" style="center" width="700" controls>
+<source src="https://karthinks.com/img/reftex-hack-jumping-around-and-xref-small.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/reftex-hack-jumping-around-and-xref-small.mp4">[VIDEO: reftex-xref]</a></video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ul>
+<li>Jump to the next reference with <code>M-g r</code>, as before.</li>
+<li>Jump to the corresponding label with <code>M-.</code>, Emacs&rsquo; standard keybinding for <code>xref-find-definitions</code>.</li>
+<li>Jump back with <code>M-,</code>, Emacs&rsquo; standard keybinding for <code>xref-go-back</code>.</li>
+<li>Repeat a couple of times.</li>
+</ul>
+</div>
+</details>
+<p>Code below.  Again, not pretty.</p>
+<p><span class="org-target" id="org-target--reftex-xref-code-block"></span></p>
+<details>
+<summary><span><img src="https://karthinks.com/img/lisp-icon.png" class=detail-icon></span> <code>xref</code> support for RefTeX: code</summary>
+<div class="details">
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">require</span> <span style="color:#a60;background-color:#fff0f0">&#39;xref</span>)
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">require</span> <span style="color:#a60;background-color:#fff0f0">&#39;reftex-ref</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#963">cl-defmethod</span> <span style="color:#963">xref-backend-identifier-at-point</span> ((<span style="color:#963">_backend</span> (<span style="color:#06b;font-weight:bold">eql</span> <span style="color:#963">reftex</span>)))
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">when</span> (<span style="color:#963">looking-back</span> <span style="background-color:#fff0f0">&#34;\\\\\\(?:page\\|eq\\|auto\\|c\\)?ref{[-a-zA-Z0-9_*.:]*&#34;</span>
+</span></span><span style="display:flex;"><span>                                      (<span style="color:#06b;font-weight:bold">line-beginning-position</span>))
+</span></span><span style="display:flex;"><span>		    (<span style="color:#963">reftex-this-word</span> <span style="background-color:#fff0f0">&#34;-a-zA-Z0-9_*.:&#34;</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#963">cl-defmethod</span> <span style="color:#963">xref-backend-definitions</span> ((<span style="color:#963">_backend</span> (<span style="color:#06b;font-weight:bold">eql</span> <span style="color:#963">reftex</span>)) <span style="color:#963">prompt</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">unless</span> (<span style="color:#06b;font-weight:bold">symbol-value</span> <span style="color:#963">reftex-docstruct-symbol</span>) (<span style="color:#963">reftex-parse-one</span>))
+</span></span><span style="display:flex;"><span>  (<span style="color:#963">when-let*</span> ((<span style="color:#963">docstruct</span> (<span style="color:#06b;font-weight:bold">symbol-value</span> <span style="color:#963">reftex-docstruct-symbol</span>))
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">data</span> (<span style="color:#06b;font-weight:bold">assoc</span> <span style="color:#963">prompt</span> <span style="color:#963">docstruct</span>))
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">label</span> (<span style="color:#06b;font-weight:bold">nth</span> <span style="color:#00d;font-weight:bold">0</span> <span style="color:#963">data</span>))
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">file</span>  (<span style="color:#06b;font-weight:bold">nth</span> <span style="color:#00d;font-weight:bold">3</span> <span style="color:#963">data</span>))
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">buffer</span> (<span style="color:#007020">or</span> (<span style="color:#963">find-buffer-visiting</span> <span style="color:#963">file</span>)
+</span></span><span style="display:flex;"><span>                          (<span style="color:#963">reftex-get-file-buffer-force</span>
+</span></span><span style="display:flex;"><span>                           <span style="color:#963">file</span> (<span style="color:#963">not</span> <span style="color:#963">reftex-keep-temporary-buffers</span>))))
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">re</span> (<span style="color:#06b;font-weight:bold">format</span> <span style="color:#963">reftex-find-label-regexp-format</span> (<span style="color:#06b;font-weight:bold">regexp-quote</span> <span style="color:#963">label</span>)))
+</span></span><span style="display:flex;"><span>              (<span style="color:#963">found</span> (<span style="color:#007020">with-current-buffer</span> <span style="color:#963">buffer</span>
+</span></span><span style="display:flex;"><span>                       (<span style="color:#007020">or</span> (<span style="color:#06b;font-weight:bold">re-search-backward</span> <span style="color:#963">re</span> <span style="color:#036;font-weight:bold">nil</span> <span style="color:#036;font-weight:bold">t</span>)
+</span></span><span style="display:flex;"><span>                           (<span style="color:#007020">progn</span> (<span style="color:#06b;font-weight:bold">goto-char</span> (<span style="color:#06b;font-weight:bold">point-min</span>))
+</span></span><span style="display:flex;"><span>                                  (<span style="color:#06b;font-weight:bold">re-search-forward</span>
+</span></span><span style="display:flex;"><span>                                   (<span style="color:#06b;font-weight:bold">format</span> <span style="color:#963">reftex-find-label-regexp-format2</span>
+</span></span><span style="display:flex;"><span>                                           (<span style="color:#06b;font-weight:bold">regexp-quote</span> <span style="color:#963">label</span>))
+</span></span><span style="display:flex;"><span>                                   <span style="color:#036;font-weight:bold">nil</span> <span style="color:#036;font-weight:bold">t</span>))))))
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">list</span> (<span style="color:#963">xref-make</span> <span style="color:#963">prompt</span> (<span style="color:#963">xref-make-buffer-location</span>
+</span></span><span style="display:flex;"><span>                             <span style="color:#963">buffer</span> <span style="color:#963">found</span>)))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#963">cl-defmethod</span> <span style="color:#963">xref-backend-apropos</span> ((<span style="color:#963">_backend</span> (<span style="color:#06b;font-weight:bold">eql</span> <span style="color:#963">reftex</span>)) <span style="color:#963">pattern</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#963">xref-backend-definitions</span> <span style="color:#a60;background-color:#fff0f0">&#39;reftex</span> <span style="color:#963">pattern</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">reftex-xref</span> ()
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Function to activate buffer-local backend.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">Add this function to </span><span style="color:#a60;background-color:#fff0f0">`xref-backend-functions&#39;</span><span style="background-color:#fff0f0"> to use xref to find
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">function and variable definitions in the same buffer.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">This should have a low priority among xref backends.&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a60;background-color:#fff0f0">&#39;reftex</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#888">;; Eldoc support via xref, because why not</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">reftex-xref--display-in-eldoc</span> (<span style="color:#963">callback</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Display reference label location in Eldoc.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">Call CALLBACK if possible.&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">when</span> (<span style="color:#963">cl-intersection</span>
+</span></span><span style="display:flex;"><span>         (<span style="color:#963">ensure-list</span> (<span style="color:#06b;font-weight:bold">get-char-property</span> (<span style="color:#06b;font-weight:bold">point</span>) <span style="color:#a60;background-color:#fff0f0">&#39;face</span>))
+</span></span><span style="display:flex;"><span>         <span style="color:#333">&#39;</span>(<span style="color:#963">font-lock-keyword-face</span> <span style="color:#963">font-lock-constant-face</span>
+</span></span><span style="display:flex;"><span>           <span style="color:#963">TeX-fold-unfolded-face</span>))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">save-excursion</span>
+</span></span><span style="display:flex;"><span>      (<span style="color:#963">when-let*</span>
+</span></span><span style="display:flex;"><span>          ((<span style="color:#963">inhibit-redisplay</span> <span style="color:#036;font-weight:bold">t</span>)
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">_macro</span> (<span style="color:#06b;font-weight:bold">car</span> (<span style="color:#963">reftex-what-macro-safe</span> <span style="color:#00d;font-weight:bold">1</span>)))
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">key</span> (<span style="color:#963">reftex-this-word</span> <span style="background-color:#fff0f0">&#34;^{}%\n\r, \t&#34;</span>))
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">item</span> (<span style="color:#06b;font-weight:bold">car</span> (<span style="color:#963">xref-backend-definitions</span> <span style="color:#a60;background-color:#fff0f0">&#39;reftex</span> <span style="color:#963">key</span>)))
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">location</span> (<span style="color:#963">xref-item-location</span> <span style="color:#963">item</span>))
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">pos</span> (<span style="color:#963">xref-buffer-location-position</span> <span style="color:#963">location</span>))
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">docstring</span>
+</span></span><span style="display:flex;"><span>            (<span style="color:#007020">with-current-buffer</span> (<span style="color:#963">xref-buffer-location-buffer</span> <span style="color:#963">location</span>)
+</span></span><span style="display:flex;"><span>              (<span style="color:#06b;font-weight:bold">goto-char</span> <span style="color:#963">pos</span>)
+</span></span><span style="display:flex;"><span>              (<span style="color:#007020">pcase-let</span>
+</span></span><span style="display:flex;"><span>                  ((<span style="color:#333">`</span>(<span style="color:#333">,</span><span style="color:#963">start</span> <span style="color:#333">.</span> <span style="color:#333">,</span><span style="color:#963">end</span>)
+</span></span><span style="display:flex;"><span>                    (<span style="color:#007020">condition-case</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>                        (<span style="color:#963">LaTeX-find-matching-begin</span>)
+</span></span><span style="display:flex;"><span>                      (<span style="color:#007020">:success</span>
+</span></span><span style="display:flex;"><span>                       <span style="color:#888">;; Found \begin{}...\end{}</span>
+</span></span><span style="display:flex;"><span>                       (<span style="color:#06b;font-weight:bold">cons</span> (<span style="color:#06b;font-weight:bold">point</span>)
+</span></span><span style="display:flex;"><span>                             (<span style="color:#007020">progn</span> (<span style="color:#06b;font-weight:bold">forward-char</span> <span style="color:#00d;font-weight:bold">1</span>)
+</span></span><span style="display:flex;"><span>                                    (<span style="color:#963">LaTeX-find-matching-end</span>)
+</span></span><span style="display:flex;"><span>                                    (<span style="color:#06b;font-weight:bold">point</span>))))
+</span></span><span style="display:flex;"><span>                      (<span style="color:#f00;font-weight:bold">error</span>
+</span></span><span style="display:flex;"><span>                       <span style="color:#888">;; No \begin, find \section{} or Org heading instead</span>
+</span></span><span style="display:flex;"><span>                       (<span style="color:#06b;font-weight:bold">goto-char</span> <span style="color:#963">pos</span>)
+</span></span><span style="display:flex;"><span>                       (<span style="color:#06b;font-weight:bold">re-search-backward</span>
+</span></span><span style="display:flex;"><span>                        (<span style="color:#007020">pcase</span> <span style="color:#963">major-mode</span>
+</span></span><span style="display:flex;"><span>                          (<span style="color:#a60;background-color:#fff0f0">&#39;org-mode</span> <span style="background-color:#fff0f0">&#34;^*&#34;</span>)
+</span></span><span style="display:flex;"><span>                          (<span style="color:#963">_</span> (<span style="color:#06b;font-weight:bold">concat</span> <span style="background-color:#fff0f0">&#34;\\(&#34;</span> (<span style="color:#963">LaTeX-outline-regexp</span>)
+</span></span><span style="display:flex;"><span>                                     <span style="background-color:#fff0f0">&#34;\\|\\`\\)&#34;</span>)))
+</span></span><span style="display:flex;"><span>                        (<span style="color:#06b;font-weight:bold">line-beginning-position</span> <span style="color:#00d;font-weight:bold">-2</span>)
+</span></span><span style="display:flex;"><span>                        <span style="color:#036;font-weight:bold">t</span>)
+</span></span><span style="display:flex;"><span>                       (<span style="color:#06b;font-weight:bold">cons</span> (<span style="color:#06b;font-weight:bold">line-beginning-position</span>)
+</span></span><span style="display:flex;"><span>                             (<span style="color:#06b;font-weight:bold">line-end-position</span>))))))
+</span></span><span style="display:flex;"><span>                (<span style="color:#06b;font-weight:bold">buffer-substring-no-properties</span> <span style="color:#963">start</span> <span style="color:#963">end</span>)))))
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">if-let*</span> ((<span style="color:#963">prop-and-ov</span>
+</span></span><span style="display:flex;"><span>                   (<span style="color:#06b;font-weight:bold">get-char-property-and-overlay</span>
+</span></span><span style="display:flex;"><span>                    (<span style="color:#963">xref-buffer-location-position</span> <span style="color:#963">location</span>)
+</span></span><span style="display:flex;"><span>                    (<span style="color:#007020">pcase</span> <span style="color:#963">major-mode</span>
+</span></span><span style="display:flex;"><span>                      (<span style="color:#a60;background-color:#fff0f0">&#39;org-mode</span> <span style="color:#a60;background-color:#fff0f0">&#39;org-overlay-type</span>)
+</span></span><span style="display:flex;"><span>                      (<span style="color:#a60;background-color:#fff0f0">&#39;latex-mode</span> <span style="color:#a60;background-color:#fff0f0">&#39;category</span>))))
+</span></span><span style="display:flex;"><span>                  (<span style="color:#963">_</span> (<span style="color:#06b;font-weight:bold">memq</span> (<span style="color:#06b;font-weight:bold">car</span> <span style="color:#963">prop-and-ov</span>)
+</span></span><span style="display:flex;"><span>                           <span style="color:#333">&#39;</span>(<span style="color:#963">org-latex-overlay</span> <span style="color:#963">preview-overlay</span>)))
+</span></span><span style="display:flex;"><span>                  (<span style="color:#963">ov</span> (<span style="color:#06b;font-weight:bold">cdr</span> <span style="color:#963">prop-and-ov</span>)))
+</span></span><span style="display:flex;"><span>            (<span style="color:#06b;font-weight:bold">funcall</span> <span style="color:#963">callback</span> (<span style="color:#06b;font-weight:bold">propertize</span> <span style="color:#963">docstring</span> <span style="color:#a60;background-color:#fff0f0">&#39;display</span>
+</span></span><span style="display:flex;"><span>                                          (<span style="color:#06b;font-weight:bold">overlay-get</span> <span style="color:#963">ov</span> <span style="color:#a60;background-color:#fff0f0">&#39;preview-image</span>)))
+</span></span><span style="display:flex;"><span>          (<span style="color:#06b;font-weight:bold">funcall</span> <span style="color:#963">callback</span> <span style="color:#963">docstring</span>))))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">reftex-eldoc-activate</span> ()
+</span></span><span style="display:flex;"><span>  (<span style="color:#963">add-hook</span> <span style="color:#a60;background-color:#fff0f0">&#39;eldoc-documentation-functions</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a60;background-color:#fff0f0">&#39;reftex-xref--display-in-eldoc</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#036;font-weight:bold">nil</span> <span style="color:#007020">:local</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">reftex-xref-activate</span> ()
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Activate reftex support using xref.&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#963">add-hook</span> <span style="color:#a60;background-color:#fff0f0">&#39;xref-backend-functions</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a60;background-color:#fff0f0">&#39;reftex-xref</span> <span style="color:#036;font-weight:bold">nil</span> <span style="color:#007020">:local</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">provide</span> <span style="color:#a60;background-color:#fff0f0">&#39;reftex-xref</span>)
+</span></span></code></pre></div></div>
+</details>
+<p>To turn on <code>xref</code> support for references in Org mode:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">use-package</span> <span style="color:#963">reftex-xref</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#007020">:after</span> (<span style="color:#963">org</span> <span style="color:#963">latex</span>)
+</span></span><span style="display:flex;"><span>  <span style="color:#007020">:hook</span> (<span style="color:#963">org-mode</span> <span style="color:#333">.</span> <span style="color:#963">reftex-xref-activate</span>))
+</span></span></code></pre></div><h3 id="auto-preview-reference-at-point-eldoc-support">Auto-preview reference at point: <code>eldoc</code> support</h3>
+<p>If you&rsquo;re jumping to label definitions with <code>xref</code> just to look at the corresponding equations, we can skip that step with previews of the referenced object.  With <code>eldoc-mode</code>
+<span class="sidenote-number"><small class="sidenote">
+Eldoc is Emacs&rsquo; standard and recommended way of showing contextual help.
+</small></span>
+enabled:</p>
+<video preload="metadata" style="center" width="700" controls>
+<source src="https://karthinks.com/img/reftex-hack-jumping-around-and-eldoc-small.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/reftex-hack-jumping-around-and-eldoc-small.mp4">[VIDEO: reftex-eldoc]</a></video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<ul>
+<li>With <code>eldoc-mode</code> enabled, move the cursor into (or jump into) a reference.</li>
+<li>This activates a preview of the relevant label, mostly equations in this example.</li>
+<li>Works for sections too, but not figures or tables (yet).</li>
+<li>Repeat a few times.</li>
+</ul>
+</div>
+</details>
+<p>Equations and figures can be pretty tall, so if you&rsquo;re not using a dedicated Eldoc buffer (or <a href="https://github.com/casouri/eldoc-box">eldoc-box</a>) you might want to change the height that the echo area can expand to.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">setq</span> <span style="color:#963">eldoc-echo-area-use-multiline-p</span> <span style="color:#036;font-weight:bold">t</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#963">max-mini-window-height</span> <span style="color:#60e;font-weight:bold">0.4</span>)
+</span></span></code></pre></div><p>To activate reference previews as an Eldoc documentation function, we use the helper function defined as part of <a href="#org-target--reftex-xref-code-block">reftex-xref above</a>.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">use-package</span> <span style="color:#963">reftex-xref</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#007020">:after</span> (<span style="color:#963">org</span> <span style="color:#963">latex</span>)
+</span></span><span style="display:flex;"><span>  <span style="color:#007020">:hook</span> (<span style="color:#963">org-mode</span> <span style="color:#333">.</span> <span style="color:#963">reftex-eldoc-activate</span>))
+</span></span></code></pre></div><h2 id="yep-reftex-dcr-exists">Yep, <code>reftex-dcr</code> exists</h2>
+<p>Earlier I mentioned that we would be clumsily recreating features RefTeX already includes.  Indeed, most of the above features, like jumping to label definitions and previewing the reference at point, are already provided in the <code>reftex-dcr</code> library, included with RefTeX.  The problem is that it predates Emacs&rsquo; <code>xref</code> and <code>eldoc</code> APIs (if not their libraries), and like most 90s Emacs packages it reinvents all the wheels.  This is painful on more than an aesthetic level &ndash; I prefer to have one well-supported and convenient way for each semantic task.  The mental model is simpler, as are the required keyboard gymnastics.</p>
+<p>Thankfully, there&rsquo;s enough of a separation between the data-parsing RefTeX backend and the UI that I was able to drive a wedge through and beat it into a more consistent shape.  Needless to say, this shape is not very robust.  Emacs makes it very easy to cobble together an 80% solution &ndash; I spent much longer writing this little explainer than I did actually slapping together the code.  Due to a pies ≫ fingers situation, I&rsquo;m not going to be able to get these hacks to a stage beyond &ldquo;it works for me&rdquo;.  The interest around this topic suggests that perhaps someone might be interested in developing the idea further and modernizing RefTeX, or working on a better cross-referencing system for Org mode.   Have at it!</p>

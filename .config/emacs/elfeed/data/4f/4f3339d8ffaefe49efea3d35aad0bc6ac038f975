@@ -1,0 +1,17 @@
+<p>
+A few weeks ago, Bozhidar Batsov had <a href="https://emacsredux.com/blog/2026/04/06/the-many-faces-of-flet/">a splendid post</a> on  <code>cl-flet</code>, <code>cl-letf</code>, and <code>cl-labels</code>. I didn&rsquo;t get a chance to write about it then but his post is very useful for understanding these macros and how they differ.
+</p>
+<p>
+The macros are the replacements for the now deprecated <code>flet</code>, which, in turn, was imported from Common Lisp with the added feature of having dynamic scope. As Batsov points out, making the scope dynamic conflates the notion of local and dynamic scope, which can be a bit confusing. This behavior is preserved by the cl-letf macro for those who need it.
+</p>
+<p>
+The <code>cl-flet</code> macro is just like the <code>flet</code> macro from Common Lisp. It defines a local function whose definition is available only from within its scope. The salient fact is that its definition is <i>not</i> available from within the function definition so it can&rsquo;t be called recursively.
+</p>
+<p>
+The <code>cl-labels</code> macro is like <code>labels</code> from Common Lisp. It&rsquo;s similar to <code>cl-flet</code> except  that its definition <i>is</i> available from within the function definition so it <i>is</i> recursive.
+</p>
+<p>
+Finally, the <code>cl-letf</code> macro largely replicates the behavior of the old (Elisp) <code>flet</code> macro with the addition that it can dynamically replace the definition of any <code>setf</code>-able definition. This can complicate its use a bit. See Batsov&rsquo;s post for the details.
+</p>
+<p>
+If you&rsquo;re like me, you don&rsquo;t use any of these macros that often so it&rsquo;s easy to forget the details. For that reason it&rsquo;s worthwhile bookmarking Batsov&rsquo;s post so that you can refresh your memory whenever you need to.</p>

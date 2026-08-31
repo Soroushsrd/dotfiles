@@ -1,0 +1,416 @@
+
+<p class="wp-block-paragraph">Since the&nbsp;<a href="https://herbsutter.com/2022/12/31/cpp2-and-cppfront-year-end-mini-update/">2022-12-31 year-end mini-update</a> and the <a href="https://herbsutter.com/2023/04/30/cppfront-spring-update/">2023-04-30 spring update</a>, progress has continued on&nbsp;<a href="https://github.com/hsutter/cppfront"><strong>cppfront</strong></a>. (If you don’t know what this personal project is, please see the&nbsp;<a href="https://www.youtube.com/watch?v=ELeZAKCN4tY">CppCon 2022 talk on YouTube</a> for an overview, and the <a href="https://www.youtube.com/watch?v=fJvPBHErF2U">CppNow 2023 talk on YouTube</a> for an interim update.)</p>
+
+
+
+<p class="wp-block-paragraph">I&#8217;ll be giving a major update <strong><a href="https://cppcon2023.sched.com/event/1R6ZC/thursday-plenary-herb-sutter-cooperative-c-evolution-toward-a-typescript-for-c">next week at CppCon</a></strong>. I hope to see many of you there! In the meantime, here are some notes about what&#8217;s been happening since the spring update post, including:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Acknowledgments and thanks</li>
+
+
+
+<li>Started self-hosting</li>
+
+
+
+<li>No data left behind: Mandatory explicit discard</li>
+
+
+
+<li><code>requires</code> clauses</li>
+
+
+
+<li>Generalized aliases+constexpr with <code>==</code></li>
+
+
+
+<li>Safe <code>enum</code> and <code>flag_enum</code> metafunctions</li>
+
+
+
+<li>Safe <code>union</code> metafunction</li>
+
+
+
+<li>What&#8217;s next</li>
+</ul>
+
+
+
+<h2 class="wp-block-heading">Acknowledgments: Thank you!</h2>
+
+
+
+<figure class="wp-block-image size-large"><a href="https://herbsutter.com/wp-content/uploads/2023/09/image-1.png"><img loading="lazy" width="1024" height="490" data-attachment-id="4789" data-permalink="https://herbsutter.com/2023/09/28/cppfront-autumn-update/image-1-4/" data-orig-file="https://herbsutter.com/wp-content/uploads/2023/09/image-1.png" data-orig-size="1379,660" data-comments-opened="0" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="image-1" data-image-description="" data-image-caption="" data-large-file="https://herbsutter.com/wp-content/uploads/2023/09/image-1.png?w=1024" src="https://herbsutter.com/wp-content/uploads/2023/09/image-1.png?w=1024" alt="" class="wp-image-4789" srcset="https://herbsutter.com/wp-content/uploads/2023/09/image-1.png?w=1024 1024w, https://herbsutter.com/wp-content/uploads/2023/09/image-1.png?w=150 150w, https://herbsutter.com/wp-content/uploads/2023/09/image-1.png?w=300 300w, https://herbsutter.com/wp-content/uploads/2023/09/image-1.png?w=768 768w, https://herbsutter.com/wp-content/uploads/2023/09/image-1.png 1379w" sizes="auto, (max-width: 1024px) 100vw, 1024px" /></a></figure>
+
+
+
+<p class="wp-block-paragraph"><strong>Thank you </strong>to all these folks who have participated in the cppfront repo by opening issues and PRs, and to many more who participated on PR reviews and comment threads! These contributors represent people from high school and undergrad students to full professors, from commercial developers to conference speakers, and from every continent except Antarctica.</p>
+
+
+
+<h2 class="wp-block-heading">Started self-hosting</h2>
+
+
+
+<p class="wp-block-paragraph">I haven&#8217;t spent a lot of time yet converting cppfront&#8217;s own code from today&#8217;s syntax 1 to my alternate syntax 2 (which I&#8217;m calling &#8220;Cpp1&#8221; and &#8220;Cpp2&#8221; for short), but I started with all of cppfront&#8217;s reflection API and metafunctions which are now mostly written in Cpp2. Here&#8217;s what that <code>reflect.h2</code> file compilation looks like when compiled on the command line on my laptop:</p>
+
+
+
+<figure class="wp-block-image size-large"><a href="https://herbsutter.com/wp-content/uploads/2023/09/image-5.png"><img loading="lazy" width="1024" height="254" data-attachment-id="4798" data-permalink="https://herbsutter.com/2023/09/28/cppfront-autumn-update/image-5-3/" data-orig-file="https://herbsutter.com/wp-content/uploads/2023/09/image-5.png" data-orig-size="1382,344" data-comments-opened="0" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="image-5" data-image-description="" data-image-caption="" data-large-file="https://herbsutter.com/wp-content/uploads/2023/09/image-5.png?w=1024" src="https://herbsutter.com/wp-content/uploads/2023/09/image-5.png?w=1024" alt="" class="wp-image-4798" srcset="https://herbsutter.com/wp-content/uploads/2023/09/image-5.png?w=1024 1024w, https://herbsutter.com/wp-content/uploads/2023/09/image-5.png?w=150 150w, https://herbsutter.com/wp-content/uploads/2023/09/image-5.png?w=300 300w, https://herbsutter.com/wp-content/uploads/2023/09/image-5.png?w=768 768w, https://herbsutter.com/wp-content/uploads/2023/09/image-5.png 1382w" sizes="auto, (max-width: 1024px) 100vw, 1024px" /></a></figure>
+
+
+
+<p class="wp-block-paragraph">But note you can still build cppfront as all-today&#8217;s-C++ using any fairly recent C++20 compiler because I distribute the sources also as C++ (just as Bjarne distributed the cfront sources also as C). </p>
+
+
+
+<figure class="wp-block-image size-large"><a href="https://herbsutter.com/wp-content/uploads/2023/09/image-8.png"><img loading="lazy" width="1024" height="167" data-attachment-id="4802" data-permalink="https://herbsutter.com/2023/09/28/cppfront-autumn-update/image-8-2/" data-orig-file="https://herbsutter.com/wp-content/uploads/2023/09/image-8.png" data-orig-size="1864,305" data-comments-opened="0" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;}" data-image-title="image-8" data-image-description="" data-image-caption="" data-large-file="https://herbsutter.com/wp-content/uploads/2023/09/image-8.png?w=1024" src="https://herbsutter.com/wp-content/uploads/2023/09/image-8.png?w=1024" alt="" class="wp-image-4802" srcset="https://herbsutter.com/wp-content/uploads/2023/09/image-8.png?w=1024 1024w, https://herbsutter.com/wp-content/uploads/2023/09/image-8.png?w=150 150w, https://herbsutter.com/wp-content/uploads/2023/09/image-8.png?w=300 300w, https://herbsutter.com/wp-content/uploads/2023/09/image-8.png?w=768 768w, https://herbsutter.com/wp-content/uploads/2023/09/image-8.png?w=1440 1440w, https://herbsutter.com/wp-content/uploads/2023/09/image-8.png 1864w" sizes="auto, (max-width: 1024px) 100vw, 1024px" /></a></figure>
+
+
+
+<h2 class="wp-block-heading">No data left behind: Mandatory explicit discard</h2>
+
+
+
+<p class="wp-block-paragraph">Initialization and data flow are fundamental to safe code, so from the outset I ensured that syntax 2 guaranteed initialization-before use, I made all converting constructors explicit by default&#8230; and I made [[nodiscard]] the default for return values (<a href="https://youtube.com/clip/Ugkxaio7O7bXVxN29dLUQMmvh7zmNoxtoEVi?si=Rx9-OROws4ItDKVR">1-min talk clip</a>).</p>
+
+
+
+<p class="wp-block-paragraph">The more I thought about [[nodiscard]], the more determined I was that data must never be silently lost, and data-lossy operations should be explicit. So I&#8217;ve decided to try an aggressive experiment:</p>
+
+
+
+<ul class="wp-block-list">
+<li><strong>make &#8220;nodiscard&#8221; the law of the land</strong>, implicitly required all the time, with no opt-out&#8230; </li>
+
+
+
+<li><strong>including when calling existing C++ libraries (including <code>std::</code>)</strong> that were never designed for their return values to be treated as [[nodiscard]]! </li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Now, I wasn&#8217;t totally crazy: See the <a href="https://github.com/hsutter/cppfront/wiki/Design-note%3A-Explicit-discard"><strong>Design note: Explicit discard</strong></a> for details on how I first surveyed other languages&#8217; designers about experience in their languages — notably C#, F#, and Python. In particular, F# does the same thing with .NET APIs — F# requires explicit <code>|&gt; ignore</code> to discard unused return values, including for .NET APIs that were never designed for that and were largely written in other languages. Don Syme told me it has not been a significant pain point, and that was encouraging, so I&#8217;m following suit.</p>
+
+
+
+<p class="wp-block-paragraph">My experience so far is that it&#8217;s pretty painless, and I write about one explicit discard for every 200 lines of code, even when using the C++ standard library (which cppfront does pervasively, because the C++ standard library is the <em>only </em>library cppfront uses). And, so far, every time cppfront told me I had to write an explicit discard, I learned something useful (e.g., before this I never realized that <a href="https://en.cppreference.com/w/cpp/container/vector/emplace_back"><code>emplace_back</code> started to return something</a> since C++17! <a href="https://en.cppreference.com/w/cpp/container/vector/push_back">push_back still doesn&#8217;t</a>) and I found I <em>liked</em> that my code explicitly self-documented it was not looking at output values&#8230; my code looked better.</p>
+
+
+
+<p class="wp-block-paragraph">The way to do an explicit discard is to assign the result to the &#8220;don&#8217;t care&#8221; wildcard. It&#8217;s unobtrusive, but explicit and clear:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; title: ; notranslate">
+ _ = vec.emplace_back(1,2,3);
+</pre></div>
+
+
+<p class="wp-block-paragraph">Now all Cpp2-authored C++ functions are emitted as [[nodiscard]], except only for assignment and streaming operators because those are designed for chaining and every chain always ends with a discarded return.</p>
+
+
+
+<p class="wp-block-paragraph">And the whole language hangs together well: Explicit discard works very naturally with <code>inout</code> and <code>out</code> parameters too, not just return values. If you have a local variable <code>x</code> and pass it to an <code>inout</code> parameter, what if that&#8217;s the last use of the variable? </p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; title: ; notranslate">
+{
+    x := my_vector.begin();
+    std::advance(x, 2);
+        // ERROR, if param is Cpp2 'inout' or Cpp1 non-const '&'
+}
+</pre></div>
+
+
+<p class="wp-block-paragraph">In this example, that call to <code>std::advance(x, 2);</code> is a definite last use of <code>x</code>, and so Cpp2 will automatically pass <code>x</code> as an rvalue and make it a move candidate&#8230; and presto! <em>the call won&#8217;t compile</em> because you can&#8217;t pass an rvalue to a Cpp2 <code>inout</code> parameter (the same as a Cpp1 non-const-<code>&amp;</code> parameter, so this correctly detects the output side effects also when calling existing C++ functions that take references to non-const). That&#8217;s a feature, not a bug, because if that&#8217;s the last use of <code>x</code> that means the function is not looking at <code>x</code> again, so it&#8217;s ignoring the &#8220;out&#8221; value of the <code>std::advance(x, 2)</code> function call, which is exactly like ignoring a return value. And the guidance is the same: If you really meant to do that, just explicitly discard <code>x</code>&#8216;s final value:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; title: ; notranslate">
+{
+    x := my_vector.begin();
+    std::advance(x, 2);
+    _ = x; // all right, you said you meant it, carry on then...
+}
+</pre></div>
+
+
+<p class="wp-block-paragraph">Adding <code>_ = x;</code> afterward naturally makes <em>that </em>the last use of <code>x</code> instead. Problem solved, and it self-documents that the code really meant to ignore a function&#8217;s output value.</p>
+
+
+
+<p class="wp-block-paragraph">I really, really like how my C++ code&#8217;s data flow is explicit, and fully protected and safe, in syntax 2. And I&#8217;m very pleased to see how it just works naturally throughout the language — from universal guaranteed initialization, to explicit constructors by default, to banning implicitly discarding any values, to uniform treatment of returned values whether returned by return value or the &#8220;out&#8221; part of <code>inout</code> and <code>out</code> parameters, and all of it working also with existing C++ libraries so they&#8217;re safer and nicer to use from syntax 2. <strong>Data is always initialized, data is never silently lost, data flow is always visible. Data is precious, and it&#8217;s always safe.</strong> This feels right and proper to me.</p>
+
+
+
+<h2 class="wp-block-heading"><code>requires</code> clauses</h2>
+
+
+
+<p class="wp-block-paragraph">I also added support for <code>requires</code> clauses, so now you can write those on all templates. The cppfront implementation was already generating some requires clauses already (see <a href="https://youtube.com/clip/UgkxzmVK8yfoRy_0VYR308SGta2LsLPb8y3C?si=7BdKJ37Y0Vr3PKdx">this 1-min video clip</a>). Now programmers can write their own too.</p>
+
+
+
+<blockquote class="wp-block-quote is-layout-flow wp-block-quote-is-layout-flow">
+<p class="wp-block-paragraph">This required a bit of fighting with a GCC 10 bug about requires-clauses on declarations, that was fixed in GCC 11+ but was never backported. But because this was the only problem I&#8217;ve encountered with GCC 10 that I couldn&#8217;t paper over, and because I could give a clear diagnostic that a few features in Cpp2 that rely on requires clauses aren&#8217;t supported on GCC 10, so far I&#8217;ve been able to retain GCC 10 as a supported compiler and emit diagnostics if you try to use those few features it doesn&#8217;t support. GCC 11 and higher are all fine and support all Cpp2 semantics.</p>
+</blockquote>
+
+
+
+<h2 class="wp-block-heading">Generalized aliases+constexpr with <code>==</code></h2>
+
+
+
+<p class="wp-block-paragraph">In the April blog post, I mentioned I needed a way to write  type and namespace aliases, and that because all Cpp2 declarations are of the form <code>thing : type = value</code>, I decided to try using the same syntax but with <code>==</code> to denote &#8220;always equal to.&#8221;</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; title: ; notranslate">
+// namespace alias
+lit: namespace == ::std::literals;
+
+// type alias
+pmr_vec: &lt;T&gt; type
+    == std::vector&lt;T, std::pmr::polymorphic_allocator&lt;T&gt;&gt;;
+</pre></div>
+
+
+<p class="wp-block-paragraph">I think this clearly denotes that <code>lit</code> is always the same as <code>::std::literals</code>, and <code>pmr_vec&lt;int&gt;</code> is always the same as <code>std::vector&lt;int, std::pmr::polymorphic_allocator&lt;int&gt;&gt;</code>.</p>
+
+
+
+<p class="wp-block-paragraph">Since then, I&#8217;ve thought about how this should be best extended to functions and objects, and I realized the requirements seem to overlap with something else I needed to support: <code>constexpr</code> functions and objects. Which, after all, are functions/objects that return/have &#8220;always the same values&#8221; known at compile time&#8230;</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; title: ; notranslate">
+// function with &quot;always the same value&quot; (constexpr function)
+increment: (value: int) -&gt; int == value+1;
+    // Cpp2 lets you omit { return } around 1-line bodies
+
+// object with &quot;always the same value&quot; (constexpr object)
+forty_two: i64 == 42;
+</pre></div>
+
+
+<p class="wp-block-paragraph">I particularly needed these in order to write the <code>enum</code> metafunctions&#8230;</p>
+
+
+
+<h2 class="wp-block-heading">Safe <code>enum</code> and <code>flag_enum</code> metafunctions</h2>
+
+
+
+<p class="wp-block-paragraph">In the <a href="https://herbsutter.com/2023/04/30/cppfront-spring-update/">spring update blog post</a>, I described the first 10 working compile-time metafunctions I implemented in cppfront, from the set of metafunctions I described in <a href="https://wg21.link/p0707">my ISO C++ paper P0707</a>. Since then, I&#8217;ve also implemented <code>enum</code> and <code>union</code>.</p>
+
+
+
+<p class="wp-block-paragraph">The most important thing about metafunctions is that they are compile-time library code that uses the reflection and code generation API, that lets the author of an ordinary C++ <code>class</code> type easily opt into a named set of defaults, requirements, and generated contents. This approach is essential to making the language simpler, because it lets us avoid hardwiring special &#8220;extra&#8221; types into the language and compiler.</p>
+
+
+
+<p class="wp-block-paragraph">In Cpp2, there&#8217;s no <code>enum</code> feature hardwired into the language. Instead you write an ordinary class type and just apply the <code>enum</code> metafunction:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; title: ; notranslate">
+// skat_game is declaratively a safe enumeration type: it has
+// default/copy/move construction/assignment and &lt;=&gt; with 
+// std::strong_ordering, a minimal-size signed underlying type
+// by default if the user didn&#039;t specify a type, no implicit
+// conversion to/from the underlying type, in fact no public
+// construction except copy construction so that it can never
+// have a value different from its listed enumerators, inline
+// constexpr enumerators with values that automatically start
+// at 1 and increment by 1 if the user didn&#039;t write their own
+// value, and conveniences like to_string()... the word &quot;enum&quot;
+// carries all that meaning as a convenient and readable
+// opt-in, without hardwiring &quot;enum&quot; specially into the language
+//
+skat_game: @enum&lt;i16&gt; type = {
+    diamonds := 9;
+    hearts;  // 10
+    spades;  // 11
+    clubs;   // 12
+    grand    := 20;
+    null     := 23;
+}
+</pre></div>
+
+
+<p class="wp-block-paragraph">Consider <code>hearts</code>: It&#8217;s a member object declaration, but it doesn&#8217;t have a type (or a default value) which is normally illegal, but it&#8217;s okay because the <code>@enum&lt;i16&gt;</code> metafunction fills them in: It iterates over all the data members and gives each one the underlying type (here explicitly specified as <code>i16</code>, otherwise it would be computed as the smallest signed type that&#8217;s big enough), and an initializer (by default one higher than the previous enumerator).</p>
+
+
+
+<p class="wp-block-paragraph">Why have this metafunction on an ordinary C++ class, when C++ already has both C&#8217;s <code>enum</code> and C++11&#8217;s <code>enum class</code>? Because:</p>
+
+
+
+<ul class="wp-block-list">
+<li>it keeps the language smaller and simpler, because it doesn&#8217;t hardwire special-purpose divergent splinter types into the language and compiler
+<ul class="wp-block-list">
+<li>(cue Beatles, and: &#8220;all you need is <em>class </em>(wa-wa, wa-wa-wa), all you need is <em>class </em>(wa-wa, wa-wa-wa)&#8221;);</li>
+</ul>
+</li>
+
+
+
+<li>it&#8217;s a better <code>enum</code> than C <code>enum</code>, because C <code>enum</code> is unscoped and not as strongly typed (it implicitly converts to the underlying type); and</li>
+
+
+
+<li>it&#8217;s a better <code>enum class</code> than C++11 <code>enum class</code>, because it&#8217;s more flexible&#8230;</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">&#8230; consider: Because an enumeration type is now &#8220;just a type,&#8221; it just naturally can also have member functions and other things that are not possible for Cpp1 enums and enum classes (see <a href="https://stackoverflow.com/questions/21295935/">this StackOverflow question</a>):</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; title: ; notranslate">
+janus: @enum type = {
+    past;
+    future;
+
+    flip: (inout this) == {
+        if this == past { this = future; }
+        else { this = past; }
+    }
+}
+</pre></div>
+
+
+<p class="wp-block-paragraph">There&#8217;s also a <code>flag_enum</code> variation with power-of-two semantics and an unsigned underlying type:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; title: ; notranslate">
+// file_attributes is declaratively a safe flag enum type:
+// same as enum, but with a minimal-size unsigned underlying
+// type by default, and values that automatically start at 1
+// and rise by powers of two if the user didn&#039;t write their 
+// own value, and bitwise operations plus .has(flags), 
+// .set(flags), and .clear(flags)... the word &quot;flag_enum&quot;
+// carries all that meaning as a convenient and readable
+// opt-in without hardwiring &quot;&#91;Flags]&quot; specially into the
+// language
+//
+file_attributes: @flag_enum&lt;u8&gt; type = {
+    cached;     // 1
+    current;    // 2
+    obsolete;   // 4
+    cached_and_current := cached | current;
+}
+</pre></div>
+
+
+<h2 class="wp-block-heading">Safe <code>union</code> metafunction</h2>
+
+
+
+<p class="wp-block-paragraph">And you can declaratively opt into writing a safe discriminated union/variant type:</p>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; title: ; notranslate">
+// name_or_number is declaratively a safe union/variant type: 
+// it has a discriminant that enforces only one alternative 
+// can be active at a time, members always have a name, and
+// each member has .is_member() and .member() accessors...
+// the word "union" carries all that meaning as a convenient 
+// and readable opt-in without hardwiring "union" specially 
+// into the language
+//
+name_or_number: @union type = {
+    name: std::string;
+    num : i32;
+}
+</pre></div>
+
+
+<p class="wp-block-paragraph">Why have this metafunction on an ordinary C++ class, when C++ already has both C&#8217;s <code>union</code> and C++11&#8217;s <code>std::variant</code>? Because:</p>
+
+
+
+<ul class="wp-block-list">
+<li>it keeps the language smaller and simpler, because it doesn&#8217;t hardwire special-purpose divergent splinter types into the language and compiler
+<ul class="wp-block-list">
+<li>(cue the Beatles earworm again: &#8220;<em>class</em> is all you need, <em>class</em> is all you need&#8230;&#8221;);</li>
+</ul>
+</li>
+
+
+
+<li>it&#8217;s a better <code>union</code> than C <code>union</code>, because C <code>union</code> is unsafe; and</li>
+
+
+
+<li>it&#8217;s a better <code>variant</code> than C++11 <code>std::variant</code>, because <code>std::variant</code> is hard to use because its alternatives are anonymous (as is the type itself; there&#8217;s no way to distinguish in the type system between a <code>variant&lt;int,string&gt;</code> that stores either an employee id or employee name, and a <code>variant&lt;int,string&gt;</code> that stores either a lucky number or a pet unicorn&#8217;s dominant color).</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Each <code>@union type</code> has its own type-safe name, has clear and unambiguous named members, and safely encapsulates a discriminator to rule them all. Sure, it uses unsafe casts in the implementation, but they are fully encapsulated, where they can be tested once and be safe in all uses. That makes <code>@union</code>:</p>
+
+
+
+<ul class="wp-block-list">
+<li>as easy to use as a C <code>union</code>, </li>
+
+
+
+<li>as safe to use as a <code>std::variant</code>&#8230; and </li>
+
+
+
+<li>as a bonus, because it&#8217;s an ordinary type, it can naturally have other things normal types can have, such as template parameter lists and member functions:</li>
+</ul>
+
+
+<div class="wp-block-syntaxhighlighter-code "><pre class="brush: cpp; title: ; notranslate">
+// a templated custom safe union
+name_or_other: @union &lt;T:type&gt; type
+= {
+    name  : std::string;
+    other : T;
+
+    // a custom member function
+    to_string: (this) -&gt; std::string = {
+        if is_name()       { return name(); }
+        else if is_other() { return other() as std::string; }
+        else               { return &quot;invalid value&quot;; }
+    }
+}
+
+main: () = {
+    x: name_or_other&lt;int&gt; = ();
+    x.set_other(42);
+    std::cout &lt;&lt; x.other() * 3.14 &lt;&lt; &quot;\n&quot;;
+    std::cout &lt;&lt; x.to_string(); // prints &quot;42&quot;, but is legal whichever alternative is active
+}
+
+</pre></div>
+
+
+<h2 class="wp-block-heading">What&#8217;s next</h2>
+
+
+
+<p class="wp-block-paragraph">For the rest of the year, I plan to:</p>
+
+
+
+<ul class="wp-block-list">
+<li>continue self-hosting cppfront, i.e., migrate more of cppfront&#8217;s own code to be written in Cpp2 syntax, particularly now that I have <code>enum</code> and <code>union</code> (cppfront uses <code>enum class</code> and <code>std::variant</code> pervasively);</li>
+
+
+
+<li>continue working my list of pending Cpp2 features and implementing them in cppfront; and</li>
+
+
+
+<li>work with a few private alpha testers to start writing a bit of code in Cpp2, to alpha-test cppfront and also to alpha-test my (so far unpublished) draft documentation.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">But first, <strong>one week from today, I&#8217;ll be at <a rel="noreferrer noopener" href="https://cppcon.org" target="_blank">CppCon</a></strong> to give a talk about this progress and why full-fidelity compatibility with ISO C++ is essential (and what that means): <strong><a href="https://cppcon.org/2023-keynote-herb-sutter/">&#8220;Cooperative C++ Evolution: Toward a TypeScript for C++.&#8221;</a></strong> I look forward to seeing many of you there!</p>

@@ -1,0 +1,11 @@
+<p>
+Bozhidar Batsov has an <a href="https://emacsredux.com/blog/2026/06/20/essential-structured-navigation-and-editing-commands/#fnref:1">excellent post that considers structured editing using builtin Emacs commands</a>. It turns out that all those commands (like <code>forward-sexp</code>) that you think of as Lisp-specific commands work in many other modes. The secret is that the target mode has to tell the commands how to find structure boundaries.
+</p>
+<p>
+There are several ways of doing that. The oldest is to use the mode&rsquo;s syntax table but that doesn&rsquo;t work if the structure is bounded by things like <code>structure</code> &hellip; <code>end</code>. The more modern method is to provide functions that can find these boundaries and, of course, the most modern is to use Tree-sitter with an actual grammar of the target language.
+</p>
+<p>
+Pay particular attention to the <kbd>Ctrl</kbd>+<kbd>Meta</kbd> commands. If you&rsquo;ve done any Lisp programming, they&rsquo;ll be familiar but they&rsquo;re useful for a lot of other languages—even plane text. For example, I use <kbd>Ctrl</kbd>+<kbd>Meta</kbd>+<kbd>Space</kbd> all the time to progressively mark words in a text buffer. It&rsquo;s a bit easier than using <kbd>Ctrl</kbd>+<kbd>Space</kbd> and then some motion command to do the same thing.
+</p>
+<p>
+As Batsov says, the <kbd>Ctrl</kbd>+<kbd>Meta</kbd> commands keep getting smarter as more major modes teach them about their syntax. His post is full of good information that I haven&rsquo;t mentioned here so be sure to head over and read it.</p>

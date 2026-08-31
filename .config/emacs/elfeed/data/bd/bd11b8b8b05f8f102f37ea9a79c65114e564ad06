@@ -1,0 +1,660 @@
+<p>I recently<sup id="fnref:recently"><a href="#fn:recently" class="footnote" rel="footnote" role="doc-noteref">1</a></sup> solved an interesting problem inside <a href="https://github.com/zizmorcore/zizmor"><code class="language-plaintext highlighter-rouge">zizmor</code></a>
+with a type of state machine/automaton I hadn’t used before: a
+<a href="https://en.wikipedia.org/wiki/Finite-state_transducer">finite state transducer (FST)</a>.</p>
+
+<p>This is just a quick write-up of the problem and how I solved it. It doesn’t
+go particularly deep into the data structures themselves. For more information
+on FSTs themselves, I strongly recommend <a href="https://burntsushi.net/transducers/">burntsushi’s article on transducers</a>
+(which is what actually led me to his <a href="https://crates.io/crates/fst"><code class="language-plaintext highlighter-rouge">fst</code></a> crate).</p>
+
+<p>TL;DR: I used the <a href="https://crates.io/crates/fst"><code class="language-plaintext highlighter-rouge">fst</code></a> crate to build a finite state transducer that
+maps GitHub Actions <em>context patterns</em> to their logical “capability” in
+the context of a potential template injection vulnerability. This ended up
+being an order of magnitude smaller in terms of representation (~14.5KB instead
+of ~240 KB) and faster and more memory efficient than my naïve
+initial approaches<sup id="fnref:perf"><a href="#fn:perf" class="footnote" rel="footnote" role="doc-noteref">2</a></sup> (tables and prefix trie walks). It also enabled me
+to fully precompute the FST at compile time, eliminating the startup cost
+of priming a trie- or table-based map.</p>
+
+<h2 id="background">Background<a href="#background" class="header-anchor" aria-label="Permalink to background">#</a></h2>
+
+<p><a href="https://github.com/zizmorcore/zizmor"><code class="language-plaintext highlighter-rouge">zizmor</code></a> is a static analysis tool for GitHub Actions.</p>
+
+<p>One of the categories of weaknesses it can find is <a href="https://docs.zizmor.sh/audits/#template-injection"><em>template injections</em></a>,
+wherein the CI author uses a <a href="https://docs.github.com/en/actions/learn-github-actions/expressions"><em>GitHub Actions expression</em></a> in a shell or
+similar context without realizing that the expression can escape any
+shell-level quoting intended to “defuse” it.</p>
+
+<p>Here’s an example, derived from a pattern that gets
+<a href="/2024/12/06/zizmor-ultralytics-injection">exploited</a> <a href="https://www.praetorian.com/blog/pwn-request-hacking-microsoft-github-repositories-and-more/">over</a> <a href="https://www.wiz.io/blog/github-actions-security-guide">and over</a> <a href="https://www.sysdig.com/blog/insecure-github-actions-found-in-mitre-splunk-and-other-open-source-repositories">again</a>:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Print</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">current</span><span class="nv"> </span><span class="s">ref"</span>
+  <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+    <span class="s">echo "The current ref is: ${{ github.ref }}"</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>If this step is part of a workflow that grants elevated privileges to third
+parties (like <code class="language-plaintext highlighter-rouge">pull_request_target</code>), and attacker can contrive a <code class="language-plaintext highlighter-rouge">git</code>
+ref that escapes the shell quoting and runs arbitrary code.</p>
+
+<p>For example, the following ref:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>innocent";cat${IFS}/etc/passwd;true${IFS}"
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>…would expand<sup id="fnref:expand"><a href="#fn:expand" class="footnote" rel="footnote" role="doc-noteref">3</a></sup> as:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="nb">echo</span> <span class="s2">"The current ref is innocent"</span><span class="p">;</span><span class="nb">cat</span> /etc/passwd<span class="p">;</span><span class="nb">true</span> <span class="s2">""</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>Fortunately, <code class="language-plaintext highlighter-rouge">zizmor</code> detects these:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td><td class="rouge-code"><pre>zizmor hackme.yml
+
+error[template-injection]: code injection via template expansion
+  <span class="nt">--</span><span class="o">&gt;</span> hackme.yml:15:41
+   |
+14 |         run: |
+   |         ^^^ this run block
+15 |           <span class="nb">echo</span> <span class="s2">"The current ref is: </span><span class="k">${</span><span class="p">{ github.ref </span><span class="k">}</span><span class="s2">}"</span>
+   |                                         ^^^^^^^^^^ may <span class="nb">expand </span>into attacker-controllable code
+   |
+   <span class="o">=</span> note: audit confidence → High
+   <span class="o">=</span> note: this finding has an auto-fix
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="the-problem">The problem<a href="#the-problem" class="header-anchor" aria-label="Permalink to the-problem">#</a></h2>
+
+<p>There’s a very simple way to detect these vulnerabilities: we could walk every
+code “sink” in a given workflow (e.g. <code class="language-plaintext highlighter-rouge">run:</code> blocks, action inputs that are
+known to contain code, &amp;c.) and look for the fences of an expression
+(<code class="language-plaintext highlighter-rouge">${{ ...  }}</code>). If we see those fences, we know that the contents
+are a potential injection risk.</p>
+
+<p>This is appealing for reasons of simplicity, but is unacceptably <em>noisy</em>:</p>
+
+<ul>
+  <li>
+    <p>There are many actions expressions that are trivially safe, or
+non-trivial but deductively safe:</p>
+
+    <ul>
+      <li>Literals, e.g. <code class="language-plaintext highlighter-rouge">${{ true }}</code> or <code class="language-plaintext highlighter-rouge">${{ 'lol' }}</code>;</li>
+      <li>
+        <p>Any expression that can only expand to a literal:</p>
+
+        <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="c1"># only ever expands to 'main' or 'not-main'</span>
+<span class="c1"># despite using the github.ref context</span>
+<span class="s">${{ github.ref == 'main' &amp;&amp; 'main' || 'not-main' }}</span>
+</pre></td></tr></tbody></table></code></pre></div>        </div>
+      </li>
+      <li>
+        <p>Any expression that can’t expand to meaningful code, e.g.
+due to the expression’s type:</p>
+
+        <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="c1"># only ever expands to a number</span>
+<span class="s">${{ github.run_number }}</span>
+
+<span class="c1"># only ever expands to `true` or `false`</span>
+<span class="s">${{ github.ref == 'main' }}</span>
+</pre></td></tr></tbody></table></code></pre></div>        </div>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>There are many expressions that can <em>appear</em> unsafe by virtue of dataflow
+or context expansion, but are actually safe because of the context’s
+underlying type or constraints:</p>
+
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">${{ github.event.pull_request.merged }}</code> is populated by
+GitHub’s backend and can only expand to <code class="language-plaintext highlighter-rouge">true</code> or <code class="language-plaintext highlighter-rouge">false</code>, but requires
+us to know <em>a priori</em> that it’s a “safe” context;</li>
+      <li><code class="language-plaintext highlighter-rouge">${{ github.actor }}</code> is an arbitrary string, but is limited
+in <em>structure</em> to characters that make it infeasible to perform
+a useful injection with (no semicolons, <code class="language-plaintext highlighter-rouge">$</code>, &amp;c.).</li>
+    </ul>
+  </li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">zizmor</code> generally aims to present low-noise findings, so filtering these
+out by default is paramount.</p>
+
+<p>The first group is pretty easy: we can do a small amount of dataflow analysis
+to determine whether an expression’s evaluation is “tainted” by arbitrary
+controllable inputs.</p>
+
+<p>The second group is harder, because it requires to know additional facts about
+arbitrary-looking contexts. The two main facts we care about are <em>type</em>
+(whether a context expands to a string, a number, or something else)
+and <em>capability</em> (whether the expansion is fully arbitrary, or constrained
+in some manner that might make it safe or at least less risky). In practice
+these both collapse down to <em>capability</em>, since we can categorize
+certain types (e.g. booleans and numbers) as inherently safe.</p>
+
+<h2 id="fact-finding">Fact finding<a href="#fact-finding" class="header-anchor" aria-label="Permalink to fact-finding">#</a></h2>
+
+<p>So, what we want is a way to collect facts about <em>every valid</em> GitHub Actions
+context.</p>
+
+<p>The trick to this lies in remembering that, under the hood, GitHub Actions
+is driven by GitHub’s <a href="https://docs.github.com/en/webhooks/about-webhooks">webhooks API</a>: most<sup id="fnref:most"><a href="#fn:most" class="footnote" rel="footnote" role="doc-noteref">4</a></sup> of the context state loaded
+into a GitHub Actions workflow run is derived from the <a href="https://docs.github.com/en/webhooks/webhook-events-and-payloads">webhook payload</a>
+corresponding to the event that triggered the workflow.</p>
+
+<p>So, how do we get a list of <em>all</em> valid contexts along with information
+about their expansion? GitHub doesn’t provide this directly, but we can
+derive it from their <a href="https://github.com/octokit/openapi-webhooks">OpenAPI specification for the webhooks API</a>.</p>
+
+<p>This comes in the form of a <a href="https://github.com/octokit/openapi-webhooks/blob/main/packages/openapi-webhooks/generated/api.github.com.json">~4.5MB OpenAPI schema</a>, which is pain in the ass
+to work with directly<sup id="fnref:pita"><a href="#fn:pita" class="footnote" rel="footnote" role="doc-noteref">5</a></sup>: it’s both heavily self-referential (by necessity,
+since an “unrolled” version with inline schemas for each property would
+infeasibly large), is heavily telescoped (also by necessity, since
+GitHub’s API responses themselves are not particularly flat), <em>and</em> makes ample
+use of OpenAPI constructions like <code class="language-plaintext highlighter-rouge">oneOf</code>, <code class="language-plaintext highlighter-rouge">anyOf</code>, and <code class="language-plaintext highlighter-rouge">allOf</code> that require
+careful additional handling.</p>
+
+<p>At the bottom of all of this, however, is our reward: detailed information
+about every property provided by each webhook event, including the property’s
+type <em>and</em> valuable information about how the property is constrained.</p>
+
+<p>For example, here’s the schema for a <code class="language-plaintext highlighter-rouge">pull_request.state</code> property:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="nl">"state"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"State of this Pull Request. Either `open` or `closed`."</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"enum"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"open"</span><span class="p">,</span><span class="w"> </span><span class="s2">"closed"</span><span class="p">],</span><span class="w">
+    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"examples"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"open"</span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>This tells us that <code class="language-plaintext highlighter-rouge">pull_request.state</code> is a string, <strong>but</strong> that its value
+is constrained to either <code class="language-plaintext highlighter-rouge">open</code> or <code class="language-plaintext highlighter-rouge">closed</code>. We categorize this as having
+a “fixed” capability, since we know that the attacker can’t control the
+structure of the value <em>itself</em> in a meaningful way.</p>
+
+<p>Long story short: this is implemented as a helper script within <code class="language-plaintext highlighter-rouge">zizmor</code>
+called <a href="https://github.com/zizmorcore/zizmor/blob/42b0346d8a2bc64cd9be7bb96ef703df69f3dedc/support/webhooks-to-contexts.py"><code class="language-plaintext highlighter-rouge">webhooks-to-contexts.py</code></a>. This script is run periodically in GitHub
+Actions and walks the OpenAPI scheme to produces a CSV,
+<code class="language-plaintext highlighter-rouge">context-capabilities.csv</code>, that looks like this:</p>
+
+<table>
+  <tr>
+    
+    <th>context</th>
+    
+    <th> capability</th>
+    
+  </tr>
+  
+  <tr>
+    
+    <td>github.event.pull_request.active_lock_reason</td>
+    
+    <td>arbitrary</td>
+    
+  </tr>
+  
+  <tr>
+    
+    <td>github.event.pull_request.additions</td>
+    
+    <td>fixed</td>
+    
+  </tr>
+  
+  <tr>
+    
+    <td>github.event.pull_request.allow_auto_merge</td>
+    
+    <td>fixed</td>
+    
+  </tr>
+  
+  <tr>
+    
+    <td>github.event.pull_request.allow_update_branch</td>
+    
+    <td>fixed</td>
+    
+  </tr>
+  
+  <tr>
+    
+    <td>github.event.pull_request.assignee</td>
+    
+    <td>fixed</td>
+    
+  </tr>
+  
+  <tr>
+    
+    <td>github.event.pull_request.assignee.avatar_url</td>
+    
+    <td>structured</td>
+    
+  </tr>
+  
+  <tr>
+    
+    <td>github.event.pull_request.assignee.deleted</td>
+    
+    <td>fixed</td>
+    
+  </tr>
+  
+  <tr>
+    
+    <td>github.event.pull_request.assignee.email</td>
+    
+    <td>arbitrary</td>
+    
+  </tr>
+  
+  <tr>
+    
+    <td>github.event.pull_request.assignee.events_url</td>
+    
+    <td>arbitrary</td>
+    
+  </tr>
+  
+  <tr>
+    
+    <td>github.event.pull_request.assignee.followers_url</td>
+    
+    <td>structured</td>
+    
+  </tr>
+  
+  <tr>
+    
+    <td>github.event.pull_request.assignee.following_url</td>
+    
+    <td>arbitrary</td>
+    
+  </tr>
+  
+  <tr>
+    
+    <td>github.event.pull_request.assignee.gists_url</td>
+    
+    <td>arbitrary</td>
+    
+  </tr>
+  
+  <tr>
+    
+    <td>github.event.pull_request.assignee.gravatar_id</td>
+    
+    <td>arbitrary</td>
+    
+  </tr>
+  
+  <tr>
+    
+    <td>github.event.pull_request.assignee.html_url</td>
+    
+    <td>structured</td>
+    
+  </tr>
+  
+</table>
+
+<p>…to the tune of about 4000 unique<sup id="fnref:unique"><a href="#fn:unique" class="footnote" rel="footnote" role="doc-noteref">6</a></sup> contexts.</p>
+
+<h2 id="the-bigger-problem">The bigger problem<a href="#the-bigger-problem" class="header-anchor" aria-label="Permalink to the-bigger-problem">#</a></h2>
+
+<p>So, we have a few thousand contexts, each with a capability that
+tells us how much of a risk that context poses in terms of template injection.
+We can just shove these into a map and call it a day, right?</p>
+
+<p><strong>Wrong.</strong> We’ve glossed over a significant wrinkle, which is that context
+accesses in GitHub Actions are <em>not themselves</em> always literal. Instead, they
+can be <em>patterns</em> that can <em>expand</em> to multiple values.</p>
+
+<p>A good example of this is <code class="language-plaintext highlighter-rouge">github.event.pull_request.labels</code>: <code class="language-plaintext highlighter-rouge">labels</code> is
+an <em>array of objects</em>, each of which has a <code class="language-plaintext highlighter-rouge">name</code> property corresponding
+to the label’s actual name. To access these, we can use syntaxes that select
+individual labels or all labels:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="c1"># access the first label's name</span>
+<span class="s">github.event.pull_request.labels[0].name</span>
+
+<span class="c1"># access all labels' names</span>
+<span class="s">github.event.pull_request.labels.*.name</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>In both cases, we want to apply the same capability to the context’s expansion.
+To make things even more <del>complicated</del> exciting, GitHub’s own context
+access syntax is surprisingly malleable: each of the following is a valid
+<em>and equivalent</em> way to access the first label’s name:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="s">github.event.pull_request.labels[0].name</span>
+<span class="s">github.EVENT.PULL_REQUEST.LABELS[0].NAME</span>
+<span class="s">github['event']['pull_request']['labels'][0]['name']</span>
+<span class="s">github['event'].pull_request['labels'][0].name</span>
+<span class="s">github.event.pULl_ReQUEst['LaBEls'][0].nAmE</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>..and so forth.</p>
+
+<p>In sum, we have two properties that blow a hole in our “just shove it in a map”
+approach:</p>
+
+<ol>
+  <li>Contexts are <em>patterned</em>, and can’t be expanded into a static finite
+enumeration of simplified contexts. For example, we can’t know how many
+labels a repository has<sup id="fnref:offline"><a href="#fn:offline" class="footnote" rel="footnote" role="doc-noteref">7</a></sup>, so we can’t statically unfold
+the <code class="language-plaintext highlighter-rouge">github.event.pull_request.labels.*.name</code> context into <code class="language-plaintext highlighter-rouge">N</code> contexts
+that match everything the user might write in a workflow.</li>
+  <li>Contexts can be expressed through multiple syntaxes. We can keep things
+simple on the capability extraction side by only using the
+<code class="language-plaintext highlighter-rouge">jq</code>-ish syntax, but we still need to normalize any contexts as they appear
+ in workflows. This is not very difficult, but it makes a single map lookup
+ even less appealing.</li>
+</ol>
+
+<h2 id="the-solution">The solution<a href="#the-solution" class="header-anchor" aria-label="Permalink to the-solution">#</a></h2>
+
+<p>To recap:</p>
+
+<ul>
+  <li>We have a few thousands contexts, each of which is really a
+<em>pattern</em> that can match one or more “concrete” context usages as they appear
+in a user’s workflow.</li>
+  <li>Each of these context patterns has an associated
+capability, as one of <code class="language-plaintext highlighter-rouge">fixed | structured | arbitrary</code>, indicating
+how much of a risk the context poses in terms of template injection.</li>
+  <li>Our goal is to <strong>efficiently match</strong> these patterns against the contexts as
+they appear in a user’s workflow, and return the associated capability.</li>
+</ul>
+
+<p>To me, this originally smacked of a prefix/radix trie problem: there are a
+a large number of common prefixes/segments in the pattern set, meaning that
+the trie could be made relatively compact. However, tries are optimized for
+operations that the problem doesn’t require:</p>
+
+<ul>
+  <li>Tries are optimized to grow and shrink at runtime, but we don’t need that:
+the set of context patterns is static, and we’d ideally trade off some
+compile-time cost for runtime size and speed.</li>
+  <li>Tries can perform efficient prefix and exact matches, but (typically)
+at the cost of a larger runtime memory footprint.</li>
+</ul>
+
+<p>Finally, on a more practical level: I couldn’t find a great trie/radix trie
+crate to use. Some of this might have been a discovery failure on my part,
+but I couldn’t find one that was already widely used <em>and</em> still actively
+maintained. <a href="https://crates.io/crates/radix_trie"><code class="language-plaintext highlighter-rouge">radix_tree</code></a> came the closest, but hasn’t been updated in nearly
+5 years.</p>
+
+<p>While reading about other efficient prefix representation structures,
+I came across <a href="https://en.wikipedia.org/wiki/Deterministic_acyclic_finite_state_automaton">DAFSAs</a> (also sometimes called DAWGs). These offer a
+significantly more compact representation of prefixes than a trie, but at a
+cost: unlike a trie, a DAFSA cannot contain auxiliary data. This makes them
+great for <em>inclusion</em> checking (including of prefixes), but not so great for my
+purpose of storing each pattern’s associated capability.</p>
+
+<p>That brought me to <em>transducers</em> as a class of finite state machines: unlike
+<em>acceptors</em> (DAFSAs, but also normal DFAs and NFAs) that map from
+an input sequence to a boolean accept/reject state, <em>transducers</em> map
+an input sequence to an output sequence. That output sequence can then be
+composed (e.g. via summation) into an output value. In effect, the “path”
+an input takes through the transducer yields an output value.</p>
+
+<p>In this way, FSTs can behave a lot like a <em>map</em> (whether backed by a
+prefix trie or a hash table), but with some appealing additional properties:</p>
+
+<ul>
+  <li>A finite state transducer can compress its <em>entire</em> input, unlike a prefix
+trie (which only compresses the prefixes). That means a more compact
+representation.</li>
+  <li>A finite state transducer can share duplicated output values across
+inputs, unlike a prefix trie or hash table (which would store the same
+output value multiple times). This also means a more compact representation,
+and is particularly appealing in our case as we only have a small set
+of possible capabilities.</li>
+</ul>
+
+<p>These desirable properties come with downsides too: <em>optimal</em> FST construction
+requires memory proportional to the total input size, and requires ordered
+insertion of each input. Modifications to an FST are also limited: optimal
+insertions must be ordered, while deletions or changes to an associated
+value require a full rebuild of the FST. In practice, this that FST construction
+is a static affair over a preprocessed input set. But that’s perfectly
+fine for my use case!</p>
+
+<h2 id="putting-it-together">Putting it together<a href="#putting-it-together" class="header-anchor" aria-label="Permalink to putting-it-together">#</a></h2>
+
+<p>As it turns out, using the <a href="https://crates.io/crates/fst"><code class="language-plaintext highlighter-rouge">fst</code></a> crate to construct an FST at build time
+is pretty simple. Here’s the totality of the code that I put in
+<code class="language-plaintext highlighter-rouge">build.rs</code> to transform <code class="language-plaintext highlighter-rouge">context-capabilities.csv</code>:</p>
+
+<div class="language-rust highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+</pre></td><td class="rouge-code"><pre><span class="k">fn</span> <span class="nf">do_context_capabilities</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="n">manifest_dir</span> <span class="o">=</span> <span class="nn">env</span><span class="p">::</span><span class="nf">var</span><span class="p">(</span><span class="s">"CARGO_MANIFEST_DIR"</span><span class="p">)</span><span class="nf">.unwrap</span><span class="p">();</span>
+    <span class="k">let</span> <span class="n">source</span> <span class="o">=</span> <span class="nn">Path</span><span class="p">::</span><span class="nf">new</span><span class="p">(</span><span class="o">&amp;</span><span class="n">manifest_dir</span><span class="p">)</span><span class="nf">.join</span><span class="p">(</span><span class="s">"data/context-capabilities.csv"</span><span class="p">);</span>
+
+    <span class="nd">println!</span><span class="p">(</span>
+        <span class="s">"cargo::rerun-if-changed={source}"</span><span class="p">,</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">source</span><span class="nf">.display</span><span class="p">()</span>
+    <span class="p">);</span>
+
+    <span class="k">let</span> <span class="n">out_dir</span> <span class="o">=</span> <span class="nn">env</span><span class="p">::</span><span class="nf">var</span><span class="p">(</span><span class="s">"OUT_DIR"</span><span class="p">)</span><span class="nf">.unwrap</span><span class="p">();</span>
+    <span class="k">let</span> <span class="n">out_path</span> <span class="o">=</span> <span class="nn">Path</span><span class="p">::</span><span class="nf">new</span><span class="p">(</span><span class="o">&amp;</span><span class="n">out_dir</span><span class="p">)</span><span class="nf">.join</span><span class="p">(</span><span class="s">"context-capabilities.fst"</span><span class="p">);</span>
+
+    <span class="k">let</span> <span class="n">out</span> <span class="o">=</span> <span class="nn">io</span><span class="p">::</span><span class="nn">BufWriter</span><span class="p">::</span><span class="nf">new</span><span class="p">(</span><span class="nn">File</span><span class="p">::</span><span class="nf">create</span><span class="p">(</span><span class="n">out_path</span><span class="p">)</span><span class="nf">.unwrap</span><span class="p">());</span>
+    <span class="k">let</span> <span class="k">mut</span> <span class="n">build</span> <span class="o">=</span> <span class="nn">fst</span><span class="p">::</span><span class="nn">MapBuilder</span><span class="p">::</span><span class="nf">new</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="nf">.unwrap</span><span class="p">();</span>
+
+    <span class="k">let</span> <span class="k">mut</span> <span class="n">rdr</span> <span class="o">=</span> <span class="nn">csv</span><span class="p">::</span><span class="nn">ReaderBuilder</span><span class="p">::</span><span class="nf">new</span><span class="p">()</span>
+        <span class="nf">.has_headers</span><span class="p">(</span><span class="k">false</span><span class="p">)</span>
+        <span class="nf">.from_path</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="nf">.unwrap</span><span class="p">();</span>
+
+    <span class="k">for</span> <span class="n">record</span> <span class="k">in</span> <span class="n">rdr</span><span class="nf">.records</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="n">record</span> <span class="o">=</span> <span class="n">record</span><span class="nf">.unwrap</span><span class="p">();</span>
+        <span class="k">let</span> <span class="n">context</span> <span class="o">=</span> <span class="n">record</span><span class="nf">.get</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="nf">.unwrap</span><span class="p">();</span>
+        <span class="k">let</span> <span class="n">capability</span> <span class="o">=</span> <span class="k">match</span> <span class="n">record</span><span class="nf">.get</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="nf">.unwrap</span><span class="p">()</span> <span class="p">{</span>
+            <span class="s">"arbitrary"</span> <span class="k">=&gt;</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s">"structured"</span> <span class="k">=&gt;</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">"fixed"</span> <span class="k">=&gt;</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">_</span> <span class="k">=&gt;</span> <span class="nd">panic!</span><span class="p">(</span><span class="s">"Unknown capability"</span><span class="p">),</span>
+        <span class="p">};</span>
+
+        <span class="n">build</span><span class="nf">.insert</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">capability</span><span class="p">)</span><span class="nf">.unwrap</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="n">build</span><span class="nf">.finish</span><span class="p">()</span><span class="nf">.unwrap</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>…and then, loading and querying it:</p>
+
+<div class="language-rust highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td><td class="rouge-code"><pre><span class="k">static</span> <span class="n">CONTEXT_CAPABILITIES_FST</span><span class="p">:</span> <span class="n">LazyLock</span><span class="o">&lt;</span><span class="n">Map</span><span class="o">&lt;&amp;</span><span class="p">[</span><span class="nb">u8</span><span class="p">]</span><span class="o">&gt;&gt;</span> <span class="o">=</span> <span class="nn">LazyLock</span><span class="p">::</span><span class="nf">new</span><span class="p">(||</span> <span class="p">{</span>
+    <span class="nn">fst</span><span class="p">::</span><span class="nn">Map</span><span class="p">::</span><span class="nf">new</span><span class="p">(</span><span class="nd">include_bytes!</span><span class="p">(</span><span class="nd">concat!</span><span class="p">(</span><span class="nd">env!</span><span class="p">(</span><span class="s">"OUT_DIR"</span><span class="p">),</span> <span class="s">"/context-capabilities.fst"</span><span class="p">))</span><span class="nf">.as_slice</span><span class="p">())</span>
+        <span class="nf">.expect</span><span class="p">(</span><span class="s">"couldn't initialize context capabilities FST"</span><span class="p">)</span>
+<span class="p">});</span>
+
+
+<span class="k">impl</span> <span class="n">Capability</span> <span class="p">{</span>
+    <span class="k">fn</span> <span class="nf">from_context</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="o">&amp;</span><span class="nb">str</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nb">Option</span><span class="o">&lt;</span><span class="k">Self</span><span class="o">&gt;</span> <span class="p">{</span>
+        <span class="k">match</span> <span class="n">CONTEXT_CAPABILITIES_FST</span><span class="nf">.get</span><span class="p">(</span><span class="n">context</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nf">Some</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">=&gt;</span> <span class="nf">Some</span><span class="p">(</span><span class="nn">Capability</span><span class="p">::</span><span class="n">Arbitrary</span><span class="p">),</span>
+            <span class="nf">Some</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">=&gt;</span> <span class="nf">Some</span><span class="p">(</span><span class="nn">Capability</span><span class="p">::</span><span class="n">Structured</span><span class="p">),</span>
+            <span class="nf">Some</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="k">=&gt;</span> <span class="nf">Some</span><span class="p">(</span><span class="nn">Capability</span><span class="p">::</span><span class="n">Fixed</span><span class="p">),</span>
+            <span class="nf">Some</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="k">=&gt;</span> <span class="nd">unreachable!</span><span class="p">(</span><span class="s">"unexpected context capability"</span><span class="p">),</span>
+            <span class="n">_</span> <span class="k">=&gt;</span> <span class="nb">None</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>(where the input <code class="language-plaintext highlighter-rouge">context</code> has been normalized, e.g. from
+<code class="language-plaintext highlighter-rouge">github["event"]["pull_request"]["title"]</code> to
+<code class="language-plaintext highlighter-rouge">github.event.pull_request.title</code>).</p>
+
+<h2 id="concluding-thoughts">Concluding thoughts<a href="#concluding-thoughts" class="header-anchor" aria-label="Permalink to concluding-thoughts">#</a></h2>
+
+<p>Everything above was included in <a href="https://docs.zizmor.sh/release-notes/#190">zizmor 1.9.0</a>, as part of a large-scale
+refactor of the <a href="https://docs.zizmor.sh/audits/#template-injection">template-injection</a> audit.</p>
+
+<p>Was this overkill? Probably: I only have about ~4000 valid context patterns,
+which would have comfortably fit into a hash table.</p>
+
+<p>However, using an FST for this makes the footprint <em>ludicrously and satisfyingly
+small</em>: each pattern takes less than 4 bytes to represent in the serialized FST,
+well below the roughly linear memory footprint of loading the equivalent
+data from <code class="language-plaintext highlighter-rouge">context-capabilities.csv</code>.</p>
+
+<p>Using an FST also unlocked future optimizations ideas that I haven’t
+bothered to experiment with yet:</p>
+
+<ul>
+  <li>The FST is currently searched using a normalization of each context
+as it appears in a workflow. However, FSTs can be searched by any DFA,
+meaning that I could <em>in theory</em> convert each context into a regular
+expression instead. I’m unclear on whether this would bring a performance
+advantage, since the context-to-regex-to-DFA conversion itself is
+not necessarily cheap.</li>
+  <li>In principle, the FST’s size could be squeezed down even further by
+splitting the context patterns into <em>segments</em>, rather than decomposing
+into sequences of bytes. This comes from the observation that many vertices
+in the FST are shared and singular, meaning that they only have one
+incoming edge and one outgoing edge. I don’t think the <a href="https://crates.io/crates/fst"><code class="language-plaintext highlighter-rouge">fst</code></a> crate supports
+this natively, but it would yield the prefix deduplication benefits of
+a prefix trie while still preserving the compression benefits of an FST.</li>
+</ul>
+
+<hr />
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:recently">
+      <p>A few months ago. <a href="#fnref:recently" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:perf">
+      <p>Spoiler: I didn’t bother benchmarking this at the time. <a href="#fnref:perf" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:expand">
+      <p>I’ve replaced <code class="language-plaintext highlighter-rouge">${IFS}</code> with a single literal space for readability. <a href="#fnref:expand" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:most">
+      <p>But not all: the <code class="language-plaintext highlighter-rouge">runner.*</code> and <code class="language-plaintext highlighter-rouge">secrets.*</code> namespaces, for example,
+     are populated by the GitHub Actions runner itself. <a href="#fnref:most" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:pita">
+      <p>I can only assume that these kinds of huge generated schemas are
+     actually useful to others. I think I’ve yet to encounter a JSON
+     or OpenAPI schema that actually made my task at hand easier. <a href="#fnref:pita" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:unique">
+      <p>There are significantly more <em>possible</em> contexts than these,
+       but most are overlapping. For example, <code class="language-plaintext highlighter-rouge">github.event.before</code>
+       is shared across all webhook types. In theory we expect these
+       variants of the same context to converge on the same capability
+       — <code class="language-plaintext highlighter-rouge">github.event.before</code> shouldn’t really change type
+       or structure with the webhook type. However, we can’t <em>guarantee</em>
+       that, so in practice we <em>unify</em> duplicate contexts into their
+       “strongest” capability: <code class="language-plaintext highlighter-rouge">(fixed, structured)</code> becomes <code class="language-plaintext highlighter-rouge">structured</code>,
+       for example. This is conceptually an overapproximation, but whatever. <a href="#fnref:unique" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:offline">
+      <p>At least, not without breaking out “offline first” policy. Plus,
+        there are other resources whose cardinality GitHub won’t easily
+        tell us. <a href="#fnref:offline" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>

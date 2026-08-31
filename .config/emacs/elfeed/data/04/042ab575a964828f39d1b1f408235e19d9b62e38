@@ -1,0 +1,190 @@
+
+<p class="wp-block-paragraph">As we close out 2022, I thought I&#8217;d write a short update on what&#8217;s been happening in Cpp2 and <a href="https://github.com/hsutter/cppfront"><strong>cppfront</strong></a>. If you don&#8217;t know what this personal project is, please see the <strong><a href="https://www.youtube.com/watch?v=ELeZAKCN4tY">CppCon 2022 talk on YouTube</a></strong>.</p>
+
+
+
+<p class="wp-block-paragraph">Most of this post is about improvements I&#8217;ve been making and merging over the year-end holidays, and an increasing number of contributions from others via pull requests to the cppfront repo and in companion projects. Thanks again to so many of you who expressed your interest and support for this personal experiment, including the over 3,000 comments on Reddit and YouTube and the over 200 issues and PRs on the cppfront repo!</p>
+
+
+
+<h2 class="wp-block-heading">10 design notes</h2>
+
+
+
+<p class="wp-block-paragraph"><a href="https://github.com/hsutter/cppfront/wiki">On the cppfront wiki</a>, I&#8217;ve written more design notes about specific parts of the Cpp2 language design that answer common questions. They include:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Broad strategic topics, such as addressing ABI and versioning, &#8220;unsafe&#8221; code, and aiming to eliminate the preprocessor with reflection.</li>
+
+
+
+<li>Specific language feature design topics, such as unified function call syntax (UFCS), <code>const</code>, and namespaces.</li>
+
+
+
+<li>Syntactic choices, such as postfix operators and capture syntax.</li>
+
+
+
+<li>Implementation topics, such as parsing strategies and and grammar details. </li>
+</ul>
+
+
+
+<h2 class="wp-block-heading">117 issues (3 open), 74 pull requests (9 open), 6 related projects, and new collaborators</h2>
+
+
+
+<p class="wp-block-paragraph">I started cppfront with &#8220;just a blank text editor and the C++ standard library.&#8221; Cppfront continues to have no dependencies on other libraries, but since I open-sourced the project in September I&#8217;ve found that people have started contributing working code &#8212; thank you! Authors of merged pull requests include:</p>
+
+
+
+<ul class="wp-block-list">
+<li>The prolific <strong>Filip Sajdak</strong> contributed a number of improvements, probably the most important being generalizing my UFCS implementation, implementing more of <code>is</code> and <code>as</code> as described in <a href="https://wg21.link/p2392">P2392</a>, and providing Apple-Clang regression test results. Thanks, Filip!</li>
+
+
+
+<li><strong>Gabriel Gerlero</strong> contributed refinements in the Cpp2 language support library, <code>cpp2util.h</code>.</li>
+
+
+
+<li><strong>Jarosław Głowacki</strong> contributed test improvements and ensuring all the code compiles cleanly at high warning levels on all major compilers.</li>
+
+
+
+<li><strong>Konstantin Akimov</strong> contributed command-line usability improvements and more test improvements.</li>
+
+
+
+<li><strong>Fernando Pelliccioni </strong>contributed improvements to the Cpp2 language support library.</li>
+
+
+
+<li><strong>Jessy De Lannoit </strong>contributed improvements to the documentation.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Thanks also to these six related projects, which you can find listed <a href="https://github.com/hsutter/cppfront/wiki">on the wiki</a>:</p>
+
+
+
+<ul class="wp-block-list">
+<li><strong><a href="https://github.com/conan-io/conan-center-index/tree/master/recipes/cppfront">Conan recipe for cppfront</a></strong> by Fernando Pelliccioni.</li>
+
+
+
+<li><strong><a href="https://github.com/modern-cmake/cppfront">/modern-cmake/cppfront</a></strong>, a modern CMake (3.23+) build for cppfront.</li>
+
+
+
+<li><strong><a href="https://github.com/JohelEGP/jegp.cmake_modules/#jegpcpp2">/JohelEGP/jegp.cmake_modules/#jegpcpp2</a></strong>, a CMake module to build Cpp2 source files.</li>
+
+
+
+<li><strong><a href="https://nibblestew.blogspot.com/2022/10/using-cppfront-with-meson.html">Meson support for cppfront</a></strong> by Jussi Pakkanen, creator of Meson.</li>
+
+
+
+<li><strong><a href="https://github.com/12Thanjo/cppfront-sublime">Sublime syntax highlighting for Cpp2</a></strong> by Andrew Feldman.</li>
+
+
+
+<li><strong><a href="https://marketplace.visualstudio.com/items?itemName=elazarcoh.cpp2-syntax">Visual Studio Code syntax highlighting for Cpp2</a></strong> by Elazar Cohen. (I use this by default.)</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Thanks again to <strong>Matt Godbolt</strong> for hosting cppfront on Godbolt Compiler Explorer and giving feedback.</p>
+
+
+
+<p class="wp-block-paragraph">Thanks also to over 100 other people who reported bugs and made suggestions via the Issues. See below for some more details about these features and more.</p>
+
+
+
+<h2 class="wp-block-heading">Compiler/language improvements</h2>
+
+
+
+<p class="wp-block-paragraph">Here are some highlights of things added to the cppfront compiler since I gave <a href="https://www.youtube.com/watch?v=ELeZAKCN4tY">the first Cpp2 and cppfront talk in September</a>. Most of these were implemented by me, but some were implemented by the PR authors I mentioned above.</p>
+
+
+
+<p class="wp-block-paragraph">Roughly in commit order (you can find the whole <a href="https://github.com/hsutter/cppfront/commits/main">commit history here</a>), and like everything else in cppfront some of these continue to be experimental:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Lots of bug fixes and diagnostic improvements.</li>
+
+
+
+<li>Everything compiles cleanly under MSVC <code>-W4</code> and GCC/Clang <code>-Wall -Wextra</code>.</li>
+
+
+
+<li><strong>Enabled implicit move-from-last-use for all local variables.</strong> As I already did for <code>copy</code> parameters.</li>
+
+
+
+<li><strong>After repeated user requests, I turned <code>-n</code> and <code>-s</code> (null/subscript dynamic checking) on by default.</strong> Yes, you can always still opt out to disable them and get zero cost, Cpp2 will always stay a &#8220;zero-overhead don&#8217;t-pay-for-what-you-don&#8217;t-use&#8221; true-C++ environment. All I did was change the default to enable them.</li>
+
+
+
+<li><strong>Support explicit <code>forward</code> of members/subobjects of composite types.</strong> For a parameter declared <code>forward x: SomeType</code>, the default continues to be that the last use of <code>x</code> is automatically forwarded for you; for example, if the last use is <code>call_something( x );</code> then cppfront automatically emits that call as <code>call_something( std::forward&lt;decltype(x)&gt;(x) );</code> and you never have to write out that incantation. But now you also have the option to separately forward parts of a composite variable, such as that for a <code>forward x: pair&lt;string, string&gt;&gt;</code> parameter you can write things like <code>do_this( forward x.first )</code> and <code>do_that( 1, 2, 3, forward x.second )</code>.</li>
+
+
+
+<li><strong>Support</strong> <code><b>is template-name</b></code> <strong>and <code>is ValueOrPredicate</code>: </strong><code>is</code> now supports asking whether this is an instantiation of a template (e.g., <code>x is std::vector</code>), and it supports comparing values (e.g., <code>x is 14</code>) and using predicates (e.g., <code>x is (less_than(20))</code> invoking a lambda) including for values inside a <code>std::variant</code>, <code>std::any</code>, and <code>std::optional</code> (e.g., <code>x is 42</code> where <code>x</code> is a <code>variant&lt;int,string&gt;</code> or an <code>any</code>).</li>
+
+
+
+<li><strong>Regression test results for all major compilers: </strong>MSVC, GCC, Clang, and Apple-Clang. All are now checked in and can be conveniently compared before each commit.</li>
+
+
+
+<li><strong>Finished support for <code>&gt;&gt;</code> and <code>&gt;&gt;=</code> expressions.</strong> In today&#8217;s syntax, C++ currently max-munches the <code>&gt;&gt;</code> and <code>&gt;&gt;=</code> tokens and then situationally breaks off individual <code>&gt;</code> tokens, so that we can write things like <code>vector&lt;vector&lt;int&gt;&gt;</code> without putting a space between the two closing angle brackets. In Cpp2 I took the opposite choice, which was to not parse <code>&gt;&gt;</code> or <code>&gt;&gt;=</code> as a token (so max munch is not an issue), and just merge closing angles where a <code>&gt;&gt;</code> or <code>&gt;&gt;=</code> can grammatically go. I&#8217;ve now finished the latter, and this should be done.</li>
+
+
+
+<li><strong>Generalized support for UFCS.</strong> In September, I had only implemented UFCS for a single call of the form <code>x.f(y)</code>, where <code>x</code> could not be a qualified name or have template arguments. Thanks to Filip Sajdak for generalizing this to qualified names, templated names, and chaining multiple UFCS calls! That was a lot of work, and as far as I can tell UFCS should now be generally complete.</li>
+
+
+
+<li><strong>Support declaring multi-level pointers/<code>const</code>.</strong></li>
+
+
+
+<li><strong>Zero-cost implementation of UFCS. </strong> The implementation of UFCS is now force-inlined on all compilers. In the tests I&#8217;ve looked at, even when calling a nonmember function <code>f(x,y)</code>, using Cpp2&#8217;s <code>x.f(y)</code> unified function call syntax (which tries a member function first if there is one, else falls back to a nonmember function), the generated object code at all optimization levels is now identical, or occasionally better, compared to calling the nonmember function directly. Thanks to <a href="https://github.com/hsutter/cppfront/issues/185">Pierre Renaux for pointing this out</a>!</li>
+
+
+
+<li><strong>Support today&#8217;s C++ (Cpp1) multi-token fundamental types (e.g., <code>signed long long int</code>).</strong> I added these mainly for compatibility because 100% seamless interoperability with today&#8217;s C++ is a core goal of Cpp2, but note that in Cpp2 these work but without any of the grammar and parsing quirks they have in today&#8217;s syntax. That&#8217;s because I decided to represent such multi-word names them as a single Cpp2 token, which happens to internally contain whitespace. Seems to work pretty elegantly so far.</li>
+
+
+
+<li><strong>Support fixed-width integer type aliases (<code>i32</code>, <code>u64</code>, etc.),</strong> including optional <code>_fast</code> and <code>_small</code> (e.g., <code>i32_fast</code>).</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">I think that this completes the basic implementation of Cpp2&#8217;s initial subset that I showed in my talk in September, including that support for multi-level pointers and the multi-word C/C++ fundamental type names should complete support for being able to invoke any existing C and C++ code seamlessly.</p>
+
+
+
+<p class="wp-block-paragraph">Which brings us to&#8230;</p>
+
+
+
+<h2 class="wp-block-heading">What&#8217;s next</h2>
+
+
+
+<p class="wp-block-paragraph">Next, as I said in the talk, I&#8217;ll be adding support for user-defined types (classes)&#8230; I&#8217;ll post an update about that when there&#8217;s more that&#8217;s ready to see.</p>
+
+
+
+<p class="wp-block-paragraph">Again, thanks to everyone who expressed interest and support for this personal experiment, and may you all have a happy and safe 2023.</p>

@@ -1,0 +1,14 @@
+<p>
+In my post on Omar Antolín Camarena&rsquo;s May Emacs Carnival contribution explaining <a href="https://irreal.org/blog/">his reasons for using EWW as his default browser</a>, I mentioned that Camarena said that one of the benefits of EWW not supporting JavaScript is that JavaScript is mostly used to make the user&rsquo;s experience worse by doing things like loading ads, reconfiguring the user&rsquo;s display parameters, and implementing paywalls.
+</p>
+<p>
+If you had asked me, I would have said that any site using a paywall would also require JavaScript to load the content and, indeed, that&rsquo;s true for some sites such as The New York Times but, as I discovered, it&rsquo;s <i>not</i> true for a surprising number of sites.
+</p>
+<p>
+After reading Camarena&rsquo;s post, I decided to experiment a bit to see if it <i>was</i> possible to bypass paywalls simply by not running JavaScript. I mostly don&rsquo;t care about paywalls because the majority of the sites that use them don&rsquo;t have content that&rsquo;s worth the effort of avoiding them. Still, I thought it would be interesting to test if the strategy was feasible.
+</p>
+<p>
+I did this by opening any site that popped up a paywall in EWW. It worked for a surprising number of sites. Again, it&rsquo;s almost never worth the effort but if you happen upon an article that you really want to read on a site that wants you to sign up for an outrageously expensive subscription, it may be worthwhile seeing if you can open it in EWW,
+</p>
+<p>
+The other thing I learned is that reading content with EWW can be a very restful experience. No ads, no <a href="https://en.wikipedia.org/wiki/Blinkenlights#Origins">blinkenlights</a>, and sometimes, no paywall either. I didn&rsquo;t try running EWW with <code>eww-readable</code> but that would probably make the experience even more restful.</p>

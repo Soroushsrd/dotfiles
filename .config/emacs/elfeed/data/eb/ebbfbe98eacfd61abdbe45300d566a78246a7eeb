@@ -1,0 +1,14 @@
+<p>
+Today (Monday) on the Unix Heritage Society mailing list, Thalia Archibald <a href="https://www.tuhs.org/pipermail/tuhs/2026-June/033984.html">reports</a> on a <a href="https://www.youtube.com/watch?v=HatXp2dqxb4">CBS report on the Unix v4 recovery at the University of Utah</a>. Sadly, the report misses the two most important things about the recovery.
+</p>
+<p>
+The first, that v4 was the first release written in C, was perhaps too much in the weeds for most non-geeks so CBS can be forgiven for not mentioning it. The second point, though, is the most important thing about the recovery: It <i>was</i> a recovery. Until the discovery of the tape in the University of Utah closet, there was no known copy of the release or source code and it was widely considered lost.
+</p>
+<p>
+In a sense, v4 was the link between the early Unix versions written in assembly language and the more modern versions written in C. Viewed that way, v4 could be seen in the same way as archaeology&rsquo;s famous missing link.
+</p>
+<p>
+One point the CBS report does make is that the descendants of v4 are running everywhere today. Every Mac is running a direct descendant and those running Linux are running an OS derived from the same ancestor. Likewise, every Android phone and iPhone is also running software derived from v4.
+</p>
+<p>
+In any event, if you&rsquo;re interested in this sort of thing take a look at the CBS clip. It&rsquo;s only 2 minutes, 36 seconds long so it won&rsquo;t take you long.</p>

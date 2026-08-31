@@ -1,0 +1,2 @@
+<p>Lime is a new parser generator similar to Yacc, Bison, ANTLR, etc. except it's faster and has the ability to merge or remove grammars at runtime. See the 'calc' example that starts knowing + and - but then adds ^ for exponent, then adds ^ again for bitwise or. That can't work, right?</p>
+<p><a href="https://lobste.rs/s/lz0eld/lime_parser_generator_can_merge_grammars">Comments</a></p>

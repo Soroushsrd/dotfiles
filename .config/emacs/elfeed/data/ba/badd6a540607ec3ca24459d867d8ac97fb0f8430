@@ -1,0 +1,91 @@
+<div ( . )='http://www.w3.org/1999/xhtml'><div><p>Before the managed data types extension to WebAssembly was incorporated
+in the standard, there was a huge debate about type equality.  The end
+result is that if you have two types in a Wasm module that look the
+same, like this:</p><pre class='pre-wat'>(type $t (struct i32))
+(type $u (struct i32))
+</pre><p>Then they are for all intents and purposes equivalent.  When a Wasm
+implementation loads up a module, it has to partition the module’s types
+into equivalence classes.  When the Wasm program references a given type
+by name, as in <tt>(struct.get $t 0)</tt> which would get the first field of
+type <tt>$t</tt>, it maps <tt>$t</tt> to the equivalence class containing <tt>$t</tt> and
+<tt>$u</tt>.  See the <a href='https://webassembly.github.io/spec/core/valid/conventions.html#rolling-and-unrolling'>spec</a>, for more details.</p><p>This is a form of <i>structural type equality</i>.  Sometimes this is what you
+want.  But not always!  Sometimes you want <i>nominal types</i>, in which no
+type declaration is equivalent to any other.  WebAssembly doesn’t have
+that, but it has something close: <i>recursive type groups</i>.  In fact, the
+type declarations above are equivalent to these:</p><pre class='pre-wat'>(rec (type $t (struct i32)))
+(rec (type $u (struct i32)))
+</pre><p>Which is to say, each type is in a group containing just itself.  One
+thing that this allows is self-recursion, as in:</p><pre class='pre-way'>(type $succ (struct (ref null $succ)))
+</pre><p>Here the struct’s field is itself a reference to a <tt>$succ</tt> struct, or
+null (because it’s <tt>ref null</tt> and not just <tt>ref</tt>).</p><p>To allow for mutual recursion between types, you put them in the same <tt>rec</tt>
+group, instead of each having its own:</p><pre class='pre-wat'>(rec
+ (type $t (struct i32))
+ (type $u (struct i32)))
+</pre><p>Between <tt>$t</tt> and <tt>$u</tt> we don’t have mutual recursion though, so why
+bother?  Well <tt>rec</tt> groups have another role, which is that they are the
+unit of structural type equivalence.  In this case, types <tt>$t</tt> and <tt>$u</tt>
+are not in the same equivalence class, because they are part of the same
+<tt>rec</tt> group.  Again, see <a href='https://webassembly.github.io/spec/core/valid/conventions.html#defined-types'>the spec</a>.</p><p>Within a Wasm module, <tt>rec</tt> gives you an approximation of nominal
+typing.  But what about between modules?  Let’s imagine that <tt>$t</tt>
+carries important capabilities, and you don’t want another module to be
+able to forge those capabilities.  In this case, <tt>rec</tt> is not enough:
+the other module could define an equivalent <tt>rec</tt> group, construct a
+<tt>$t</tt>, and pass it to our module; because of isorecursive type equality,
+this would work just fine.  What to do?</p><h3>cursèd nominal typing</h3><p>I said before that Wasm doesn’t have nominal types.  That was true in
+the past, but no more!  The <a href='https://github.com/WebAssembly/exception-handling/blob/main/proposals/exception-handling/Exceptions.md'>nominal typing
+proposal</a>
+was incorporated in the standard last July.  Its vocabulary is a bit
+odd, though.  You have to define your data types with the <a href='https://webassembly.github.io/spec/core/syntax/types.html#tag-types'><tt>tag</tt> keyword</a>:</p><pre>(tag $v (param $secret i32))
+</pre><p>Syntactically, these data types are a bit odd: you have to declare
+fields using <tt>param</tt> instead of <tt>field</tt> and you don’t have to wrap the
+fields in <tt>struct</tt>.</p><p>They also omit some features relative to isorecursive structs, namely
+subtyping and mutability.  However, sometimes subtyping is not
+necessary, and one can always assignment-convert mutable fields, wrapping them in mutable structs as needed.</p><p>To construct a nominally-typed value, the mechanics are somewhat
+involved; instead of <tt>(struct.new $t (i32.const 42))</tt>, you use <a href='https://webassembly.github.io/spec/core/exec/instructions.html#xref-syntax-instructions-syntax-instr-control-mathsf-throw-x'><tt>throw</tt></a>:</p><pre>(block $b (result (ref exn))
+ (try_table
+  (catch_all_ref $b)
+  (throw $v (i32.const 42)))
+ (unreachable))
+</pre><p>Of course, as this is a new proposal, we don’t yet have precise type
+information on the Wasm side; the new instance instead is returned as
+the top type for nominally-typed values, <tt>exn</tt>.</p><p>To check if a value is a <tt>$v</tt>, you need to write a bit of code:</p><pre>(func $is-v? (param $x (ref exn)) (result i32)
+  (block $yep (result (ref exn))
+   (block $nope
+    (try_table
+     (catch_ref $v $yep)
+     (catch_all $nope)
+     (throw_ref (local.get $x))))
+   (return (i32.const 0)))
+  (return (i32.const 1)))
+</pre><p>Finally, field access is a bit odd; unlike structs which have
+<tt>struct.get</tt>, nominal types receive all their values via a <tt>catch</tt>
+handler.</p><pre>(func $v-fields (param $x (ref exn)) (result i32)
+  (try_table
+   (catch $v 0)
+   (throw_ref (local.get $x)))
+  (unreachable))
+</pre><p>Here, the <tt>0</tt> in the <tt>(catch $v 0)</tt> refers to the function call itself:
+all fields of <tt>$v</tt> get returned from the function call.  In this case
+there’s only one, othewise a get-fields function would return multiple
+values.  Happily, this accessor preserves type safety: if <tt>$x</tt> is not
+actually <tt>$v</tt>, an exception will be thrown.</p><p>Now, sometimes you want to be quite strict about your nominal type
+identities; in that case, just define your <tt>tag</tt> in a module and don’t
+export it.  But if you want to enable composition in a principled way,
+not just subject to the randomness of whether another module happens to
+implement a type structurally the same as your own, the nominal typing
+proposal also gives a preview of <a href='https://github.com/WebAssembly/proposal-type-imports/blob/main/proposals/type-imports/Overview.md'>type
+imports</a>.
+The facility is direct: you simply export your <tt>tag</tt> from your module,
+and allow other modules to import it.  Everything will work as expected!</p><h3>fin</h3><p>Friends, as I am sure is abundantly clear, this is a troll post :)  It’s
+not wrong, though!  All of the facilities for nominally-typed structs
+without subtyping or field mutability are present in the
+exception-handling proposal.</p><p>The context for this work was that I was updating
+<a href='https://spritely.institute/hoot/'>Hoot</a> to use the newer version of
+Wasm exception handling, instead of the pre-standardization version.  It
+was a nice change, but as it introduces the <tt>exnref</tt> type, it does open
+the door to some funny shenanigans, and I find it hilarious that the
+committee has been hemming and hawwing about type imports for 7 years
+and then goes and ships it in this backward kind of way.</p><p>Next up, exception support in
+<a href='https://codeberg.org/andywingo/wastrel'>Wastrel</a>, as soon as I can
+figure out where to allocate type tags for this new nominal typing
+facility.  Onwards and upwards!</p></div></div>

@@ -1,0 +1,11 @@
+<p>
+Over at <a href="https://pluralistic.net">Pluralistic</a>, Cory Doctorow has a <a href="https://pluralistic.net/2026/07/21/dickovers/">righteous diatribe about dickovers</a>. If you&rsquo;re not familiar with the term, <a href="https://daringfireball.net/2026/05/what_is_a_dickover">dickover</a> was coined by John Gruber to describe those super annoying popups that cover the text you&rsquo;re trying to read. They&rsquo;re bad enough for those of us in the U.S. but Doctorow says they&rsquo;re even worse in the UK and EU where they&rsquo;re used as a sort of malicious compliance with the GDPR.
+</p>
+<p>
+The thing is, those popups asking if we consent to the use of cookies are completely unnecessary. The law says that sites must presume that users do not want to be spied on and the popups are simply a way of tricking users into giving that consent. It appears to work. According to the <a href="https://killthecookiebanner.eu/">Kill The Cookie Banner</a> site, 90% of people agree to the spying by simply clicking through so they can get on with reading whatever they came to see.
+</p>
+<p>
+A lot of Doctorow&rsquo;s post describes ways of dealing dickovers but the salient point for me is the &ldquo;Global Privacy Control&rdquo; (GPC) signal. That&rsquo;s an indication that browsers can send to websites saying that the user does <b>not</b> give permission for their spying. The surveillance industry hates this, of course, and largely ignores it. There are efforts in the EU to make compliance mandatory and a couple of states in the U.S. have already done so. The advertisers are, naturally, against this and have pulled out all stops to scuttle the legislation.
+</p>
+<p>
+It&rsquo;s fine to deploy stopgap measures—such as those recommended by Doctorow—to fight surveillance advertising but the real solution is to make the advertisers follow the law and stop offering specious reasons why they can&rsquo;t or won&rsquo;t obey it. A good first step is to make honoring the GPC mandatory.</p>

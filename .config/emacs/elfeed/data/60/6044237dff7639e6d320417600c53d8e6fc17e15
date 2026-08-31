@@ -1,0 +1,14 @@
+<p>
+As you all know by now, I&rsquo;m not a Google fan and generally avoid using their products. The one exception is YouTube for videos. Apparently, YouTube also has a radio channel, which is a sort of music streaming service. I listen to my music offline so I&rsquo;m not interested in steaming services and even if I were, I&rsquo;d probably use Apple&rsquo;s or maybe the Amazon service that I get for free as an Amazon Prime member.
+</p>
+<p>
+Still, lots of people don&rsquo;t share my antipathy to Google and at least occasionally like to stream music. One such person is Álvaro Ramírez who sometimes has the urge to listen to YouTube radio channels and, being Ramírez, built an Emacs player, <a href="https://xenodium.com/ytr-youtube-radio-for-emacs">ytr</a>, to do that. As usual, he built ytr to scratch and itch and is using it to experiment with its UI with the long term goal of possibly integrating it into his music player, <a href="https://github.com/xenodium/ready-player">ready-player</a>.
+</p>
+<p>
+Ytr is still at an early stage of development and will probably change as Ramírez gets more experience with it. It&rsquo;s not yet in MELPA, of course, but you can get a copy from its <a href="https://github.com/xenodium/ytr">GitHub repository</a> where you&rsquo;ll find installation instructions as well as a command summary.
+</p>
+<p>
+If you have any interest in playing YouTube radio from within Emacs, take a look at Ramírez&rsquo;s post and the ytr GitHub repository.
+</p>
+<p>
+<b>Update</b> <span class="timestamp-wrapper"><span class="timestamp">[2026-06-24 Wed 10:08]</span></span>: Álvaro Ramírez reached out to me offline with a clarification. What ytr actually does is download the audio track from any YouTube video. As Ramírez says, often the video portion is secondary to the audio. I&rsquo;ve noticed that that&rsquo;s especially true for older recordings where the video portion may consist simply of a picture of the album cover or the artist.</p>

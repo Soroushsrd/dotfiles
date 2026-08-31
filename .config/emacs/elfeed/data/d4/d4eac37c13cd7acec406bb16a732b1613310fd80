@@ -1,0 +1,11 @@
+<p>
+As I mentioned a few days ago, <a href="https://irreal.org/blog/?p=13782">the Emacs 31 release process was on the verge of starting</a>. Now Sean Whitton writes to tell us that <a href="https://lists.gnu.org/archive/html/emacs-devel/2026-05/msg00194.html">the Emacs 31 branch has been created and that the feature freeze has begun</a>.
+</p>
+<p>
+This means that the Emacs 31 release cycle has begun and that&rsquo;s what on the Emacs 31 branch is pretty much—modulo bug fixes and last minute emergency additions—what the final release will be like.
+</p>
+<p>
+The release cycle—if you believe in history—is apt to be long but even though that can be frustrating it means that the final product is going to be rock solid.
+</p>
+<p>
+Although I keep repeating it, I can&rsquo;t say it enough: thanks to all the developers who selflessly donate their time and efforts to making and keeping Emacs one of the best—if not the best—editors available.</p>

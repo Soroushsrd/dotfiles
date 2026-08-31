@@ -1,0 +1,17 @@
+<p>
+Charlie Holland has a very nice contribution to <a href="https://rossabaker.com/blog/underappreciated-emacs-built-ins/">June&rsquo;s Emacs Carnival</a> about underappreciated Emacs builtins. His post is <a href="https://www.chiply.dev/post-june-emacs-carnival">about the Emacs help system and how you can use it to learn everything about Emacs</a>. It&rsquo;s a commonplace to say that Emacs is self-documenting but that&rsquo;s little more than a slogan. Holland takes a long look at what that actually means.
+</p>
+<p>
+He begins by noting that the help system is self-recursive is the sense that you can ask the help system about the help system. You simply call the <code>help-for-help</code> command intuitively bound to <kbd>Ctrl</kbd>+<kbd>h</kbd> <kbd>Ctrl</kbd>+<kbd>h</kbd>. If you&rsquo;ve never tried it, try it now. It gives you a nice listing of every help command.
+</p>
+<p>
+Once you invoke help for a certain command or variable, you get a buffer containing a description of the command or variable as well as links to related commands/variables and the source code of the command so you can see exactly what it does and how it does it. You can discover what command a shortcut calls or what the shortcut for a command is with a simple help call.
+</p>
+<p>
+There are a bunch of other aspects to the help system. You can, for example, get a listing of what your last commands were, complete information about the character at point, the current value of a variable, the current mode, and lots more.
+</p>
+<p>
+For discovery, there are the apropos command and its siblings to help you find what you&rsquo;re looking for even if you have no idea of its name. You merely need to have a general description of what it does. Fuzzy completion on command invocation (<kbd>Meta</kbd>+<kbd>x</kbd>) helps you find the right command even if you have only a vague idea of its name.
+</p>
+<p>
+Hoplland&rsquo;s post is long and has a lot of information but it&rsquo;s one that every Emacs n00b—or more experienced user, for that matter—should read. In Holland&rsquo;s terminology, it&rsquo;s the first node in the Emacs knowledge graph.</p>

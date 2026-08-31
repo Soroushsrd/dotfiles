@@ -1,0 +1,11 @@
+<p>
+Some time ago, I installed <a href="https://github.com/oantolin/embark">Embark</a> but I never got around to learning it and it has sat unused ever since. Then I saw <a href="https://emacsredux.com/blog/2026/07/14/all-aboard-embark/">this post by Bozhidar Batsov</a> and decided to take another look. The problem with Embark is that it&rsquo;s hard to understand and the <a href="https://github.com/oantolin/embark/blob/master/README.org">documentation</a> is long and complex. Too long, I discovered, to read and understand in one sitting.
+</p>
+<p>
+I approached the problem by reading a section at a time and trying out examples in my Emacs. Even so, it still took some experimentation to completely figure things out. The process is ongoing but I&rsquo;m making progress.
+</p>
+<p>
+All of the above sounds pretty negative but I actually think Embark is a real win. Once you figure things out it&rsquo;s really useful. For example, one of the things I&rsquo;ve never been able to get working reliably is following a link in an arbitrary buffer to its target. Embark does that easily and if you use <code>embark-dwim</code> it&rsquo;s a single keystroke. I use <kbd>Hyper</kbd>+<kbd>.</kbd> for <code>embark-act</code> and <kbd>Hyper</kbd>+<kbd>,</kbd> for <code>embark-dwim</code>. I have <kbd>Hyper</kbd> bound to the right <kbd>⌘ Cmd</kbd> key so it&rsquo;s very easy to invoke either of those commands.
+</p>
+<p>
+Batsov is all in on Embark. He and I often share preferences and this is an example of that. The more I find out about Embark, the more I like it. The commands that work on a group of files can be difficult to grok but once you do they&rsquo;re very powerful. I&rsquo;ve resigned myself that learning Embark is an ongoing process but I think it&rsquo;s worth it.</p>

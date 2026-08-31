@@ -1,0 +1,77 @@
+<p>If you use Emacs for more than editing text, there are many daily occasions to use Emacs as a pager. Here&rsquo;s my list:</p>
+<ul>
+<li>Read-only files (with <a href="../batteries-included-with-emacs/#view-mode--m-x-view-mode">view-mode</a>)</li>
+<li>Scrolling through emails (<code>notmuch</code>)</li>
+<li>RSS feed entries (<code>elfeed</code>)</li>
+<li>Reading ebooks (<code>nov.el</code>)</li>
+<li>Web browsing (<code>eww</code>)</li>
+<li>Man pages (<code>man</code> or <code>woman</code>)</li>
+<li>Help buffers and Info documents</li>
+<li>Git logs (<code>magit</code> or <code>vc</code>)</li>
+<li>System logs, compilation and debug output</li>
+</ul>
+<p>This list was about half as long ten years ago, it keeps growing!</p>
+<p>Emacs (and associated packages) generally do a decent job of acting as a pager. In addition to the default movement commands, all these modes let you page forward with <code>SPC</code> and backward with Backspace or <code>S-SPC</code>, and quit the window (without killing the buffer) with <code>q</code>. Additionally, some modes provide commands to scroll half a page up or down.</p>
+<p>And that&rsquo;s where the pager-ness stops. Unlike a pager, Emacs has to read in the entire document into a buffer. This is fine for man pages, but you&rsquo;re asking for trouble if the log you want to page through is a few hundred chunky Megabytes, or if the website in question is the <a href="https://orgmode.org/org.html">single-page Org manual</a>. If your document has long lines in addition, it&rsquo;s curtains for your Emacs session. But let&rsquo;s put these heady issues aside for today.</p>
+<p>The thing that&rsquo;s always bothered me about these modes is that the text cursor sticks around. This is generally useless and distracting &ndash; I don&rsquo;t need a cursor hanging around the screen when reading an ebook or a man page. Often it&rsquo;s annoying &ndash; I can&rsquo;t page the view down by a few lines by scrolling<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>. The presence of the cursor makes the arrow keys virtually useless.</p>
+<h2 id="prefab-construction">Prefab construction</h2>
+<p>I don&rsquo;t doubt that there&rsquo;s a <code>pager-mode</code> package somewhere that fixes this. But as usual, Emacs already provides us the ingredients to fix the dangling cursor problem easily:</p>
+<ul>
+<li><strong>Hide the cursor</strong>: The variable <code>cursor-type</code> controls the cursor&rsquo;s appearance.</li>
+<li><strong>Scroll the view instead of the cursor</strong>: The appropriately named <code>scroll-lock-mode</code> does this. It&rsquo;s even bound to the ScrLk key, fulfilling the key&rsquo;s original purpose.</li>
+</ul>
+<p>Combining the two gives us a better pager experience in Emacs:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defvar-local</span> <span style="color:#963">hide-cursor--original</span> <span style="color:#036;font-weight:bold">nil</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">define-minor-mode</span> <span style="color:#963">hide-cursor-mode</span>
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Hide or show the cursor.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">When the cursor is hidden </span><span style="color:#a60;background-color:#fff0f0">`scroll-lock-mode&#39;</span><span style="background-color:#fff0f0"> is enabled, so that
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">the buffer works like a pager.&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#007020">:global</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#007020">:lighter</span> <span style="background-color:#fff0f0">&#34;H&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">if</span> <span style="color:#963">hide-cursor-mode</span>
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">progn</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">scroll-lock-mode</span> <span style="color:#00d;font-weight:bold">1</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">setq-local</span> <span style="color:#963">hide-cursor--original</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#963">cursor-type</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">setq-local</span> <span style="color:#963">cursor-type</span> <span style="color:#036;font-weight:bold">nil</span>))
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">scroll-lock-mode</span> <span style="color:#00d;font-weight:bold">-1</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">setq-local</span> <span style="color:#963">cursor-type</span> (<span style="color:#007020">or</span> <span style="color:#963">hide-cursor--original</span>
+</span></span><span style="display:flex;"><span>                                <span style="color:#036;font-weight:bold">t</span>))))
+</span></span></code></pre></div><p>I bind <code>hide-cursor-mode</code> to <code>F7</code>, the key to toggle caret browsing in Firefox. The utility is inverted here: <code>hide-cursor-mode</code> turns <em>off</em> &ldquo;caret browsing&rdquo; in Emacs instead of turning it on, but the effect is the same.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">global-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;&lt;f7&gt;&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;hide-cursor-mode</span>)
+</span></span></code></pre></div><p>Here&rsquo;s me browsing an Elfeed entry without/with <code>hide-cursor-mode</code>. Like in <strong>less</strong>, searching and other functions still work fine. If I want the cursor back to select a region, it&rsquo;s a keypress away:</p>
+<video style="center" controls>
+<source src="https://karthinks.com/img/hide-cursor-mode.mp4" type="video/mp4">
+<a href="https://karthinks.com/img/hide-cursor-mode.mp4">[VIDEO]</a>
+</video>
+<h2 id="bonus-half-screen-scrolling">Bonus: half-screen scrolling</h2>
+<p>Vim/less style half-screen scrolling is particularly useful for paging, and missing in Emacs<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup>. Here&rsquo;s a really basic implementation:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">scroll-up-half</span> ()
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">interactive</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#963">scroll-up-command</span>
+</span></span><span style="display:flex;"><span>   (<span style="color:#06b;font-weight:bold">floor</span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">-</span> (<span style="color:#963">window-height</span>)
+</span></span><span style="display:flex;"><span>       <span style="color:#963">next-screen-context-lines</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#00d;font-weight:bold">2</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">scroll-down-half</span> ()
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">interactive</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#963">scroll-down-command</span>
+</span></span><span style="display:flex;"><span>   (<span style="color:#06b;font-weight:bold">floor</span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">-</span> (<span style="color:#963">window-height</span>)
+</span></span><span style="display:flex;"><span>       <span style="color:#963">next-screen-context-lines</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#00d;font-weight:bold">2</span>)))
+</span></span></code></pre></div><p>As a bonus, these can be bound to more convenient keys than Vim/=evil-mode=&rsquo;s <code>C-d</code> and <code>C-u</code> since most keys are available in pager-type read-only buffers.</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>Instead I have to call <code>recenter</code> (<code>C-l</code>) with a prefix argument&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>Although <code>view-mode</code> provides this.&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>

@@ -1,0 +1,8 @@
+<p>
+Marcin Borkowski (mbork) has a useful post on scrolling PDFs in the other window. He wants to use the familiar <kbd>Ctrl</kbd>+<kbd>Meta</kbd>+<kbd>v</kbd> and <kbd>Ctrl</kbd>+<kbd>Meta</kbd>+<kbd>Shift</kbd>+<kbd>v</kbd> shortcuts for <a href="https://github.com/vedang/pdf-tools">pdf-tools</a>. Sadly, these don&rsquo;t work for scrolling PDFs but as mbork says, <a href="https://mbork.pl/2026-06-15_Scrolling_pdfs_in_other_windows">&ldquo;&hellip; [I]t’s Emacs, so it shouldn’t be difficult&hellip;&rdquo;</a>. And, indeed, it isn&rsquo;t.
+</p>
+<p>
+His idea is simple. If the buffer in the other window isn&rsquo;t a PDF, return <code>nil</code>. Otherwise simply call <code>pdf-view-scroll-up-or-next-page</code> or <code>pdf-view-scroll-down-or-previous-page</code>. Finally, he simply advises <code>scroll-other-window</code> and <code>scroll-other-window-down</code> to run his code first and skip the normal code unless his code returns <code>nil</code>. Take a look at his post for the code. As I said, it&rsquo;s easy to understand.
+</p>
+<p>
+The important takeaway from this, according to mbork, is how easy and understandable the solution is. The lesson, as it often is, is that if Emacs isn&rsquo;t doing what you need, it&rsquo;s usually pretty easy to make it do so.</p>

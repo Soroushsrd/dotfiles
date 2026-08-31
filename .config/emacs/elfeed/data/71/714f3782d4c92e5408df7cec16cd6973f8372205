@@ -1,0 +1,122 @@
+<p>One of the problems with Emacs, especially out of the box, is that its constituents don&rsquo;t communicate with each other as comprehensively as they ought to. This is expected given the <em>bazaar</em> nature of its development: it&rsquo;s an amalgamation of elisp libraries written by different contributors over decades, few of whom were aware of many of Emacs&rsquo; existing capabilities they could reuse or plug into. I covered a couple of examples of this deficiency in my series on <a href="https://karthinks.com/software/batteries-included-with-emacs/">Batteries included with Emacs</a> (such as the <code>pulse</code> and <code>view</code> libraries).</p>
+<p>The experience of using most software teaches us to ignore such shortcomings and annoyances until we don&rsquo;t even notice them any more. When using Emacs, however, it&rsquo;s possible to glance occasionally at a lacuna between its islands that&rsquo;s begging for a bridge. In stark contrast to most software, building arbitrary bridges in elisp is very easy.</p>
+<h2 id="the-islands-re-builder-and-query-replace-regexp">The Islands: <code>re-builder</code> and <code>query-replace-regexp</code></h2>
+<p>One such example is a simple connection between the built in regexp-builder (<code>re-builder</code>) library and the <code>*-replace-regexp</code> functions. <code>re-builder</code> lets you build a regular expression (<em>henceforth &ldquo;regexp&rdquo;</em>) with interactive feedback. Text in the main buffer matching the regular expression is highlighted, which is very helpful to catch and correct errors:</p>
+<figure><img src="https://karthinks.com/img/re-builder-demo.png"
+         alt="Figure 1: re-builder: Matches for the current regexp are highlighted in the main buffer."/><figcaption>
+            <p><span class="figure-number">Figure 1: </span><code>re-builder</code>: Matches for the current regexp are highlighted in the main buffer.</p>
+        </figcaption>
+</figure>
+
+<p>I&rsquo;m reasonably familiar with Emacs&rsquo; flavor of regular expressions, idiosyncratic as it is (compared to PCRE), and thus often forget that <code>re-builder</code> even exists. On the other hand, <code>query-replace-regexp</code> (<em>henceforth</em> <code>qrr</code>), an everyday tool which does what it says on the tin, <strong>does not show matches</strong> as you construct the expression to be replaced:<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup></p>
+<figure><img src="https://karthinks.com/img/qrr-demo.png"
+         alt="Figure 2: qrr: No feedback, no highlights."/><figcaption>
+            <p><span class="figure-number">Figure 2: </span><code>qrr</code>: No feedback, no highlights.</p>
+        </figcaption>
+</figure>
+
+<p>Building regexps and replacing constructed regexps: <strong>these two commands do complementary things and deserve to work together</strong>. As things stand now, you&rsquo;d have to</p>
+<ul>
+<li>Open <code>re-builder</code> and construct your regexp.</li>
+<li>Copy it to the kill ring (<code>C-c C-w</code> by default).</li>
+<li>Quit <code>re-builder</code> (<code>C-c C-q</code> by default).</li>
+<li>Run <code>query-replace-regexp</code> (<code>C-M-%</code> by default).</li>
+<li>Paste the kill (<code>C-y</code>).</li>
+<li>Fix newlines and backslashes (if using the &ldquo;read&rdquo; interface to <code>re-builder</code>, more on this below)</li>
+<li>Type in the replacement string and press <code>RET</code> to begin the replacements.</li>
+</ul>
+<p>Connecting commands through the kill-ring (or clipboard) should be the last resort, not a go-to strategy!</p>
+<h2 id="a--bridged-functions">(A)bridged functions</h2>
+<p>Here they are working in concert:</p>
+<video style="center" width="700" autoplay controls loop>
+<source src="https://karthinks.com/img/re-builder-integration-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<p>The idea is this: <code>re-builder</code> and <code>qrr</code> are now effectively the same command. Bring up <code>re-builder</code> using a keybinding (preferably your keybinding for the latter) and build your regexp interactively. Press <code>RET</code> and <code>re-builder</code> exits, with its contents as the input to the replacement command.</p>
+<p>This is exactly as many keystrokes as running <code>qrr</code> or <code>re-builder</code> for their individual purposes, but now you can use both fully, go from the latter to the former, and you have to remember one fewer command or keybinding!</p>
+<h2 id="a-combinatorial-expansion-rx-input-to-query-replace-regexp">A Combinatorial Expansion: <code>rx</code> input to <code>query-replace-regexp</code></h2>
+<p><code>re-builder</code> has many more advantages than just interactive feedback, and now they all carry over to <code>qrr</code>:</p>
+<ul>
+<li>You construct the regexp in a regular buffer, giving you access to the full suite of Emacs command for editing, including your own editing customizations.</li>
+<li>You can navigate between matches interactively (like with <code>isearch</code>), and thus choose where in the buffer the replacement should begin. This even doubles as a replacement for <code>isearch-forward-regexp</code> and <code>isearch-backward-regexp</code>, although these can be configured to preview matches and <code>re-builder</code> is less crucial.</li>
+<li>You can switch between different modes of regex entry, including the <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Rx-Notation.html">powerful <code>rx</code> forms</a> that <code>qrr</code> does not allow:</li>
+</ul>
+<figure><img src="https://karthinks.com/img/rx-demo.png"
+         alt="Figure 3: Regexp specification through a much easier to parse Lisp form."/><figcaption>
+            <p><span class="figure-number">Figure 3: </span>Regexp specification through a much easier to parse Lisp form.</p>
+        </figcaption>
+</figure>
+
+<p>Pressing &ldquo;RET&rdquo; will run the replacement on the appropriate condensed version of this string:</p>
+<video style="center" width="700" autoplay controls loop>
+<source src="https://karthinks.com/img/rx-demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+<p>To switch <code>re-builder</code> to <code>rx</code> mode, invoke <code>reb-change-syntax</code> (bound to <code>C-c C-i</code> by default). This is persistent, you only need to do it once. Note that this is a regular lisp buffer, so you have access to all your lisp editing tools: smartparens/lispy, autocomplete etc.</p>
+<ul>
+<li><code>re-builder</code> actually has a third &ldquo;read&rdquo; interface, where you quote regexps like you would in a string in Lisp code. This is useful to test regexps that you plan to place in code.</li>
+</ul>
+<p>Thus we now have a route that threads more islands that were originally disjoint: <code>rx</code>, your Lisp editing suite, <code>re-builder</code> and <code>qrr</code>. This is perhaps the lesson here:</p>
+<blockquote>
+<p>Connecting existing libraries in Emacs leads not to a linear growth in its features, but to a combinatorial expansion of its capabilities. This can be significantly more bang for your buck than writing things from scratch, and it will help minimize your cognitive load as the things you already know work in more contexts.</p>
+</blockquote>
+<hr>
+<h2 id="the-actual-bridge">The Actual Bridge</h2>
+<p>Finally here&rsquo;s the elisp forming a bridge between the two commands instead:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>   (<span style="color:#007020">defvar</span> <span style="color:#963">my/re-builder-positions</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>      <span style="background-color:#fff0f0">&#34;Store point and region bounds before calling re-builder&#34;</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">advice-add</span> <span style="color:#a60;background-color:#fff0f0">&#39;re-builder</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#007020">:before</span>
+</span></span><span style="display:flex;"><span>                (<span style="color:#007020">defun</span> <span style="color:#963">my/re-builder-save-state</span> (<span style="color:#038;font-weight:bold">&amp;rest</span> <span style="color:#963">_</span>)
+</span></span><span style="display:flex;"><span>                  <span style="background-color:#fff0f0">&#34;Save into </span><span style="color:#a60;background-color:#fff0f0">`my/re-builder-positions&#39;</span><span style="background-color:#fff0f0"> the point and region
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">  positions before calling </span><span style="color:#a60;background-color:#fff0f0">`re-builder&#39;</span><span style="background-color:#fff0f0">.&#34;</span>
+</span></span><span style="display:flex;"><span>                            (<span style="color:#007020">setq</span> <span style="color:#963">my/re-builder-positions</span>
+</span></span><span style="display:flex;"><span>                                  (<span style="color:#06b;font-weight:bold">cons</span> (<span style="color:#06b;font-weight:bold">point</span>)
+</span></span><span style="display:flex;"><span>                                        (<span style="color:#007020">when</span> (<span style="color:#963">region-active-p</span>)
+</span></span><span style="display:flex;"><span>                                          (<span style="color:#06b;font-weight:bold">list</span> (<span style="color:#06b;font-weight:bold">region-beginning</span>)
+</span></span><span style="display:flex;"><span>                                                (<span style="color:#06b;font-weight:bold">region-end</span>)))))))
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">defun</span> <span style="color:#963">reb-replace-regexp</span> (<span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">delimited</span>)
+</span></span><span style="display:flex;"><span>    <span style="background-color:#fff0f0">&#34;Run </span><span style="color:#a60;background-color:#fff0f0">`query-replace-regexp&#39;</span><span style="background-color:#fff0f0"> with the contents of re-builder. With
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">  non-nil optional argument DELIMITED, only replace matches
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">  surrounded by word boundaries.&#34;</span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">interactive</span> <span style="background-color:#fff0f0">&#34;P&#34;</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">reb-update-regexp</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">let*</span> ((<span style="color:#963">re</span> (<span style="color:#963">reb-target-value</span> <span style="color:#a60;background-color:#fff0f0">&#39;reb-regexp</span>))
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">replacement</span> (<span style="color:#963">query-replace-read-to</span>
+</span></span><span style="display:flex;"><span>                         <span style="color:#963">re</span>
+</span></span><span style="display:flex;"><span>                         (<span style="color:#06b;font-weight:bold">concat</span> <span style="background-color:#fff0f0">&#34;Query replace&#34;</span>
+</span></span><span style="display:flex;"><span>                                 (<span style="color:#007020">if</span> <span style="color:#963">current-prefix-arg</span>
+</span></span><span style="display:flex;"><span>                                     (<span style="color:#007020">if</span> (<span style="color:#06b;font-weight:bold">eq</span> <span style="color:#963">current-prefix-arg</span> <span style="color:#a60;background-color:#fff0f0">&#39;-</span>) <span style="background-color:#fff0f0">&#34; backward&#34;</span> <span style="background-color:#fff0f0">&#34; word&#34;</span>)
+</span></span><span style="display:flex;"><span>                                   <span style="background-color:#fff0f0">&#34;&#34;</span>)
+</span></span><span style="display:flex;"><span>                                 <span style="background-color:#fff0f0">&#34; regexp&#34;</span>
+</span></span><span style="display:flex;"><span>                                 (<span style="color:#007020">if</span> (<span style="color:#007020">with-selected-window</span> <span style="color:#963">reb-target-window</span>
+</span></span><span style="display:flex;"><span>                                       (<span style="color:#963">region-active-p</span>)) <span style="background-color:#fff0f0">&#34; in region&#34;</span> <span style="background-color:#fff0f0">&#34;&#34;</span>))
+</span></span><span style="display:flex;"><span>                         <span style="color:#036;font-weight:bold">t</span>))
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">pnt</span> (<span style="color:#06b;font-weight:bold">car</span> <span style="color:#963">my/re-builder-positions</span>))
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">beg</span> (<span style="color:#963">cadr</span> <span style="color:#963">my/re-builder-positions</span>))
+</span></span><span style="display:flex;"><span>           (<span style="color:#963">end</span> (<span style="color:#963">caddr</span> <span style="color:#963">my/re-builder-positions</span>)))
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">with-selected-window</span> <span style="color:#963">reb-target-window</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#06b;font-weight:bold">goto-char</span> <span style="color:#963">pnt</span>) <span style="color:#888">; replace with (goto-char (match-beginning 0)) if you want</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#888">; to control where in the buffer the replacement starts</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#888">; with re-builder</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">setq</span> <span style="color:#963">my/re-builder-positions</span> <span style="color:#036;font-weight:bold">nil</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">reb-quit</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">query-replace-regexp</span> <span style="color:#963">re</span> <span style="color:#963">replacement</span> <span style="color:#963">delimited</span> <span style="color:#963">beg</span> <span style="color:#963">end</span>))))
+</span></span></code></pre></div><p>Additionally, I bind this new replace-regexp function (<code>reb-replace-regexp</code>) to <code>RET</code> in the <code>re-builder</code> buffer, and replace <code>qrr</code> entirely with just <code>re-builder</code>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>  (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">reb-mode-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;RET&#34;</span>) <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">reb-replace-regexp</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">reb-lisp-mode-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;RET&#34;</span>) <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">reb-replace-regexp</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#963">global-set-key</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;C-M-%&#34;</span>) <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">re-builder</span>)
+</span></span></code></pre></div><p>Very briefly, the code works as follows:</p>
+<ul>
+<li>Save the region and point positions into <code>my/re-builder-positions</code> before invoking <code>re-builder</code>, since these are lost. This is done by advising the function.</li>
+<li>When you press <code>RET</code>, quit <code>re-builder</code> and call <code>qrr</code> with the built regexp, saved point and region information.</li>
+</ul>
+<p>Lastly, if you want to insert a newline in the regexp-builder buffer you can now use <code>C-q C-j</code>. Entering literal newlines in a regexp definition is rare enough that dedicating <code>RET</code> to the much more useful <code>qrr</code> is a no-brainer.</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>Yes, <a href="https://github.com/benma/visual-regexp.el">visual-regexp</a> exists. But piling on another thousand lines of code here would be like bringing in a mountain of dirt to create a new self-contained island when the existing ones are lacking but a few connecting strings, and have the opportunity to form a denser network of interactions.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>

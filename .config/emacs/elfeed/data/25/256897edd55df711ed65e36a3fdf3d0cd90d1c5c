@@ -1,0 +1,73 @@
+ <p>Cloudflare’s <a href="https://blog.cloudflare.com/threat-events-platform/"><u>Threat Events</u></a> provides security analysts with a window into the global threat landscape. The platform <a href="https://developers.cloudflare.com/api/node/resources/cloudforce_one/subresources/threat_events/"><u>offers a peek</u></a> into the immense traffic that Cloudflare processes every day, so you can see in real time which IPs are attacking specific industries or which threat actors are trending globally. However, translating that visibility into active mitigation has often been a manual, reactive process.</p><p>Security teams have faced a recurring frustration: knowing that certain IP addresses were associated with specific threat actors (like <a href="https://www.cloudflare.com/en-gb/threat-intelligence/research/report/tycoon-2fa-takedown/"><b><u>Tycoon 2FA</u></b></a> or <a href="https://www.cloudflare.com/en-gb/threat-intelligence/research/report/cloudflare-participates-in-global-operation-to-disrupt-raccoono365/"><b><u>RaccoonO365</u></b></a>) or had been seen targeting their specific industry in other regions, but they couldn't easily automate the blocking of these high-risk IPs within their own WAF unless they manually configured the rules. </p><p>We are excited to announce a new integration that brings Cloudflare’s vast threat intelligence directly into your WAF engine: <b>you can now write proactive rules using live intelligence data</b>. This means you can add more intelligence context to protect your application against known bad actors — before they even attempt to touch your infrastructure.</p><p>By populating specialized fields during the early stages of a request, the WAF can now screen traffic based on:</p><ul><li><p><i>Who is attacking</i> by matching specific threat actor names</p></li><li><p><i>Who they are targeting</i> via the industry or country filters to see who the IP has targeted in the past</p></li><li><p><i>What type of attack </i>using enriched threat context, filtering by attack type (DDoS, WAF, cybercrime, etc.) and the timeframe it was last seen</p></li></ul>
+    <div>
+      <h2>Always-on detection</h2>
+      <a href="#always-on-detection">
+        
+      </a>
+    </div>
+    <p>This new capability is built on the same<a href="https://blog.cloudflare.com/attack-signature-detection/"> <u>always-on detection framework</u></a> we recently introduced for Attack Signature Detection, a system that identifies common attack patterns in real time without requiring pre-configured rules. By separating detection from mitigation, we ensure that threat intelligence is constantly running in the background, enriching your HTTP request analytics with insightful threat metadata before you even decide to take an action.</p><p>The primary advantage of an "always-on" model is the elimination of the traditional "log vs. block" trade-off: visibility in log mode, or protection in block mode. That’s because when a rule blocks a request, you lose visibility into how other signatures would have assessed it — insight that could have helped you strengthen your defenses.</p><p>If you have a <a href="https://www.cloudflare.com/en-gb/cloudforce-one/"><u>Cloudforce One subscription</u></a>, these insights appear in your analytics automatically. You can see which threat actors are hitting your site and which industries those IPs usually target, allowing you to verify traffic patterns before "flipping the switch" to block.</p><p>These detections execute with negligible latency, ensuring your performance remains lightning-fast while providing the high-confidence data needed to build robust security policies. While this initial release focuses on IP-based matching, we are already looking toward extending these capabilities to <a href="https://developers.cloudflare.com/bots/additional-configurations/ja3-ja4-fingerprint/"><u>JA3 fingerprints</u></a> and domain-based matching. This will allow you to block malicious traffic even when attackers rotate IPs, by identifying the unique software signatures or malicious destination links they use in their payloads.</p>
+    <div>
+      <h3>New WAF fields</h3>
+      <a href="#new-waf-fields">
+        
+      </a>
+    </div>
+    <p>To make this possible, we've exposed the following specific signals directly to the WAF engine:</p><table><tr><td><p><b>Field</b></p></td><td><p><b>Description</b></p></td></tr><tr><td><p>cf.intel.ip.attacker_names</p></td><td><p>Names of known threat groups (e.g., <code>CRAVENFLEA</code>).</p></td></tr><tr><td><p>cf.intel.ip.target_industries</p></td><td><p>Industries targeted by this IP (e.g., <code>Cryptocurrency</code>, <code>Automotive</code>).</p></td></tr><tr><td><p>cf.intel.ip.attacker_countries</p></td><td><p>The source country of the threat event.</p></td></tr><tr><td><p>cf.intel.ip.target_countries</p></td><td><p>The countries targeted by the threat event.</p></td></tr><tr><td><p>cf.intel.ip.datasets</p></td><td><p>The source feed providing the data (e.g., <code>ddos</code>, <code>waf</code>).</p></td></tr></table>
+    <div>
+      <h3>Example rule expressions</h3>
+      <a href="#example-rule-expressions">
+        
+      </a>
+    </div>
+    <p>Because a single IP address could be associated with multiple threat actors or targeted industries simultaneously, these fields are represented as arrays. We use the <code>any()</code> function and <code>[*]</code> wildcard to check whether any value within that threat profile matches your criteria:</p><ul><li><p><b>Block known DDoS participants targeting your region: </b><code>any(cf.intel.ip.target_countries[*] == "FR") and any(cf.intel.ip.datasets[*] == "ddos")</code></p></li><li><p><b>Protect against specific threat actors targeting the Finance sector: </b><code>any(cf.intel.ip.target_industries[*] == "Banking &amp; Financial Services") and any(cf.intel.ip.attacker_names[*] == "BLACKBASTA")</code></p></li><li><p><b>Broad protection against specific high-risk origin countries: </b><code>any(cf.intel.ip.attacker_countries[*] == "IR")</code></p></li></ul>
+    <div>
+      <h2>How to use Threat Events data in your workflows</h2>
+      <a href="#how-to-use-threat-events-data-in-your-workflows">
+        
+      </a>
+    </div>
+    <p>Whether you prefer a UI-driven approach or <a href="https://blog.cloudflare.com/shift-left-enterprise-scale/"><u>Infrastructure as Code</u></a>, these fields are integrated into your existing workflows.</p>
+    <div>
+      <h3>The WAF rule builder (API &amp; Terraform)</h3>
+      <a href="#the-waf-rule-builder-api-terraform">
+        
+      </a>
+    </div>
+    <p>For teams that prefer Infrastructure as Code, the new <code>cf.intel</code> fields are fully integrated into the WAF rule builder for WAF <a href="https://developers.cloudflare.com/waf/custom-rules/"><u>custom rules</u></a> and <a href="https://developers.cloudflare.com/waf/rate-limiting-rules/"><u>rate limiting</u></a>. You can write complex expressions using the same syntax you use today. Because these are standard WAF fields, they are fully supported via the Cloudflare API and Terraform, allowing you to automate threat blocking across your selected domains or even on your whole account.</p>
+          <figure>
+          <img src="https://cf-assets.www.cloudflare.com/zkvhlag99gkb/1YQOp7XzNrFIHE1HSNhz6b/06d1565243b2902df5a5b294e3e80709/BLOG-3272_image3.png" />
+          </figure><p><sup><i>New fields added to the WAF rule builder to allow users to choose the relevant configuration based on the Threat Events indicators. </i></sup></p>
+    <div>
+      <h3>Visibility in Security Analytics</h3>
+      <a href="#visibility-in-security-analytics">
+        
+      </a>
+    </div>
+    <p>Deployment is only half the battle. All matches triggered by these threat intelligence fields are logged in <a href="https://developers.cloudflare.com/waf/analytics/security-analytics/"><u>Security Analytics</u></a>. You can drill down into your traffic to see exactly which rule was triggered and which specific indicator matched. These enriched logs allow for faster auditing and postmortem analysis when a rule triggers.</p>
+          <figure>
+          <img src="https://cf-assets.www.cloudflare.com/zkvhlag99gkb/eXh1MgDAROkPZpXwvAaXl/0f124fe79995f213b63f6152e9dd8050/BLOG-3272_image1.png" />
+          </figure><p><sup><i>Threat event matches surface in Security Analytics, with full context and a one-click option to create a custom security rule.</i></sup></p>
+    <div>
+      <h3>One-click rule from the Threat Events dashboard</h3>
+      <a href="#one-click-rule-from-the-threat-events-dashboard">
+        
+      </a>
+    </div>
+    <p>If you are already using the <b>Threat Intelligence Dashboard</b> to investigate trends, you don't have to copy and paste IP lists. You can create <b>Saved Views</b> based on your specific filters, such as <i>"IPs seen attacking the Financial sector in the last seven days."</i> With a single click, you can <a href="https://developers.cloudflare.com/security-center/changelog/#2026-05-27"><u>export these filters</u></a> directly into a WAF rule.</p>
+          <figure>
+          <img src="https://cf-assets.www.cloudflare.com/zkvhlag99gkb/2AOxzgPOUpk5gRrL3VfEB/5160a9fe57808483770fdb1e9979e312/BLOG-3272_-2.png" />
+          </figure><p><sup><i>Saved Views now allow users to easily create WAF rules to match the saved view configuration. </i></sup></p>
+    <div>
+      <h2>Global intelligence across our network</h2>
+      <a href="#global-intelligence-across-our-network">
+        
+      </a>
+    </div>
+    <p>Visibility and ease of use are only possible if the underlying engine is fast. How do we handle millions of threat indicators without slowing down your traffic?</p><p>These threat intelligence datasets are compressed into a high-performance format and distributed to every single Cloudflare data center globally. When a request hits our network, the Cloudflare WAF performs an <code>O(1)</code> constant-time lookup against these local datasets. This ensures that whether we are checking against ten indicators or ten million, the latency overhead remains effectively zero (measured in microseconds).</p><p>Because an IP can be associated with multiple threat vectors, our engine doesn't stop at the first match. It evaluates the set of all signals associated with that IP simultaneously. This ensures that a rule looking for "Attacker = RU" AND "Target Industry = Banking" will trigger correctly by evaluating the intersection of these attributes in a single pass, providing maximum coverage against multi-vector actors without increasing computational complexity.</p>
+    <div>
+      <h2>Ready to get started?</h2>
+      <a href="#ready-to-get-started">
+        
+      </a>
+    </div>
+    <p>This feature is available today for customers with any active <a href="https://www.cloudflare.com/en-gb/cloudforce-one/"><u>Cloudforce One subscription</u></a>:</p><ul><li><p>Cloudforce One Essentials allows customers to access the default datasets in Threat Events, search for indicators, and conduct threat-hunting investigations</p></li><li><p>Cloudforce One Advantage allows customers to access our Threat Intelligence Analyst custom insights via requests for information</p></li><li><p>Cloudforce One Elite — our most complete package — includes brand protection, a high number of requests for information, and access to all Threat Events datasets</p></li></ul><p>Ready to turn global insights into local defense? Head over to <a href="https://developers.cloudflare.com/security-center/cloudforce-one/#analyze-threat-events"><u>Threat Events</u></a> or the <a href="https://developers.cloudflare.com/firewall/cf-dashboard/"><u>WAF</u></a> section of your Cloudflare Dashboard to start building your first Threat Intel rule, or contact your account team to learn more about subscribing to Cloudforce One.</p> 

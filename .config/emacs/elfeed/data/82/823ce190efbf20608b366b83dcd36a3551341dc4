@@ -1,0 +1,130 @@
+<p>We’re pleased to provide an update on C++23 support in the Microsoft C++ (MSVC) Build Tools. This blog post will cover the feature additions in MSVC Build Tools version 14.51, including C++23 language features, libraries, and ISO C++ Core Working Group (CWG) and Library Working Group (LWG) Issue resolutions. We’ll also discuss the plans for completion of C++23 support in the MSVC compiler and how to make use of these latest feature updates.</p>
+<h2><strong>C++23 Language Features</strong></h2>
+<p>The following C++23 language features are now available under <code>/std:c++23preview</code> and <code>/std:c++latest</code> in the MSVC Build Tools 14.51 Preview. An update of the <a href="https://learn.microsoft.com/cpp/overview/visual-cpp-language-conformance">documentation on learn.microsoft.com</a> to reflect these additions is scheduled before this <a href="https://devblogs.microsoft.com/cppblog/new-release-cadence-and-support-lifecycle-for-msvc-build-tools/">version transitions to full support</a>:</p>
+<h4>Compile-time evaluation</h4>
+<p><a href="https://wg21.link/p2647r1"><strong>P2647R1</strong></a> Static constexpr variables in constexpr functions</p>
+<p>Static local variables can be declared at compile time:</p>
+<pre><code>constexpr char xdigit(int n)
+{
+  static constexpr char digits[] = "0123456789abcdef";
+  return digits[n];
+}
+</code></pre>
+<p>This reduces friction when marking existing functions as <code>constexpr</code>. Users will no longer see an error when evaluating the function at compile time, so the static variable gets to remain locally scoped. And because the variable has static storage duration, it is much easier to optimize the run time version of the function.</p>
+<p><a href="https://wg21.link/p2448r2"><strong>P2448R2</strong></a> Relaxing some constexpr restrictions</p>
+<p>The declaration of a <code>constexpr</code> function no longer fails if it&#8217;s decidedly unable to run at compile time.</p>
+<pre><code>void bar();
+
+// Now accepted, but only executable at run time
+constexpr void foo()
+{
+  bar();
+}</code></pre>
+<p>This means foo can be marked as <code>constexpr</code> without being penalized for its definition. It can still be used at run time. At compile time, it will fail when attempting to call bar.</p>
+<p>This also protects against scenarios where bar is owned by a library and changing its <code>constexpr</code>-ness could make foo ill-formed, regardless of how foo is used.</p>
+<h4>Unicode support</h4>
+<p>The following features are improvements to character encoding to better support Unicode and interoperability for C++.</p>
+<p><a href="https://wg21.link/p2029r4"><strong>P2029R4</strong></a> Numeric and universal character escapes in literals</p>
+<p><a href="https://wg21.link/p2071r2"><strong>P2071R2</strong></a> Named universal character escapes</p>
+<p><a href="https://wg21.link/p2314r4"><strong>P2314R4</strong></a> Character sets and encodings</p>
+<h4>Other C++23 Features</h4>
+<p><a href="https://wg21.link/p1774r8"><strong>P1774R8</strong></a> Portable assumptions</p>
+<p><a href="https://wg21.link/p2324r2"><strong>P2324R2</strong></a> Labels at the end of compound statements (C compatibility)</p>
+<p><a href="https://wg21.link/p2582r1"><strong>P2582R1</strong></a> CTAD from inherited constructors (wording)</p>
+<p><a href="https://wg21.link/p2615r1"><strong>P2615R1</strong></a> Meaningful exports</p>
+<h2>CWG Issue Resolutions</h2>
+<p>MSVC Build Tools 14.51 also resolves the following <strong>Core Working Group (CWG)</strong> issues:</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2355.html">CWG 2355</a> Deducing noexcept specifiers</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2392.html">CWG 2392</a> new-expression size checks and constant evaluation</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2405.html">CWG 2405</a> Additional type-dependent expressions</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2479.html">CWG 2479</a> Missing specifications for consteval and constinit</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2484.html">CWG 2484</a> char8_t / char16_t integral promotions</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2490.html">CWG 2490</a> Restrictions on destruction in constant expressions</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2491.html">CWG 2491</a> Export of typedef after first declaration</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2518.html">CWG 2518</a> Conformance requirements and #error / #warning</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2529.html">CWG 2529</a> Constant destruction of constexpr references</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2538.html">CWG 2538</a> Ignoring standard attributes syntactically</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2539.html">CWG 2539</a> Three-way comparison and floating-point strong ordering</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2543.html">CWG 2543</a> constinit and optimized dynamic initialization</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2597.html">CWG 2597</a> Replaceable allocation functions in the global module</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2602.html">CWG 2602</a> consteval defaulted functions</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2605.html">CWG 2605</a> Implicit-lifetime aggregates</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2615.html">CWG 2615</a> Missing __has_cpp_attribute(assume)</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2618.html">CWG 2618</a> Deduction excluding exception specifications</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2627.html">CWG 2627</a> Bit-fields and narrowing conversions</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2631.html">CWG 2631</a> Immediate function evaluation in default arguments</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2640.html">CWG 2640</a> Extended characters in n-character sequences</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2651.html">CWG 2651</a> Conversion function templates and noexcept</p>
+<p><a href="https://cplusplus.github.io/CWG/issues/2664.html">CWG 2664</a> CTAD deduction failure for alias templates</p>
+<h2><strong>C++23 Library Features</strong></h2>
+<p>On GitHub, the microsoft/STL repo tracks its status with a high level of detail:</p>
+<ul>
+<li>The <a href="https://github.com/microsoft/STL/wiki/Changelog#msvc-build-tools-1451">Changelog for MSVC Build Tools 14.51</a> records all of the features and fixes that are newly shipping in this version.</li>
+<li>The <a href="https://github.com/orgs/microsoft/projects/1142/views/2">STL C++23 Features project</a> displays the status of all C++23 library features in the main branch.</li>
+<li>The <a href="https://github.com/orgs/microsoft/projects/1152/views/2">STL LWG Issues project</a> does the same for Library Working Group issue resolutions.</li>
+<li>The <a href="https://github.com/orgs/microsoft/projects/1143/views/2">STL C++26 Features project</a> does the same for C++26 library features.
+<ul>
+<li>Note that while we haven’t started accepting contributions for C++26 library features in general, a limited number of papers have been implemented unconditionally (as de facto “defect reports”, or bugfixes to the Standard). We’ve done this on a case-by-case basis, when changes are non-disruptive (e.g. adding new names in namespace std is potentially disruptive).</li>
+</ul>
+</li>
+</ul>
+<p>Notable library features that are newly available in <strong>MSVC Build Tools 14.51</strong>:</p>
+<ul>
+<li><a href="https://wg21.link/p0429r9"><strong>P0429R9</strong></a> &lt;flat_map&gt;</li>
+<li><a href="https://wg21.link/p1222r4"><strong>P1222R4</strong></a> &lt;flat_set&gt;</li>
+<li><a href="https://wg21.link/P2255R2"><strong>P2255R2</strong></a> Type Traits To Detect References Binding to Temporaries</li>
+<li><a href="https://wg21.link/p2590r2"><strong>P2590R2</strong></a> Explicit Lifetime Management</li>
+<li><a href="https://wg21.link/P2674R1"><strong>P2674R1</strong></a> is_implicit_lifetime</li>
+</ul>
+<p>Other notable changes:</p>
+<ul>
+<li>We’ve massively overhauled <code>&lt;regex&gt;</code> to fix long-standing correctness and performance problems that have been present since its initial implementation in VS 2008 SP1. After almost two decades, the stack overflows are finally fixed!</li>
+<li>We’ve continued to add and improve SIMD-vectorized STL algorithms, using SSE4.2 and AVX2 for x64/x86, and (newly shipping in MSVC Build Tools 14.51) using NEON for ARM64/ARM64EC.</li>
+<li>We’ve implemented 18 LWG issue resolutions.</li>
+<li>We’ve removed long-deprecated non-Standard features, such as TR1, <code>&lt;hash_map&gt;</code>, <code>&lt;hash_set&gt;</code>, <code>&lt;experimental/filesystem&gt;</code>, <code>stdext::checked_array_iterator</code>, and <code>stdext::unchecked_array_iterator</code>.</li>
+</ul>
+<p>All of this has been possible thanks to our amazing GitHub contributors.</p>
+<h2><strong>MSVC Build Tools 14.52 Previews and remaining C++23 Features</strong></h2>
+<p>At this point, we have two remaining features for completion of support for C++23. Both of these features are in-progress and will land in an upcoming MSVC Build Tools 14.52 Preview update.</p>
+<p><a href="https://wg21.link/p2564r3">P2564R3</a> consteval needs to propagate up</p>
+<p><a href="https://wg21.link/p0533r9">P0533R9</a> constexpr &lt;cmath&gt;</p>
+<h4>Completion of C++23 and /std:c++23</h4>
+<p>Once the remaining C++23 features are completed, the <code>/std:c++23</code> switch will be added in upcoming MSVC Build Tools 14.52 Preview releases. At that point in time, <code>/std:c++23preview</code> will be deprecated.</p>
+<p>Full support for <code>/std:c++23</code> will begin once MSVC Build Tools 14.52 becomes the default (non-Preview) version in a Visual Studio 2026 Insiders release. Please see <a href="https://devblogs.microsoft.com/cppblog/new-release-cadence-and-support-lifecycle-for-msvc-build-tools/">New release cadence and support lifecycle for Microsoft C++ Build Tools &#8211; C++ Team Blog</a> for additional details.</p>
+<h4>IntelliSense Support</h4>
+<p>C++23 IntelliSense support in Visual Studio 2026 is still in progress in time for MSVC Build Tools 14.52 becoming the default MSVC Build Tools version in Visual Studio 2026</p>
+<h1>Conclusion</h1>
+<p>We’ve recently made major changes to our release processes, which will enable us to ship fixes and updates to MSVC Build Tools Previews with greater frequency (approximately weekly) than before.</p>
+<p>Please try out the new <a href="https://devblogs.microsoft.com/cppblog/microsoft-c-msvc-build-tools-v14-51-preview-released-how-to-opt-in/">MSVC Build Tools 14.51 Preview</a> features . We’d love your feedback on these features using the <code>/std:c++23preview</code> switch.</p>
+<p>Your feedback can help us address any bugs and improve build and runtime performance. To submit feedback, use the Help &gt; Send Feedback menu from the IDE, or navigate directly to <a href="https://developercommunity.visualstudio.com/index.html">Visual Studio Developer Community</a>. For the STL, specifically, please report feedback directly to us on the STL GitHub (<a href="https://github.com/microsoft/STL/issues">https://github.com/microsoft/STL/issues</a>).</p>
+<p>Finally, I would like to thank Stephan T. Lavavej and RanDair Porter for their content contributions to this blog post.</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>The post <a href="https://devblogs.microsoft.com/cppblog/c23-support-in-msvc-build-tools-14-51/">C++23 Support in MSVC Build Tools 14.51</a> appeared first on <a href="https://devblogs.microsoft.com/cppblog">C++ Team Blog</a>.</p>

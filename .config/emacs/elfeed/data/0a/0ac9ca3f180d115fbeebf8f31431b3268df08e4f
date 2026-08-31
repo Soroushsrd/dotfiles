@@ -1,0 +1,18 @@
+<p>Since its inception, <a href="https://kickingvegas.github.io/casual/">Casual</a> required individual setup for each module it supported. This seemed fine at the start when the module count was low. Now weighing in at <a href="https://kickingvegas.github.io/casual/Casual-Modules.html">26 modules</a>, there is admittedly a <em>lot</em> of setup.</p>
+<p>Not anymore. Starting with the latest <a href="https://github.com/kickingvegas/casual/discussions/495">Casual v3.0 update</a>, there is now a convenience command to setup all Casual modules: <code>casual-init</code>.</p>
+<p>Use the following Elisp to replace all the previous setup code:</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="p">(</span><span class="nb">require</span><span class="w"> </span><span class="ss">&#39;casual</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">casual-init</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+
+<p>You can configure which modules to setup via the customizable hook variable <code>casual-init-hook</code>, a list of hook functions each associated with a module. Having a module hook function present in <code>casual-init-hook</code> tells <code>casual-init</code> to setup that module.</p>
+<p>Editing <code>casual-init-hook</code> is straightforward using the customize checkbox interface shown below.</p>
+<p><img alt="img" src="images/simplifying-casual/casual-init-hook-customization.png"></p>
+<p>More information about installation and setup of Casual can be found in the <a href="https://kickingvegas.github.io/casual/Install.html">Casual User Guide</a>.</p>
+<h1>Bumping to 3.0</h1>
+<p>Because the recommended setup has significantly changed, I’ve decided to bump the major version to 3.0.</p>
+<p>That said, there are no functional changes to Casual and all the prior individual setup still should work without change. For existing users of Casual, I highly recommend migrating to <code>casual-init</code> as it allows for removing individual setup code.</p>
+<p>A significant amount of manual testing was required to verify lazy-loading behavior in <code>casual-init</code>. While best effort was made to avoid unpleasant surprise, if something shows up, please <a href="https://github.com/kickingvegas/casual/issues">file an issue</a> to let me know.</p>
+<p>Casual v3.0 update is now available on <a href="https://melpa.org/#/casual">MELPA</a> and <a href="https://elpa.nongnu.org/nongnu/casual.html">NonGNU ELPA</a>.</p>
+<p>It costs money to make, enhance, and maintain Casual as ideologically free software. If you enjoy using Casual, please consider <a href="https://www.buymeacoffee.com/kickingvegas">buying me a coffee</a> to help support its development and maintenance. Thank you!</p>

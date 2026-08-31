@@ -1,0 +1,14 @@
+<p>
+Charles Choi has announced the <a href="http://yummymelon.com/devnull/simplifying-setup-for-casual.html">release of Casual 3.0</a>. There are now 26 modules in the Casual suite but this release is about providing an easier setup for the suite. Prior to this release, each module had to be set up separately. As Choi says, that made sense when there were just a few modules but it has become increasingly burdensome as the number of modules grew.
+</p>
+<p>
+The new procedure is simply to call <code>casual-init</code> and all the module&rsquo;s you want to use are initialized. The modules you&rsquo;re using is determined by a set of hook functions that can configured with the Emacs Customize utility. You simple check off which modules you want to use and call <code>casual-init</code>. That&rsquo;s all there is to it. You can learn more about this in the <a href="https://kickingvegas.github.io/casual/Install.html">Casual User Manual</a>.
+</p>
+<p>
+If you&rsquo;ve been following along on Choi&rsquo;s blog—or to a lessor extent on Irreal—you know that there are a lot of different types of modules, not all of which you might want installed. The Customize interface is an easy way to specify which ones you want.
+</p>
+<p>
+The latest version is available on MELPA and NonGNU ELPA. The nice thing about the modules is that they are all invoked with the same key sequence, <kbd>Ctrl</kbd>+<kbd>o</kbd> by default, so you don&rsquo;t have to remember a bunch of different bindings. Once you invoke it, Casual brings up a Transient menu appropriate for the current major mode
+</p>
+<p>
+Casual is a nice suite that make it easier to navigate Emacs applications that you don&rsquo;t use often and for which you haven&rsquo;t internalized all the bindings. Take a look at the user manual if you want to know more.</p>

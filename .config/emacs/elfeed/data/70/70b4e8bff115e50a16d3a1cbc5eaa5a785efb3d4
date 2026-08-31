@@ -1,0 +1,11 @@
+<p>
+In the Apple ecosphere—especially in iOS—a convenient short cut is to type two spaces to end the current sentence and start a new one. Specifically, two spaces will delete the spaces, insert a period and a space, and capitalize the next letter. There&rsquo;s probably something similar in the Android world; it seems like a natural thing to do.
+</p>
+<p>
+Over at <a href="https://bicycleforyourmind.com">Bicycle For Your Mind</a>, macosxguru has a post that <a href="https://bicycleforyourmind.com/much-ado-about-emacs-015">describes three of the recent changes he&rsquo;s made to his Emacs environment</a>. Two of them—showing tabs and newlines explicitly, and fiddling with his mode line probably won&rsquo;t interest most Irreal readers. The third is importing the two space shortcut into Emacs.
+</p>
+<p>
+Emacs, of course, doesn&rsquo;t have that capability but macosxguru added it with a bit of Elisp which he binds to the <kbd>Space</kbd> key with the <code>text-mode</code> hook. It looks for two consecutive spaces and repaces them with a period and space. The tricky part is capitalizing the next letter. He does that by reading the next character explicitly and capitalizing it if it&rsquo;s a letter. He also checks for some special keys (like an arrow key) and &ldquo;unreads&rdquo; them so that Emacs can treat them normally. All the code is in the post so see it for the details if you&rsquo;re interested.
+</p>
+<p>
+I&rsquo;m ambivalent about this change. On the one hand, I use it all the time on my iPhone and iPad but that&rsquo;s because typing is such a pain on virtual keyboards. On a regular keyboard, I&rsquo;m pretty sure that I could type the period, space, and next letter just as fast. The shift for the next letter might slow things down a bit but not by much. I haven&rsquo;t decided yet whether I will adopt it but inertia will probably cause me not to.</p>

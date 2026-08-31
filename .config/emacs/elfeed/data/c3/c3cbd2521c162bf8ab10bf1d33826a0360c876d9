@@ -1,0 +1,24 @@
+<p>A while back, I made a <a href="http://yummymelon.com/devnull/til-imenu.html">post on Emacs Imenu configuration</a> that made an unsafe assumption that any mode derived from <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Basic-Major-Modes.html#index-prog_002dmode">prog-mode</a> would support Imenu. Turns out, that’s not always true (for example, looking at you <code>gnuplot-mode</code>). This post shows how to deal with this using an error handler.</p>
+<p>One such implementation of an error handler is the lambda expression shown below using <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Handling-Errors.html">condition-case</a>.</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="p">(</span><span class="nv">add-hook</span><span class="w"> </span><span class="ss">&#39;prog-mode-hook</span>
+<span class="w">          </span><span class="p">(</span><span class="nb">lambda</span><span class="w"> </span><span class="no">nil</span>
+<span class="w">            </span><span class="p">(</span><span class="k">condition-case</span><span class="w"> </span><span class="nv">err</span><span class="w"> </span><span class="p">(</span><span class="nv">imenu-add-menubar-index</span><span class="p">)</span>
+<span class="w">              </span><span class="p">(</span><span class="nv">imenu-unavailable</span>
+<span class="w">               </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">((</span><span class="nv">inhibit-message</span><span class="w"> </span><span class="no">t</span><span class="p">))</span>
+<span class="w">                 </span><span class="p">(</span><span class="nf">message</span><span class="w"> </span><span class="s">&quot;Warning: %s&quot;</span><span class="w"> </span><span class="p">(</span><span class="nf">error-message-string</span><span class="w"> </span><span class="nv">err</span><span class="p">)))))))</span>
+</code></pre></div></td></tr></table></div>
+
+<p>A couple of observations:</p>
+<ul>
+<li>The error handler is opportunistic in applying <code>imenu-add-menubar-index</code> to a mode derived from <code>prog-mode</code>.</li>
+<li>If the error <code>imenu-unavailable</code> is caught, then a warning message is logged but not messaged to the mini-buffer.<ul>
+<li>The variable <code>inhibit-message</code> is used to avoid sending a warning message to the minibuffer (it will still be logged in <strong><em>*Messages</em></strong>*) to avoid noise from modes that do not support Imenu. (Thanks to bpalmer for this guidance.)</li>
+</ul>
+</li>
+</ul>
+<p>If you use Emacs and this is the first time you’ve heard of <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Imenu.html">Imenu</a>, I highly recommend that you learn what it has to offer.</p>

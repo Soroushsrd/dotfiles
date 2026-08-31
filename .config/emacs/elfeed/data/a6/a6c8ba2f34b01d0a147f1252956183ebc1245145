@@ -1,0 +1,11 @@
+<p>I noticed that my Internet was acting strangely: whenever I visited a web page, my browser would hang for a good second or two before it started loading anything. Zoom calls worked without a problem for school, so this tipped me off that something was wrong with the DNS lookup or the handshake.</p>
+<p>Sure enough, I popped open my <a class="link-external" rel="external" href="https://pi-hole.net/">Pi-Hole</a> admin console, and was greeted with this:</p>
+<p><img src="/img/pi_hole_before.png" alt="Pi-Hole Admin Console" /></p>
+<p>The green number in the <code>Total Queries</code> box would jump by 10, 20, or sometimes even 100 every second.</p>
+<p>I tried turning off, disconnecting, and rebooting my various computers and devices to see if it was just some rogue process messing everything up. No change. I rebooted my router. No change. I updated and restarted the Pi-Hole. Still no change.</p>
+<p>I noticed that a <em>lot</em> of requests to the domain <code>lb._dns-sd._udp.0.0.0.10.in-addr.arpa</code>. I did a web search and found <a class="link-external" rel="external" href="https://discourse.pi-hole.net/t/many-requests-to-lb-dns-sd-udp-0-1-168-192-in-addr-arpa/18241">a single post on a forum</a> that suggested turning off conditional forwarding on the Pi-Hole.</p>
+<p>I went into admin settings, turned off conditional forwarding, and was rewarded with this:</p>
+<p><img src="/img/pi_hole_after.png" alt="Pi-Hole Admin Console" /></p>
+<p>Now my pi isn’t overloaded with DNS requests, and my Internet is as snappy as it used to be.</p>
+<p>What happened, I think, was that a device on my network would try and lookup some name. The router would forward this request to the pi, which would then forward it back to the router, which would then send it back to the pi, etc. Boom. Infinite loop, and all my DNS requests got bogged down.</p>
+<p>I’m not very good with networking; that’s probably my biggest weakness. I learned a thing today, though!</p>

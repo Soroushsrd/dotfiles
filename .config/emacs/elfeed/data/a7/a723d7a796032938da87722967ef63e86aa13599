@@ -1,0 +1,19 @@
+<p>
+Charlie Holland has a <a href="https://www.chiply.dev/post-ask-emacs">followup</a> to his <a href="https://www.chiply.dev/post-june-emacs-carnival">post</a> on Emacs Help <a href="https://irreal.org/blog/?p=13884">that I wrote about the other day</a>. It&rsquo;s a reconsidered, condensed version of the original post. As Holland puts it,
+</p>
+<blockquote>
+<p>
+This is a condensed version of my very long June Emacs Carnival post on the same topic. I wanted to make this as I felt it would be more intuitive for beginners, who are most likely to benefit from learning Emacs&rsquo;s auto-discovery features.
+</p>
+</blockquote>
+<p>
+It actually <i>is</i> more useful both for n00bs and experienced users alike. The best example of that is his explicit calling out of what he calls &ldquo;the prefix trick&rdquo;. The idea is that there are a handful of prefixes that begin many help commands.  One example is <code>describe-</code> that begins all the help commands that describe something: <code>describe-function</code>, <code>describe-variable</code>, etc. The &ldquo;trick&rdquo; is that you can type <kbd>Meta</kbd>+<kbd>x</kbd> <code>describe</code> and then <kbd>Tab</kbd> to get a list of all the describe commands. That&rsquo;s something that most of us know implicitly but it&rsquo;s useful to have it pointed out explicitly.
+</p>
+<p>
+The other useful fact, which I wasn&rsquo;t aware of, is that <kbd>Meta</kbd>+<kbd>x</kbd> <code>which-key-show-top-level</code> will show all the commands without a prefix.
+</p>
+<p>
+The point of Holland&rsquo;s followup is that you don&rsquo;t need to memorize a lot of arcana to use the Emacs Help system. If you know the prefixes to use with <kbd>Meta</kbd>+<kbd>x</kbd> and <kbd>Ctrl</kbd>+<kbd>h</kbd> <kbd>Ctrl</kbd>+<kbd>h</kbd> to bring up the Help cheat sheet, you&rsquo;re good to go.
+</p>
+<p>
+<b>Update</b> <span class="timestamp-wrapper"><span class="timestamp">[2026-06-23 Tue 11:15]</span></span>: Added link to followup.</p>

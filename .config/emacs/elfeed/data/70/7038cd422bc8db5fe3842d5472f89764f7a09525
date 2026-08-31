@@ -1,0 +1,39 @@
+<div class="wp-block-image">
+<figure class="alignright size-full is-resized"><a href="https://herbsutter.com/wp-content/uploads/2026/06/image-1.png"><img data-attachment-id="6347" data-permalink="https://herbsutter.com/2026/06/28/gor-nishanov-1971-2026/image-26/" data-orig-file="https://herbsutter.com/wp-content/uploads/2026/06/image-1.png" data-orig-size="664,824" data-comments-opened="0" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;,&quot;alt&quot;:&quot;&quot;}" data-image-title="image" data-image-description="" data-image-caption="" data-large-file="https://herbsutter.com/wp-content/uploads/2026/06/image-1.png?w=664" src="https://herbsutter.com/wp-content/uploads/2026/06/image-1.png" alt="Gor Nishanov at the Prague meeting in February 2020 that shipped C++20, including Gor's coroutines feature" class="wp-image-6347" style="width:400px;height:auto" /></a></figure>
+</div>
+
+
+<p class="wp-block-paragraph">I am deeply saddened to report that this weekend, far too soon, <a href="https://www.linkedin.com/posts/gabriel-dos-reis_cplusplus-coroutines-inmemoriam-activity-7477203816602509314-XtHe/">we lost Gor Nishanov</a>: a friend and colleague, an extraordinary software engineer, and a long-serving member of the C++ standards committee.</p>
+
+
+
+<p class="wp-block-paragraph">Gor was always intelligent and witty, but above all he was kind and generously helpful to others. I especially appreciated the times that he quietly took me aside to offer advice when he could see I was making mistakes at work or in the ISO C++ committee we both attended; Gor’s frank advice, delivered with deep kindness, always helped me to do better.</p>
+
+
+
+<p class="wp-block-paragraph">I had the great privilege of working with Gor on the Microsoft Visual C++ team for about a decade, while he built coroutines and other projects. After sustained design and programming success during his years in the Windows division, he came to our C++ team excited to take the &#8220;await for C++&#8221; work forward, and that he did: For many of you, Gor&#8217;s biggest impact on your careers will be that he was the architect of Standard C++ coroutines. Gor did the years-long uphill work of design iteration and consensus-building needed to bring coroutines from his early &#8220;resumable functions&#8221; papers in 2014 through to their final form added to ISO C++20. Along the way, he implemented them in two different compiler toolchains, Microsoft Visual C++ and Clang/LLVM, which was a ton of work on its own, and the proof that the design was real and shippable.</p>
+
+
+
+<p class="wp-block-paragraph">But here I need to point out a perfect example of how Gor was special: He didn&#8217;t just advance his coroutines proposal; he repeatedly spent serious, late-night time helping committee members at other companies improve their coroutine papers <em>that competed against his own</em>. He helped them make their rival designs and implementations the best they could be, so that the committee could choose the best possible one of the available designs, whether it was his or not. That&#8217;s a rare level of professional commitment to intellectual honesty, demonstrated through costly personal effort, that should be a model for all of us. And it won hearts; I don&#8217;t know anyone, including the authors of the coroutine proposals that ended up not being selected, who had less than the highest respect for Gor&#8217;s integrity and his sincere desire to be helpful.</p>
+
+
+
+<p class="wp-block-paragraph">Since C++20 shipped, Gor continued to shape the future of asynchronous programming in C++ and be involved in other projects that helped programmers inside and outside Microsoft write modern async code. In the ISO C++ committee, he was most recently a coauthor of the proposal for adding concurrent queues to the C++ standard library, contributing to revisions 14 through 19 of that proposal in 2025 and, just like Gor, providing <a href="https://github.com/GorNishanov/conqueue">a partial implementation</a>.</p>
+
+
+
+<p class="wp-block-paragraph">Gor was an outstanding developer, and an exceptional human being. He will be missed and fondly remembered by all who knew him.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity" />
+
+
+
+<p class="wp-block-paragraph">Edited to add: The main photo above (thanks to Gabriel Dos Reis) and the additional photo below (thanks to Alan Talbot) were taken at the midweek evening social event at the Prague February 2020 ISO C++ meeting — the meeting where we finalized and shipped C++20 including Gor&#8217;s coroutine design. Within the ISO C++ committee, C++ coroutines continue to be lovingly called Gor-routines.</p>
+
+
+<div class="wp-block-image">
+<figure class="aligncenter size-large"><a href="https://herbsutter.com/wp-content/uploads/2026/06/image-2.png"><img width="600" height="560" data-attachment-id="6378" data-permalink="https://herbsutter.com/2026/06/28/gor-nishanov-1971-2026/image-27/" data-orig-file="https://herbsutter.com/wp-content/uploads/2026/06/image-2.png" data-orig-size="600,560" data-comments-opened="0" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;,&quot;orientation&quot;:&quot;0&quot;,&quot;alt&quot;:&quot;&quot;}" data-image-title="image" data-image-description="" data-image-caption="" data-large-file="https://herbsutter.com/wp-content/uploads/2026/06/image-2.png?w=600" src="https://herbsutter.com/wp-content/uploads/2026/06/image-2.png?w=600" alt="" class="wp-image-6378" srcset="https://herbsutter.com/wp-content/uploads/2026/06/image-2.png 600w, https://herbsutter.com/wp-content/uploads/2026/06/image-2.png?w=150 150w, https://herbsutter.com/wp-content/uploads/2026/06/image-2.png?w=300 300w" sizes="(max-width: 600px) 100vw, 600px" /></a></figure>
+</div>

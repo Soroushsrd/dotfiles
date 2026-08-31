@@ -1,0 +1,14 @@
+<p>
+Bozhidar Batsov has a post <a href="https://batsov.com/articles/2026/06/11/emacs-loves-asciidoc/#fn:2">announcing a couple of new Emacs modes for AsciiDoc</a>. In the usual Batsov way, he&rsquo;s significantly improved the support for <a href="https://asciidoc.org/">AsciiDoc</a> in Emacs. He loves AsciiDoc but found it hard to use in Emacs because the support was so bad.
+</p>
+<p>
+I&rsquo;ve never used AsciiDoc so I don&rsquo;t know why Batsov prefers it to Org mode. Org mode can be and has been used to produce first class technical documentation. If needed, it can bring to bear all the power of LaTeX to produce a polished product.
+</p>
+<p>
+As far as I can see, the only reason not to use Org mode is because you&rsquo;re not an Emacs user or are collaborating on a document with someone who isn&rsquo;t. It offers everything you&rsquo;re apt to need short of bringing in a heavyweight dedicated document preparation system. I&rsquo;m sure Irreal readers not as ignorant as I about the situation can tell us why we should prefer AsciiDoc. Our lines are open.
+</p>
+<p>
+If you <i>are</i> an AsciiDoc user, Batsov&rsquo;s two new modes are sure to be a blessing. The update to <a href="https://github.com/bbatsov/adoc-mode/releases/tag/v0.7.0">adoc-mode</a> is designed to work with all versions of Emacs and updates the regex-based font-locking to the current AsciiDoc grammar. It&rsquo;s perfect for an AsciiDoc user who&rsquo;s running an older version of Emacs. <a href="https://github.com/bbatsov/asciidoc-mode">Asciidoc-mode</a> is the more modern solution using tree-sitter to handle things like font-locking but it only runs on Emacs 30.1+.
+</p>
+<p>
+Take a look at Batsov&rsquo;s post for the details on the two modes. And if you know why an Org mode user should care, leave a comment.</p>

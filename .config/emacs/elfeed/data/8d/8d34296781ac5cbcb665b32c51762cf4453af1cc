@@ -1,0 +1,35 @@
+<p>
+I&rsquo;ve been writing a bit lately about my growing use of EWW [<a href="https://irreal.org/blog/?p=13813">1</a>, <a href="https://irreal.org/blog/?p=13820">2</a>, <a href="https://irreal.org/blog/?p=13846">3</a>, <a href="https://irreal.org/blog/?p=13971">4</a>]. I was always a little skeptical of those who said they made significant use of EWW for their browsing but then I realized that I had started doing the same thing. It certainly hasn&rsquo;t replaced Safari but I <i>am</i> using it more and more.
+</p>
+<p>
+It started fairly innocently. I use <a href="https://github.com/fritzgrabo/elfeed-webkit">elfeed-webkit</a> to render the web pages from my RSS feed. That has the significant disadvantage that my ad and tracking blocker doesn&rsquo;t work for them. That, in turn, means that I get all sorts of junk displayed. It&rsquo;s usually a <a href="https://daringfireball.net/2026/05/what_is_a_dickover">dickover</a> but sometimes there&rsquo;s a seemingly never ending train of popup ads. Fortunately, elfeed (and elfeed-webkit) have a hot key to display the page in EWW and avoid all that. Now as soon as a dickover covers up the text or a avalanche of ads starting popping up, I simply switch over to EWW and read in peace. It&rsquo;s surprising how little I need JavaScript.
+</p>
+<p>
+As I said, I find myself using EWW more and more. It&rsquo;s easy to call it from Embark when the point is on a URL and often I&rsquo;ll just use it instead of invoking Safari. Of course, that brings up question. Can I switch from Safari to EWW when I need to? I couldn&rsquo;t find any builtin way but I realized I already had everything I needed to do it. The first part is to retrieve the URL of the current Safari Web page. I&rsquo;ve had a function to do this for a long time and use it all the time to capture links to the current Web page into Org. It&rsquo;s pretty simple but restricted to macOS. Here it is.
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><code>(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">jcs-retrieve-url</span> ()
+  <span style="color: #8b2252;">"Retrieve the URL of the current Safari page as a string."</span>
+  <span style="color: #b22222;">;; </span><span style="color: #b22222;">(org-trim (shell-command-to-string
+</span>  <span style="color: #b22222;">;;   </span><span style="color: #b22222;">"osascript -e 'tell application \"Safari\" to return URL of document 1'")))
+</span>  (do-applescript <span style="color: #8b2252;">"tell application \"Safari\" to return URL of document 1"</span>))
+</code></pre>
+</div>
+<p>
+The way to do this varies by browser and OS but is usually straightforward.
+</p>
+<p>
+The second part is doing the actual switch. Again, it&rsquo;s simple:
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><code>(<span style="color: #a020f0;">defun</span> <span style="color: #0000ff;">jcs-switch-to-eww</span> ()
+  <span style="color: #8b2252;">"Invoke EWW for the current Safari web page"</span>
+  (<span style="color: #a020f0;">interactive</span>)
+  (eww (jcs-retrieve-url)))
+</code></pre>
+</div>
+<p>
+I put this in <a href="https://github.com/deseven/icanhazshortcut">iCanHazShortcut</a> and bound it to <kbd>Ctrl</kbd>+<kbd>F7</kbd>. It works fine except I haven&rsquo;t yet figured out how to switch to Emacs from Safari so I have to press <kbd>F6</kbd> for that. That&rsquo;s a small price to play until I figure out the rest of the magic spell.
+</p>
+<p>
+EWW, of course, has a way to switch to the default browser so it&rsquo;s easy to pop back and forth as needed. It&rsquo;s a small thing but makes my workflow easier.</p>

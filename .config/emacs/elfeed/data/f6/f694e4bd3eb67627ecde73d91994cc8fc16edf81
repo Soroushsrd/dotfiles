@@ -1,0 +1,62 @@
+<p><img alt="img" src="images/open-in-emacs-shortcut/open-in-emacs-quick-action.png"></p>
+<h1>TL;DR</h1>
+<p>If you use both <a href="http://yummymelon.com/scrim/">Scrim</a> and Emacs on macOS, you can “Open in Emacs” a file or directory from Finder via the “Quick Actions” context menu. This is implemented as a macOS Shortcut, shared as an iCloud link:</p>
+<p><a href="https://www.icloud.com/shortcuts/f5c8499183dc44ec89cebfc78bfb0433">“Open in Emacs” Shortcut iCloud Link</a></p>
+<h1>Motivation</h1>
+<p>I find macOS <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Drag-and-Drop.html">drag-and-drop</a> operations from Finder to Emacs (in particular, the NS variant) to be frustratingly inconsistent.</p>
+<ul>
+<li>Dragging a file or folder from Finder to a non-Dired buffer will visit it.<ul>
+<li>Not always! This behavior can be mode-specific.</li>
+</ul>
+</li>
+<li>Dragging a file or folder from Finder to a Dired buffer will copy it.</li>
+<li>Dragging a file or folder from Finder to the Emacs icon in the Dock will visit it in a new frame.</li>
+</ul>
+<p>Add to that, drag-and-drop isn’t graceful with a long traversal path on a large screen.</p>
+<p>Ultimately, what I want is a single consistent action to “Open in Emacs” a file or directory from Finder. This post describes a solution for achieving this using the <a href="http://yummymelon.com/scrim/">Scrim</a> and <a href="https://support.apple.com/guide/shortcuts-mac/intro-to-shortcuts-apdf22b0444c/mac">macOS Shortcuts</a> apps.</p>
+<h1>Background</h1>
+<h2>Scrim</h2>
+<p>Scrim is an Org protocol proxy app that I had <a href="http://yummymelon.com/devnull/announcing-scrim--an-org-protocol-proxy-for-emacs-on-macos.html">published on the App Store</a> last year. Implementing Scrim was largely an exercise in reverse-engineering <code>emacsclient</code> to be a macOS app. This is because macOS apps these days (macOS 10.14+) are packaged to execute as a <a href="https://developer.apple.com/documentation/security/hardened-runtime">hardened runtime</a> (aka “sandboxed”). Among the many things a hardened runtime restricts is the ability for an app to <a href="https://en.wikipedia.org/wiki/Exec_(system_call)">exec</a> another program outside of its sandbox (like <code>emacsclient</code>).</p>
+<p>In lieu of that restriction, macOS provides different APIs to let apps work with other apps, among them <em>Services</em> (more below), <a href="https://developer.apple.com/documentation/intents/">Intents</a> (a whole different topic worthy of another post), and <a href="https://developer.apple.com/documentation/xcode/defining-a-custom-url-scheme-for-your-app">custom URL schemes</a>.</p>
+<p>A custom URL scheme is what Scrim provides to allow other apps to do <code>emacsclient</code>-like things like opening a file. By design, Scrim does not surface all the capabilities of <code>emacsclient</code> such as arbitrary Elisp execution. The custom URL scheme itself is <code>scrim://</code>.</p>
+<p>Currently the <code>scrim://</code> URL scheme supports the following two actions:</p>
+<ol>
+<li>Visit a file or directory (e.g. <code>scrim://open?file=~/.profile</code>)</li>
+<li>Open an Info node (e.g. <code>scrim://info?node=(eshell) Top</code>)</li>
+</ol>
+<p>For this post, we will concern ourselves with (1) visiting (opening) a file or directory.</p>
+<p>Note that on a system where a custom URL scheme is installed, <em>any</em> app on that system can open said custom URL scheme.</p>
+<h2>Services</h2>
+<p>The macOS <a href="https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/SysServices/introduction.html#/apple_ref/doc/uid/10000101-SW1">Services API</a> allows an application to access the functionality of another.</p>
+<p>Apple uses this API to provide tools to help orchestrate workflows between different applications, namely AppleScript, Automator, and Shortcuts. Note that as of this writing, AppleScript and Automator are in maintenance mode, and Shortcuts is intended to supersede Automator. Once a workflow is defined, it is usually accessed via a context menu sub-menu labeled “Quick Actions” or “Services”.</p>
+<h1>“Open in Emacs” Shortcut</h1>
+<p>With the above background out of the way, let's turn our attention to the Shortcut itself.</p>
+<p><img alt="img" src="images/open-in-emacs-shortcut/open-in-emacs-shortcut.png"></p>
+<p>The shortcut invokes a Python script which forms the <code>scrim://open?file</code> custom URL and then opens it with the <code>open</code> command line utility.</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span>
+<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">call</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote</span>
+
+<span class="n">buf</span> <span class="o">=</span> <span class="s2">&quot;scrim://open?file=</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">quote</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+<span class="n">cmdList</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;open&#39;</span><span class="p">,</span> <span class="n">buf</span><span class="p">]</span>
+<span class="n">call</span><span class="p">(</span><span class="n">cmdList</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+
+<p>This shortcut can be installed via iCloud link: <a href="https://www.icloud.com/shortcuts/f5c8499183dc44ec89cebfc78bfb0433">“Open in Emacs” Shortcut iCloud Link</a>.</p>
+<p>When installed, the menu item "Open in Emacs" will appear in the "Quick Actions" sub-menu when the context menu is raised on an Finder item.</p>
+<h1>“scrim link” Shortcut</h1>
+<p><img alt="img" src="images/open-in-emacs-shortcut/scrim-link-shortcut.png"></p>
+<p>What if you want just the Scrim URL to open a file or directory instead? The shortcut "scrim link" shown above provides that, putting the URL into the system clipboard to paste into another native macOS app like Notes or TextEdit. Such apps that recognize custom URL schemes will treat the URL as a “live” link.</p>
+<p><img alt="img" src="images/open-in-emacs-shortcut/scrim-notepad-example.png"></p>
+<p>This shortcut is available at <a href="https://www.icloud.com/shortcuts/195d64f6e4474826b71834fd06523c14">“scrim link” Shortcut iCloud Link</a>.</p>
+<h1>Closing Thoughts</h1>
+<p>While the behavior of "Open in Emacs" seems modest, a <em>lot</em> of things need to happen under the hood to orchestrate the different apps required to make it happen on macOS. But taking a step back, I'd observe that this is not unique to just macOS alone. Other contemporary operating systems are following suit as seen with <a href="https://en.wikipedia.org/wiki/Snap_(software)">Snap (Ubuntu)</a> and <a href="https://en.wikipedia.org/wiki/Flatpak">Flatpak</a> for Linux, and UWP for Windows. Such isolating practices by OS vendors are <em>not</em> going away.</p>
+<p>Running counter to this is the spate of interest in orchestrating apps and/or services together using AI tools, whose approach so far is to bypass all hardened runtime boundaries.</p>
+<p>Then there is comparison to the Emacs ecosystem, where orchestration of apps (or rather modes) is routinely done via Elisp. By implementation circumstance there are effectively no concerns for security boundaries within the internals of Emacs.</p>
+<p>There's a lot of ground to ruminate on, in particular software malleability and orchestration, which I intend to do with future posts on this blog.</p>

@@ -1,0 +1,173 @@
+<p>Continuing my avocation of writing to increasingly niche audiences, today we have a matter at the intersection of several small Venn bubbles:</p>
+<ul>
+<li>the group of Emacs users who code in Emacs,</li>
+<li>who use Git (or version control) everywhere,</li>
+<li>who work using offshoot or feature branches,</li>
+<li>while using the diff-hl package to visually track changes in their buffers.</li>
+</ul>
+<p>As minutiae go, this one is quite <em>minute</em>, a real fringe matter.  It&rsquo;s also not a paen to Emacs&rsquo; extensibility or composability, because as much as I enjoy beating that drum the feature we&rsquo;re looking for is actually in plain sight for once.</p>
+<p>It&rsquo;s just really neat though, so I&rsquo;m going to describe it to you.  You&rsquo;re here now.  Settle in.</p>
+<h2 id="rise-and-shine-dr-dot-diffman-dot-rise-and-shine-dot">Rise and shine, Dr. Diffman.  Rise and shine.</h2>
+<p>If you load a file that&rsquo;s tracked via version control into your editor, most modern text or code editors will indicate in the buffer the bits that have been modified since the last commit, i.e. the last set of registered changes.  Here&rsquo;s the <a href="https://zed.dev">Zed editor</a> showing this via yellow/red marks in the fringe to the left of the text:</p>
+<figure><img src="https://karthinks.com/img/zed-diff-hl.png"/>
+</figure>
+
+<p>In Emacs this is provided by Dmitry Gutov&rsquo;s <a href="https://github.com/dgutov/diff-hl">diff-hl</a> or Shohei Yoshida&rsquo;s  <a href="https://github.com/emacsorphanage/git-gutter">git-gutter</a> packages, with the former pictured here:</p>
+<figure><img src="https://karthinks.com/img/emacs-diff-hl.png"/>
+</figure>
+
+<p>This inline-indication business usually goes <em>much</em> further, with editors annotating lines with when they were last changed, or whose fault it was.  My relatively tiny code or prose projects with 2-4 participants (at most) have little need for these fancier features.  Emacs makes it easy enough to generate them when required anyway
+<span class="sidenote-number"><small class="sidenote">
+<code>vc-region-history</code> (<code>C-x v h</code>) and <code>vc-annotate</code> (<code>C-x v g</code>), respectively &ndash; no Magit required.
+</small></span>
+.</p>
+<p>But diff-hl is mighty handy.  Being able to identify changed regions at a glance is good, but you can also navigate and act on them.  Jump between hunks with one key, see changes inline, mark or revert hunks and more:</p>
+<video preload="metadata" style="center" width="700" controls>
+<source src="https://i.imgur.com/6ixIlZe.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/emacs-diff-hl-demo.mp4">[VIDEO: diff-hl demo]</a></video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<p>The keys being pressed are indicated in the header.</p>
+<ul>
+<li>With <code>diff-hl-mode</code> enabled in the buffer,</li>
+<li>Run <code>diff-hl-next-hunk</code> (<code>C-x v n</code>).  This moves the cursor to the next hunk,</li>
+<li>and it activates a <a href="https://karthinks.com/software/it-bears-repeating/">repeat-map</a>, making subsequent diff-hl commands accessible with just <code>n</code>, <code>p</code> and so on.</li>
+<li>Press <code>*</code> (shortened from <code>C-x v *</code> by <code>repeat-mode</code>) to show inline diffs of changed hunks.</li>
+<li>After navigating some more, press <code>SPC</code> (shortened from <code>C-x v SPC</code> by <code>repeat-mode</code>) to mark a hunk.</li>
+</ul>
+</div>
+</details>
+<h2 id="the-right-diff-in-the-wrong-place-dot-dot-dot">The right diff in the wrong place&hellip;</h2>
+<p>There&rsquo;s only one problem: when working on a branch with many commits, diff-hl tracks changes relative to the <code>HEAD</code> of the branch.  This is almost never what I want when I&rsquo;m working on a feature off in a different branch.  Representing each commit as a sphere, here&rsquo;s what I mean:</p>
+<figure><img src="https://karthinks.com/img/diff-hl-default-revision-tree.png"/>
+</figure>
+
+<p>At this stage, the change from <code>feature</code> / <code>HEAD</code> to the worktree is at best an incomplete picture.  Unless looking for something very specific, it doesn&rsquo;t help to highlight worktree changes against earlier commits on <code>feature</code> either.  The previous commits in this branch are temporary checkpoints in an experiment, and don&rsquo;t necessarily represent atomic, self-contained or meaningful changes &ndash; hence the jumble of colors in each commit in the figure.  What I find actually helpful is to compare the contents of the buffer to the state of the <em>main branch</em>:</p>
+<figure><img src="https://karthinks.com/img/diff-hl-customized-revision-tree.png"/>
+</figure>
+
+<p>This is, of course, readily accessible via Magit or VC via a couple of keystrokes.  Either one can produce pleasingly formatted diff buffers showing the right changes for any range.  But as mentioned above, being able to have the right changes indicated in the work buffer is only one of the advantages.  With diff-hl and the right range of changes indicated, you can jump between them, mark them, revert them and more.</p>
+<p>Recreating the commits in <code>feature</code> to encode atomic &ndash; or at least limited &ndash; changes is on the docket, but for later.  This involves &ldquo;unscrambling&rdquo; the commits into uniformly colored spheres, often via an interactive rebase, or just selective git-resets:</p>
+<figure><img src="https://karthinks.com/img/diff-hl-cleanup-commits.png"/>
+</figure>
+
+<p>Usually the true &ldquo;shape&rdquo; of the changes can only be limned at the end of the <code>feature</code> experiment, at which point a &ldquo;logical&rdquo; history can be forged before merging into the main branch using your preferred strategy
+<span class="sidenote-number"><small class="sidenote">
+Unless your preferred strategy is to <em>squash</em> all the carefully recreated, atomic commits into a giant merge commit.  Then your preferred strategy is wrong.
+</small></span>
+.</p>
+<figure><img src="https://karthinks.com/img/diff-hl-merge-strategy.png"/>
+</figure>
+
+<h2 id="dot-dot-dot-can-make-all-the-difference-in-the-world-dot">&hellip;can make all the difference in the world.</h2>
+<p>As it turns out diff-hl understands this problem to a limited extent.  It provides a secondary minor-mode, <code>diff-hl-amend-mode</code>, that shows the change markers with respect to <code>HEAD^</code>, the parent of <code>HEAD</code>.  This is typically what you want when your changes are intended to amend the latest commit instead of creating a new one.  While it&rsquo;s not what we&rsquo;re looking for, it&rsquo;s a good starting point.</p>
+<p>But the mechanism is simple enough.  In this pseudo Elisp block:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#963">show-changes-between</span> <span style="color:#963">from-commit</span> <span style="color:#963">current-buffer-state</span>)
+</span></span></code></pre></div><p>we&rsquo;d like a way to set <code>from-commit</code>, but just for this buffer or project.  If you use <code>diff-hl-amend-mode</code>, <code>from-commit</code> would be <code>HEAD^</code>.  If we can set it to <code>master</code> or <code>master^</code> (or <code>main</code>), we&rsquo;re done.</p>
+<p>And set it we can.  <code>from-commit</code> is actually a single global variable conveniently exposed by diff-hl: <code>diff-hl-reference-revision</code>.  We can deal with the globality by making it buffer local.  And that&rsquo;s it as far as the Elisp hacking goes &ndash; no hooks or advice needed today.</p>
+<h2 id="not-that-i-wish-to-imply-you-have-been-sleeping-on-the-margins-dot">Not that I wish to imply you have been sleeping on the margins.</h2>
+<p>Only there&rsquo;s still the matter of the interface.  The absolute spartan way of using this option would be to run <code>M-x eval-expression</code> (<code>M-:</code>) and type in</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">setq-local</span> <span style="color:#963">diff-hl-reference-revision</span> <span style="background-color:#fff0f0">&#34;master&#34;</span>)
+</span></span></code></pre></div><p>On later uses, you can search the minibuffer history for this code via <code>minibuffer-complete-history</code> (<code>M-r</code>).  After a few weeks of this, the mild frustration mounts until it crosses a threshold: <em>I should really put this somewhere more convenient</em>.</p>
+<p>The logical next step is to define a command that does this.  diff-hl actually includes one
+<span class="sidenote-number"><small class="sidenote">
+It&rsquo;s <code>diff-hl-set-reference-rev</code>
+</small></span>
+, but that sets it globally, across Emacs.  So we sigh and grow our configuration files a little bit:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">my/diff-hl-set-reference</span> ()
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Set the reference revision for showing diff-hl changes.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">Do so buffer-locally.&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">interactive</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">setq-local</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#963">diff-hl-reference-revision</span>
+</span></span><span style="display:flex;"><span>   (<span style="color:#06b;font-weight:bold">read-string</span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#06b;font-weight:bold">format</span> <span style="background-color:#fff0f0">&#34;Set reference revision (buffer %s): &#34;</span>
+</span></span><span style="display:flex;"><span>            (<span style="color:#06b;font-weight:bold">buffer-name</span>))))
+</span></span><span style="display:flex;"><span>  (<span style="color:#963">diff-hl-update</span>))
+</span></span></code></pre></div><p>Dust your hands, the problem&rsquo;s solved.  <code>M-x my/diff-hl-set-reference</code> works pleasingly for a few weeks, especially since the minibuffer completion system floats this up with frequent usage
+<span class="sidenote-number"><small class="sidenote">
+You do use <code>savehist-mode</code> or <code>prescient</code>, right?
+</small></span>
+for easy access.</p>
+<p>But eventually two further needs appear:</p>
+<ol>
+<li>I use this so often that I need it on a key, dammit.</li>
+<li>Can&rsquo;t I just set this across my project instead of in every buffer?</li>
+</ol>
+<p>Needs 1 and 2 obviate each other somewhat, in that either one makes it less necessary to call the <code>-set-reference</code> command via <code>M-x</code>.  But let&rsquo;s address them separately anyway.</p>
+<h3 id="all-the-effort-in-the-world-would-have-gone-to-waste-until-dot-dot-dot">All the effort in the world would have gone to waste until&hellip;</h3>
+<p>Setting up a keybind is easy if we can find room for it.  And then if we can remember it.  Emacs keymaps are crowded spaces.  On more than one occasion I&rsquo;ve opened up my init file intending to add a handy keybinding for a useful command, only to discover that I already did months ago&hellip; and then forgot it was available.</p>
+<p>To some extent you can mitigate this effect by placing it logically with the other diff-hl commands, which are conveniently grouped together into <code>diff-hl-command-map</code>.  So assuming you use <em>any</em> diff-hl commands, this one should show up in <code>which-key</code> or your keymap prompter of choice.</p>
+<p>But in my case even this is a lost cause.  I already combine <code>vc-prefix-map</code>, used by Emacs for version control actions, with <code>diff-hl-command-map</code> under the <code>C-x v</code> prefix because their functions are related.  So <code>C-x v</code> is quite a busy junction.  Here&rsquo;s which-key doing its best to show me what&rsquo;s available:</p>
+<figure><img src="https://karthinks.com/img/vc-prefix-map-preview.png"/>
+</figure>
+
+<p>The solution is to place it where I turn on/off <code>diff-hl-mode</code> in the first place: in a catchall transient menu I use to access all minor-modes I need in Emacs buffers
+<span class="sidenote-number"><small class="sidenote">
+A good chunk of this menu deals with settings that make no sense for most Emacs users &ndash; for example, a switch to toggle requiring sentence ends to be single/double spaced, adjust line-spacing on the fly, or switch between different sets of <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Completion-in-Buffers.html">CAPFs</a>.
+</small></span></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"></code></pre></div><figure><img src="https://karthinks.com/img/toggle-modes-transient.png"/>
+</figure>
+
+<p>Calling the diff-hl option from this menu with a prefix-arg now (essentially) runs the above function, allowing me to set the reference revision before turning on the mode (if required).</p>
+<figure><img src="https://karthinks.com/img/diff-hl-rev-comparison.png"/>
+</figure>
+
+<p>Here&rsquo;s a demo combining this with a few other nifty diff-hl commands and <a href="https://karthinks.com/software/it-bears-repeating/">repeat-mode</a>:</p>
+<video preload="metadata" style="center" width="700" controls>
+<source src="https://i.imgur.com/kFPo8BW.mp4" type="video/mp4">
+<a href=https://karthinks.com/img/diff-hl-toggle-modes-demo.mp4">[VIDEO: Toggling diff-hl reference revision]</a></video>
+<details>
+<summary>Play by play</summary>
+<div class="details">
+<p>The keys being pressed are indicated at the top.</p>
+<ul>
+<li>Begin in a buffer in some feature branch that is some &ldquo;distance&rdquo; away from <code>master</code>.</li>
+<li>Use diff-hl commands to navigate to hunks. diff-hl is currently showing buffer changes in the working tree against <code>HEAD</code>.</li>
+<li>Use <code>diff-hl-show-hunk</code> (<code>C-x v *</code>) to see the diffs for individual hunks inline.</li>
+<li>Call the <code>toggle-modes</code> transient mentioned above.</li>
+<li>Choose the <code>g</code> option with a prefix-arg (<code>C-u</code>).  This causes the reference revision (the <code>from-commit</code> we want) to be read from the minibuffer.  Ask to see changes from <code>master</code>.</li>
+<li>diff-hl updates to mark changes from <code>master</code>.  As you might expect, there are more changes &ndash; everything that&rsquo;s changed since <code>master</code>.</li>
+<li>Navigate through the changes again with diff-hl commands.</li>
+<li>Pick the <code>toggle-modes</code> transient menu option again, this time setting the reference revision to <code>HEAD</code>&rsquo;s grandparent, <code>HEAD^^</code>.</li>
+<li>diff-hl updates the changes again.  As you might expect, there are fewer changes.</li>
+</ul>
+</div>
+</details>
+<p>Here&rsquo;s the actual function that <code>g</code> in the <code>toggle-modes</code> menu is bound to:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">lambda</span> (<span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">arg</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Toggle </span><span style="color:#a60;background-color:#fff0f0">`diff-hl-mode&#39;</span><span style="background-color:#fff0f0">.
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">With prefix ARG ensure </span><span style="color:#a60;background-color:#fff0f0">`diff-hl-mode&#39;</span><span style="background-color:#fff0f0"> and set revision to compare
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">against.&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">interactive</span> <span style="background-color:#fff0f0">&#34;P&#34;</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">if</span> (<span style="color:#06b;font-weight:bold">null</span> <span style="color:#963">arg</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#963">diff-hl-mode</span> <span style="color:#a60;background-color:#fff0f0">&#39;toggle</span>)
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">let</span> ((<span style="color:#963">ref</span> (<span style="color:#06b;font-weight:bold">read-string</span> <span style="background-color:#fff0f0">&#34;Reference revision for diff-hl: &#34;</span>)))
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">setq-local</span> <span style="color:#963">diff-hl-reference-revision</span> <span style="color:#963">ref</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#963">diff-hl-mode</span>) (<span style="color:#963">diff-hl-update</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#06b;font-weight:bold">message</span> <span style="background-color:#fff0f0">&#34;Showing changes against %s&#34;</span> <span style="color:#963">ref</span>))))
+</span></span></code></pre></div><h3 id="dot-dot-dot-well-let-s-just-say-your-hour-has-come-again-dot">&hellip;well, let&rsquo;s just say your hour has come again.</h3>
+<p>As you might expect, the way to apply diff-hl&rsquo;s reference revision setting to all buffers in a project is to use a <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Directory-Variables.html">directory-local variable</a>.  In most cases, setting it once per project (or git-worktree, in my case) is all you need.</p>
+<p>This approach requires a little forethought but no moment-to-moment busywork: Run <code>M-x add-dir-local-variable</code></p>
+<ul>
+<li>with a major-mode choice of <code>nil</code>,</li>
+<li>and setting the variable <code>diff-hl-reference-revision</code></li>
+<li>to <code>&quot;master&quot;</code> .</li>
+</ul>
+<p>This produces the following <code>.dir-locals.el</code> file:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span><span style="color:#888">;;; Directory Local Variables            -*- no-byte-compile: t -*-</span>
+</span></span><span style="display:flex;"><span><span style="color:#888">;;; For more information see (info &#34;(emacs) Directory Variables&#34;)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>((<span style="color:#036;font-weight:bold">nil</span> <span style="color:#333">.</span> ((<span style="color:#963">diff-hl-reference-revision</span> <span style="color:#333">.</span> <span style="background-color:#fff0f0">&#34;master&#34;</span>))))
+</span></span></code></pre></div><p>Typically you would want to chuck this file into version control as well &ndash; but in this case that may be something you want to consider carefully!</p>
+<h2 id="so-wake-up-dr-dot-diffman-dot-wake-up-and-mark-the-fringes-dot">So, wake up, Dr. Diffman.  Wake up and mark the fringes.</h2>
+<p>Before I thought to adapt diff-hl to how I worked, I was coding in feature branches in a strange way.  I would make a bunch of work-in-progress checkpoint commits and store them on a remote, then soft-reset the branch to the original branch point so I could see indicators for all changed regions in buffers, jump between them with <code>diff-hl-next-hunk</code> and so on.</p>
+<p>It took a while
+<span class="sidenote-number"><small class="sidenote">
+a &ldquo;while&rdquo; is code for <em>years</em>
+</small></span>
+to consider that it didn&rsquo;t have to be this way.  This isn&rsquo;t an adjustment that requires Emacs&rsquo; much vaunted flexibility &ndash; you can probably do this in any editor that provides the diff-hl feature.  I just never thought to do it, and worked around the tool instead of making the tool work for me.  Well that&rsquo;s sorted.</p>
+<p>There is no other upshot.  This yak has been shaved.  You&rsquo;re free now, go mark some fringes.</p>

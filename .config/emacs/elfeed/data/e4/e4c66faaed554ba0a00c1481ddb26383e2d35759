@@ -1,0 +1,347 @@
+<p>Emacs offers a dizzying number of commands to perform bulk operations on multiple files or buffers. These commands are quite capable and can make trivial the execution of workflows that would be heroic in other editors. Unfortunately these commands are also difficult to discover as a number of them are not featured in easily accessible menus.</p>
+<p>This post calls attention to bulk commands related to search and replace in Emacs and how their discoverability can be improved using the <a href="https://kickingvegas.github.io/casual/index.html">Casual</a> and <a href="https://kickingvegas.github.io/anju/">Anju</a> UI packages.</p>
+<h1>Regular Expressions</h1>
+<p>Before moving forward, let’s talk about how Emacs handles regular expression syntax in search and/or replace commands. Whenever using an Emacs command involving a regular expression (regexp), you will need to understand what kind of regexp syntax is expected. There are largely two to know:</p>
+<ul>
+<li><a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Syntax-of-Regexps.html">Emacs</a></li>
+<li>grep (implementation dependent)</li>
+</ul>
+<p>Commands using grep-style regexps do so because they invoke the local install of the <code>grep</code> utility. The grep regex syntax is implementation dependent. If you use GNU grep, you can read its <a href="https://www.gnu.org/software/grep/manual/html_node/Regular-Expressions.html">syntax here</a>, which share some <a href="https://www.gnu.org/software/grep/manual/html_node/Character-Classes-and-Bracket-Expressions.html">character classes</a> with <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Char-Classes.html">Emacs</a>.</p>
+<p>The <a href="https://kickingvegas.github.io/casual/RE_002dBuilder-Usage.html">Casual RE-Builder</a> package is a great way to work with Emacs regexps as it provides a command to escape the regexp properly for interactive input. <code>re-builder</code> alone only provides a regexp that can be used in Elisp code.</p>
+<h1>Bulk Search &amp; Replace Commands</h1>
+<p>The table below shows the different search and/or replace workflows and their associated commands.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Workflows</th>
+<th style="text-align: left;">Command</th>
+<th style="text-align: left;">Regexp Type</th>
+<th style="text-align: left;">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Search regexp in files in directory</td>
+<td style="text-align: left;">rgrep</td>
+<td style="text-align: left;">grep</td>
+<td style="text-align: left;">AKA “Find in Files.” Results can be edited using writeable grep (wgrep).</td>
+</tr>
+<tr>
+<td style="text-align: left;">Search regexp in files in project</td>
+<td style="text-align: left;">project-find-regexp</td>
+<td style="text-align: left;">grep</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Search regexp in files in directory and present in Dired</td>
+<td style="text-align: left;">find-grep-dired</td>
+<td style="text-align: left;">grep</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Search regexp in tagged files</td>
+<td style="text-align: left;">tags-search</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Search file names matching shell pattern in directory and present in Dired</td>
+<td style="text-align: left;">find-name-dired</td>
+<td style="text-align: left;">shell</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Search file names matching regexp in directory and present in Dired</td>
+<td style="text-align: left;">find-lisp-find-dired</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;">Implementation uses Emacs regexp type.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Search file names matching regexp in current directory and present in Dired</td>
+<td style="text-align: left;">casual-dired-find-dired-regexp</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;">Wrapper around find-lisp-find-dired using current directory. Available via Casual.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Query replace regexp in project files</td>
+<td style="text-align: left;">project-query-replace-regexp</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Incremental search marked files with plain text</td>
+<td style="text-align: left;">dired-do-isearch</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">For use in Dired.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Incremental search marked files with regexp</td>
+<td style="text-align: left;">dired-do-isearch-regexp</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;">For use in Dired.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Query replace regexp in marked files</td>
+<td style="text-align: left;">dired-do-query-replace-regexp</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;">For use in Dired.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Search regexp in marked files</td>
+<td style="text-align: left;">dired-do-find-regexp</td>
+<td style="text-align: left;">grep</td>
+<td style="text-align: left;">For use in Dired.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Search regexp in marked files and display first match</td>
+<td style="text-align: left;">dired-do-search</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;">For use in Dired.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Replace regexp in marked files</td>
+<td style="text-align: left;">dired-do-find-regexp-and-replace</td>
+<td style="text-align: left;">grep</td>
+<td style="text-align: left;">For use in Dired.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Replace regexp in marked files using diff interface.</td>
+<td style="text-align: left;">dired-do-replace-regexp-as-diff</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;">For use in Dired.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Incremental search marked buffers with plain text</td>
+<td style="text-align: left;">ibuffer-do-isearch</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">For use in IBuffer.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Incremental search marked buffers with plain text with regexp</td>
+<td style="text-align: left;">ibuffer-do-isearch-regexp</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;">For use in IBuffer.</td>
+</tr>
+<tr>
+<td style="text-align: left;">View lines which match regexp in marked buffers</td>
+<td style="text-align: left;">ibuffer-do-occur</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;">For use in IBuffer.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Query replace plain text in marked buffers</td>
+<td style="text-align: left;">ibuffer-do-query-replace</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">For use in IBuffer.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Query replace regexp in marked buffers</td>
+<td style="text-align: left;">ibuffer-do-query-replace-regexp</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;">For use in IBuffer.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Run git grep, searching for regexp in directory.</td>
+<td style="text-align: left;">vc-git-grep</td>
+<td style="text-align: left;">grep</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Replace all references to identifier.</td>
+<td style="text-align: left;">xref-find-references-and-replace</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Interactively replace identifier in current xref buffer.</td>
+<td style="text-align: left;">xref-query-replace-in-results</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Rename symbol at point for project.</td>
+<td style="text-align: left;">eglot-rename</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Requires Eglot support.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Replace regexp in files using diff interface.</td>
+<td style="text-align: left;">multi-file-replace-regexp-as-diff</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Start multi-buffer incremental search on a list of files.</td>
+<td style="text-align: left;">multi-isearch-files</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Start multi-buffer incremental regexp search on a list of files.</td>
+<td style="text-align: left;">multi-isearch-files-regexp</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Start multi-buffer incremental search on a list of buffers.</td>
+<td style="text-align: left;">multi-isearch-buffers</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Start multi-buffer incremental regexp search on a list of buffers.</td>
+<td style="text-align: left;">multi-isearch-buffers-regexp</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Show all lines in buffers containing a match for regexp.</td>
+<td style="text-align: left;">multi-occur</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Show all lines containing a match for regexp in buffers that match bufregexp.</td>
+<td style="text-align: left;">multi-occur-in-matching-buffers</td>
+<td style="text-align: left;">Emacs</td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+<p>Choice of command depends on the quantity and specificity of files or buffers to work on. Both Dired and IBuffer marking allow for specific selection of files or buffers respectively.</p>
+<p>Many of the commands in the table above are discoverable via menu using the Casual and Anju packages. Hierarchical menu categorization aids in the discovery and recognition of these commands, making them more <strong>usable</strong>.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Command</th>
+<th style="text-align: left;">UI</th>
+<th style="text-align: left;">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">rgrep</td>
+<td style="text-align: left;">(C-o) casual-editkit-main-tmenu › (/) Search/Replace › (g) Find in Files…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/Search-_0026-Replace-commands.html">Casual EditKit</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">rgrep</td>
+<td style="text-align: left;">(Menu-bar) Edit › Search › Search in Files…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/anju/Edit-Menu-Features.html">Anju.</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">project-find-regexp</td>
+<td style="text-align: left;">(Menu-bar) Edit › Search › Search in Project Files…</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">tags-search</td>
+<td style="text-align: left;">(Menu-bar) Edit › Search › Search Tagged Files…</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">project-query-replace-regexp</td>
+<td style="text-align: left;">(Menu-bar) Edit › Replace › Replace in Project Files…</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">find-name-dired</td>
+<td style="text-align: left;">(C-o) casual-editkit-main-tmenu › (/) Search/Replace › (d) Files…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/Search-_0026-Replace-commands.html">Casual EditKit</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">find-grep-dired</td>
+<td style="text-align: left;">(C-o) casual-editkit-main-tmenu › (/) Search/Replace › (G) Files containing text…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/Search-_0026-Replace-commands.html">Casual EditKit</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">casual-dired-find-dired-regexp</td>
+<td style="text-align: left;">(C-o) casual-dired-tmenu › (f) Filter by name…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/Dired-Usage.html">Casual Dired</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">dired-do-isearch</td>
+<td style="text-align: left;">(C-o) casual-dired-tmenu › (/) Search/Replace › (C-s) I-search…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/Dired-Search-_0026-Replace-_0028Search-_0026-Replace_203a_0029.html">Casual Dired</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">dired-do-isearch-regexp</td>
+<td style="text-align: left;">(C-o) casual-dired-tmenu › (/) Search/Replace › (M-s) I-search regexp…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/Dired-Search-_0026-Replace-_0028Search-_0026-Replace_203a_0029.html">Casual Dired</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">dired-do-query-replace-regexp</td>
+<td style="text-align: left;">(C-o) casual-dired-tmenu › (/) Search/Replace › (r) Query regexp and replace…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/Dired-Search-_0026-Replace-_0028Search-_0026-Replace_203a_0029.html">Casual Dired</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">dired-do-find-regexp</td>
+<td style="text-align: left;">(C-o) casual-dired-tmenu › (/) Search/Replace › (g) Find regex…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/Dired-Search-_0026-Replace-_0028Search-_0026-Replace_203a_0029.html">Casual Dired</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">dired-do-search</td>
+<td style="text-align: left;">(C-o) casual-dired-tmenu › (/) Search/Replace › (s) Search first regexp match…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/Dired-Search-_0026-Replace-_0028Search-_0026-Replace_203a_0029.html">Casual Dired</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">dired-do-find-regexp-and-replace</td>
+<td style="text-align: left;">(C-o) casual-dired-tmenu › (/) Search/Replace › (G) Find regex and replace…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/Dired-Search-_0026-Replace-_0028Search-_0026-Replace_203a_0029.html">Casual Dired</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">ibuffer-do-isearch</td>
+<td style="text-align: left;">(C-o) casual-ibuffer-tmenu › (C-s) I-Search…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/IBuffer-Usage.html">Casual IBuffer</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">ibuffer-do-isearch-regexp</td>
+<td style="text-align: left;">(C-o) casual-ibuffer-tmenu › (C-M-s) I-Search Regexp…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/IBuffer-Usage.html">Casual IBuffer</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">ibuffer-do-occur</td>
+<td style="text-align: left;">(C-o) casual-ibuffer-tmenu › (O) Occur…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/IBuffer-Usage.html">Casual IBuffer</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">ibuffer-do-query-replace</td>
+<td style="text-align: left;">(C-o) casual-ibuffer-tmenu › (M-r) Query Replace…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/IBuffer-Usage.html">Casual IBuffer</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">ibuffer-do-query-replace-regexp</td>
+<td style="text-align: left;">(C-o) casual-ibuffer-tmenu › (C-M-r) Query Replace Regexp…</td>
+<td style="text-align: left;">Available via <a href="https://kickingvegas.github.io/casual/IBuffer-Usage.html">Casual IBuffer</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">vc-git-grep</td>
+<td style="text-align: left;">(Menu-bar) Tools › Version Control &gt; Git grep…</td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+<h1>Refactoring Guidance</h1>
+<p>The replace commands can do catastrophic damage if not used with caution. Treat them like power tools.</p>
+<p>Some guidance before using replace commands:</p>
+<ol>
+<li>
+<p>Have a backup plan in case you need to recover anything.</p>
+</li>
+<li>
+<p>Use <code>re-builder</code> to help figure out the right regexp.</p>
+</li>
+<li>
+<p>Know the scope of what you want to change (directory, files, buffers).</p>
+</li>
+<li>
+<p>Some commands will only modify the buffer of an affected file. Check if modified buffers are saved. You can use IBuffer to identify and save such buffers. It is left as an exercise to the reader to determine which commands exhibit this behavior.</p>
+</li>
+</ol>
+<h1>Closing Thoughts</h1>
+<p>The inventory of commands above are from what I know of Emacs, which is guaranteed to not be comprehensive. If there are others missing from this list, please let me know at <a href="mailto:kickingvegas@gmail.com?subject=Blog%20Post:%20Bulk%20Search%20and%20Replace">kickingvegas@gmail.com</a>.</p>
+<p>While many of these commands have been in Emacs for years (decades even), they were not usable to me until I built a UI for them. I think motivated readers using Casual and Anju for bulk search and/or replace tasks will find a similar sentiment.</p>
+<hr/>
+
+<p><em>Amended 2026-04-30</em>: Added <code>vc-git-grep</code>, <code>eglot-rename</code>,  <code>xref-find-references-and-replace</code>, and <code>xref-query-replace-in-results</code>. Thanks to <a href="https://social.lol/@hl/116492031100071433">Henry Leach</a> and <a href="https://toot.cat/@etenil/116492135347675653">Gene Pasquet</a> for their input!</p>
+<p><em>Amended 2026-05-04</em>: Added <code>dired-do-replace-regexp-as-diff</code>, <code>multi-file-replace-regexp-as-diff</code>, <code>multi-isearch-files</code>, <code>multi-isearch-files-regexp</code>, <code>multi-isearch-buffers</code>, <code>multi-isearch-buffers-regexp</code>, <code>multi-occur</code>, <code>multi-occur-in-matching-buffers</code>. Learned about the diff commands from Christian Tietze's post <a href="https://christiantietze.de/posts/2025/02/preview-mass-text-replacements-with-emacs-30-1-replace-regexp-as-diff/">Preview Mass Text Replacements with Emacs 30.1 replace-regexp-as-diff</a>.</p>

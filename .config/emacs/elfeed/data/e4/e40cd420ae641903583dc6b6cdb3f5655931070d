@@ -1,0 +1,1 @@
+When I (mostly) unvendored ocaml-ci’s submodules a few days ago. Four out of the five were published in the opam-repository, but solver-service was not, so it ended up as a pin-depends block in ocaml-ci.opam.template pinned at the same SHA the submodule had pointed at.

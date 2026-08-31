@@ -1,0 +1,70 @@
+<p>Native C++ projects in Visual Studio now support <code>&lt;PackageReference&gt;</code>, the modern, MSBuild-native way to declare NuGet package dependencies directly in your project file. This support is available experimentally for <code>.vcxproj</code> projects in the Visual Studio Insiders Channel starting with version 18.7.</p>
+<p>This feature has been the <a href="https://developercommunity.visualstudio.com/t/use-packagereference-in-vcxproj/351636">most upvoted feature request</a> on Visual Studio Developer Community, and we&#8217;re delivering it based on that feedback and in collaboration with other teams at Microsoft, including Windows and Azure.</p>
+<p>NuGet with PackageReferences can be useful for teams that develop both .NET and C++ projects (native or interop) that need a consistent way to deploy their binaries across their repos or to their consumers, or for managing dependencies that aren&#8217;t C++ libraries, such as binary SDK packages. We continue to recommend <a href="https://vcpkg.io/en/">vcpkg</a> for acquiring and managing C++ libraries, as it is more specialized and flexible for these types of dependencies.</p>
+<h2>What Is PackageReference?</h2>
+<p>Traditionally, NuGet packages in C++ projects were managed through <code>packages.config</code>, a separate XML file that listed every dependency (including transitive ones) and required a per-solution <code>packages</code> folder. PackageReference eliminates that by declaring dependencies directly in the project file:</p>
+<pre><code class="language-xml">&lt;ItemGroup&gt;
+  &lt;PackageReference Include="Microsoft.Windows.CppWinRT" Version="2.0.240405.15" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+<p>The key advantages over <code>packages.config</code>:</p>
+<ul>
+<li><strong>Single source of truth.</strong> Dependencies live in the project file alongside your other project references. No separate files required.</li>
+<li><strong>Transitive dependency resolution.</strong> You only list packages you directly depend on. NuGet resolves the rest automatically at restore time.</li>
+<li><strong>Global package cache.</strong> Packages are stored once on disk in a global folder, not duplicated per-solution. This means faster restores and less disk usage.</li>
+<li><strong>MSBuild integration.</strong> You can use conditions to vary package references by configuration, platform, or target framework, using the same MSBuild syntax you already know.</li>
+</ul>
+<p>For a full overview, see the <a href="https://learn.microsoft.com/nuget/consume-packages/package-references-in-project-files">PackageReference documentation</a> on Microsoft Learn. If you&#8217;re migrating an existing project, see <a href="https://learn.microsoft.com/nuget/consume-packages/migrate-packages-config-to-package-reference">Migrate from packages.config to PackageReference</a>.</p>
+<h2>How It Works</h2>
+<p>Once enabled, this experience is identical to .NET projects, both in the Visual Studio IDE and on the command line. There is no difference in the core UX. You can add PackageReferences by:</p>
+<ol>
+<li><strong>Editing the project file directly.</strong> Add <code>&lt;PackageReference&gt;</code> items to an <code>&lt;ItemGroup&gt;</code> in your <code>.vcxproj</code>.</li>
+<li><strong>Using the NuGet Package Manager UI.</strong> Right-click your project in Solution Explorer, select <strong>Manage NuGet Packages</strong>, and install packages as usual.</li>
+<li><strong>Using the Package Manager Console.</strong> Run <code>Install-Package</code> commands.</li>
+</ol>
+<p>NuGet restore handles downloading, caching, and making package assets available to your build. The underlying implementation uses core CPS (Common Project System) capabilities, the same infrastructure that powers this feature for .NET projects.</p>
+<h2>How to Enable It</h2>
+<p>This feature is experimental and off by default in version 18.7. To opt in, set the <code>EnableNativePackageReferenceSupport</code> MSBuild property to <code>true</code>.</p>
+<p>You can do this in your project file&#8217;s <code>Globals</code> property group:</p>
+<pre><code class="language-xml">&lt;PropertyGroup Label="Globals"&gt;
+  &lt;EnableNativePackageReferenceSupport&gt;true&lt;/EnableNativePackageReferenceSupport&gt;
+&lt;/PropertyGroup&gt;</code></pre>
+<p>Or, to enable it across all projects in a repository, add it to a <code>Directory.Build.props</code> file:</p>
+<pre><code class="language-xml">&lt;Project&gt;
+  &lt;PropertyGroup&gt;
+    &lt;EnableNativePackageReferenceSupport&gt;true&lt;/EnableNativePackageReferenceSupport&gt;
+  &lt;/PropertyGroup&gt;
+&lt;/Project&gt;</code></pre>
+<h2>Performance</h2>
+<p>We designed this feature to be fully compatible with the project load performance improvements shipped since Visual Studio 2017. One of the things holding us back from shipping PackageReference in the past was that a simpler implementation would invalidate this work, causing ongoing performance regressions for customers. Happily, this problem is now solved. The first time you add PackageReferences to a project, there is a one-time cache warm-up cost. After that initial load, the cache is warm and subsequent project operations are fully optimized with no ongoing performance impact.</p>
+<h2>Current Limitations</h2>
+<p>This initial release supports native C++ projects (<code>.vcxproj</code>). The following scenarios are not yet supported:</p>
+<ul>
+<li>C++/CLI projects targeting legacy .NET Framework versions. (PackageReference for C++/CLI projects targeting modern .NET is already supported; see our <a href="https://devblogs.microsoft.com/cppblog/announcing-nuget-packagereference-support-for-c-cli-msbuild-projects-targeting-net-core/">earlier announcement</a>.)</li>
+<li>C++ projects that reference C++/CLI projects or C# projects. We are investigating a solution to this. In the meantime, you can use one of these workarounds:
+<ul>
+<li>Set <code>&lt;ReferenceOutputAssembly&gt;false&lt;/ReferenceOutputAssembly&gt;</code> and <code>&lt;SkipGetTargetFrameworkProperties&gt;true&lt;/SkipGetTargetFrameworkProperties&gt;</code> on the <code>&lt;ProjectReference&gt;</code> item, which will allow NuGet to ignore it and not cause restore and build issues.</li>
+<li>Set <code>AssetTargetFallback</code> to include frameworks compatible with the referenced C# project. For example:
+<pre><code class="language-xml">&lt;PropertyGroup&gt;
+&lt;AssetTargetFallback&gt;net472;net10.0&lt;/AssetTargetFallback&gt;
+&lt;/PropertyGroup&gt;</code></pre>
+</li>
+</ul>
+</li>
+</ul>
+<h2>What About vcpkg?</h2>
+<p>This feature does not change our recommendation for <a href="https://vcpkg.io/en/">vcpkg</a>. We continue to recommend <a href="https://vcpkg.io">vcpkg</a> as the primary tool for acquiring and managing C and C++ libraries. vcpkg provides source-based builds with binary caching support, ABI compatibility management, support for offline installation, and a curated registry of thousands of open-source libraries optimized for C++ workflows.</p>
+<p>PackageReference support complements vcpkg by enabling NuGet-based distribution workflows. For example, teams that publish internal SDK packages via NuGet feeds, or projects that consume Windows-specific packages distributed through NuGet.org. The two tools serve different use cases and work well together. You can also use vcpkg to build library dependencies, then export them as NuGet with the <a href="https://learn.microsoft.com/vcpkg/commands/export#nuget"><code>vcpkg export --nuget</code></a> command.</p>
+<h2>Try It Out</h2>
+<ol>
+<li><strong>Download <a href="https://visualstudio.microsoft.com/insiders/">Visual Studio Insiders</a>.</strong></li>
+<li><strong>Enable the feature</strong> by setting <code>EnableNativePackageReferenceSupport</code> to <code>true</code> in your project or <code>Directory.Build.props</code>.</li>
+<li><strong>Add a PackageReference</strong> to your <code>.vcxproj</code> and build.</li>
+</ol>
+<p>We want your feedback. This is an experimental release, and your input will directly shape how we evolve this feature before enabling it by default. Let us know:</p>
+<ul>
+<li>Does the end-to-end experience work well for your projects?</li>
+<li>Are there gaps or rough edges you encounter?</li>
+<li>How does performance feel in your solutions?</li>
+</ul>
+<p>You can share feedback through <a href="https://developercommunity.visualstudio.com/">Developer Community</a>, the blog comments below, or <strong>Help → Send Feedback</strong> in Visual Studio.</p>
+<p>The post <a href="https://devblogs.microsoft.com/cppblog/nuget-packagereference-for-c-projects-in-visual-studio/">NuGet PackageReference for C++ Projects in Visual Studio</a> appeared first on <a href="https://devblogs.microsoft.com/cppblog">C++ Team Blog</a>.</p>

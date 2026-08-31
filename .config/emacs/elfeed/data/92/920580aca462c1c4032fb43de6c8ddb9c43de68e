@@ -1,0 +1,178 @@
+<p>Somewhere in my adolescence I got stuck with the notion that functional languages were slow while languages like C were fast. Now, a good C programmer can eke more performance out of their code than probably anyone else, but the cost you pay to keep your code correct goes exponential as you get closer and closer to the machine.</p>
+<p>Functional languages abstract a lot away from the machine. Higher languages in general abstract away the machine and make code easier to maintain. So I think I had it in my head that functional languages, being far away from the bare metal, must necessarily be slow. It didn’t help that I also thought of functional languages as being necessarily interpreted languages.</p>
+<p>Turns out, functional languages are just as amenable to compilation as imperative ones. Many popular/well-known functional are in fact compiled. (E.g. Haskell, Scala, Rust, Julia, etc.) Moreover, these languages can be just as fast—if not faster—than their more “mainstream” counterparts.</p>
+<p>I wanted to pit my favorite language (Racket) against a <em>slightly</em> more well-known language (Python) to see how they handled a simple single-threaded program. For good measure I threw Rust, Julia, and JavaScript into the mix for comparison.</p>
+<p>If you’re impatient, just jump to <a href="https://lambdaland.org/posts/2023-12-20_functional_langauge_speed/#the-results">the results</a>.</p>
+<h2 id="the-programs">The programs</h2>
+<p>I wrote the original program in Racket, then had ChatGPT help me rewrite it in Python. ChatGPT did astoundingly well. I eventually rewrote the program to be a little more idiomatic—I wanted it to use a loop instead of tail recursion, as Python is much better with loops than it is with lots and lots of function calls. I also had ChatGPT help me rewrite the program to Rust, Julia, and JavaScript. Impressive—and unsettling.</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="racket"><span class="giallo-l"><span style="color: #81A1C1;">#lang</span><span> racket</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;">define</span><span style="color: #ECEFF4;"> (</span><span style="color: #88C0D0;">count-collatz</span><span> n</span><span style="color: #ECEFF4;"> [</span><span>cnt</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">])</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  (</span><span style="color: #88C0D0;">cond</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    [(</span><span style="color: #88C0D0;">=</span><span> n</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">)</span><span> cnt</span><span style="color: #ECEFF4;">]</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    [(</span><span style="color: #88C0D0;">even?</span><span> n</span><span style="color: #ECEFF4;">) (</span><span>count-collatz</span><span style="color: #ECEFF4;"> (</span><span style="color: #88C0D0;">/</span><span> n</span><span style="color: #B48EAD;"> 2</span><span style="color: #ECEFF4;">) (</span><span style="color: #88C0D0;">+</span><span style="color: #B48EAD;"> 1</span><span> cnt</span><span style="color: #ECEFF4;">))]</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    [</span><span style="color: #88C0D0;">else</span><span style="color: #ECEFF4;"> (</span><span>count-collatz</span><span style="color: #ECEFF4;"> (</span><span style="color: #88C0D0;">+</span><span style="color: #ECEFF4;"> (</span><span style="color: #88C0D0;">*</span><span style="color: #B48EAD;"> 3</span><span> n</span><span style="color: #ECEFF4;">)</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">) (</span><span style="color: #88C0D0;">+</span><span style="color: #B48EAD;"> 1</span><span> cnt</span><span style="color: #ECEFF4;">))]))</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;">define</span><span style="color: #ECEFF4;"> (</span><span style="color: #88C0D0;">count-collatz-upto</span><span> n</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  (</span><span style="color: #88C0D0;">for/fold</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      ([</span><span>max-seen</span><span style="color: #B48EAD;"> 0</span><span style="color: #ECEFF4;">])</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">      ([</span><span>i</span><span style="color: #ECEFF4;"> (</span><span style="color: #88C0D0;">in-range</span><span style="color: #B48EAD;"> 1</span><span> n</span><span style="color: #ECEFF4;">)])</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    (</span><span style="color: #88C0D0;">max</span><span> max-seen</span><span style="color: #ECEFF4;"> (</span><span>count-collatz i</span><span style="color: #ECEFF4;">))))</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">displayln</span><span style="color: #ECEFF4;"> (</span><span style="color: #88C0D0;">format</span><span style="color: #A3BE8C;"> &quot;</span><span style="color: #EBCB8B;">\n</span><span style="color: #A3BE8C;">Done ~a&quot;</span><span style="color: #ECEFF4;"> (</span><span>count-collatz-upto</span><span style="color: #B48EAD;"> 5000000</span><span style="color: #ECEFF4;">)))</span></span></code></pre><div class="src-block-caption">
+  <span class="src-block-number">Code Snippet 1:</span>
+  <code>collatz_check.rkt</code>
+</div>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="python"><span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> count_collatz</span><span style="color: #ECEFF4;">(</span><span>n</span><span style="color: #ECEFF4;">):</span></span>
+<span class="giallo-l"><span>    cnt</span><span style="color: #81A1C1;"> =</span><span style="color: #B48EAD;"> 1</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    while</span><span> n</span><span style="color: #81A1C1;"> !=</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">:</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">        if</span><span> n</span><span style="color: #81A1C1;"> %</span><span style="color: #B48EAD;"> 2</span><span style="color: #81A1C1;"> ==</span><span style="color: #B48EAD;"> 0</span><span style="color: #ECEFF4;">:</span></span>
+<span class="giallo-l"><span>            n</span><span style="color: #81A1C1;"> =</span><span> n</span><span style="color: #81A1C1;"> //</span><span style="color: #B48EAD;"> 2</span></span>
+<span class="giallo-l"><span>            cnt</span><span style="color: #81A1C1;"> +=</span><span style="color: #B48EAD;"> 1</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">        else</span><span style="color: #ECEFF4;">:</span></span>
+<span class="giallo-l"><span>            n</span><span style="color: #81A1C1;"> =</span><span style="color: #B48EAD;"> 3</span><span style="color: #81A1C1;"> *</span><span> n</span><span style="color: #81A1C1;"> +</span><span style="color: #B48EAD;"> 1</span></span>
+<span class="giallo-l"><span>            cnt</span><span style="color: #81A1C1;"> +=</span><span style="color: #B48EAD;"> 1</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    return</span><span> cnt</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>max_seen</span><span style="color: #81A1C1;"> =</span><span style="color: #B48EAD;"> 0</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">def</span><span style="color: #88C0D0;"> count_collatz_upto</span><span style="color: #ECEFF4;">(</span><span>n</span><span style="color: #ECEFF4;">):</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    global</span><span> max_seen</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    for</span><span> i</span><span style="color: #81A1C1;"> in</span><span style="color: #88C0D0;"> range</span><span style="color: #ECEFF4;">(</span><span style="color: #B48EAD;">1</span><span style="color: #ECEFF4;">,</span><span> n</span><span style="color: #ECEFF4;">):</span></span>
+<span class="giallo-l"><span>        the_count</span><span style="color: #81A1C1;"> =</span><span style="color: #88C0D0;"> count_collatz</span><span style="color: #ECEFF4;">(</span><span>i</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span>        max_seen</span><span style="color: #81A1C1;"> =</span><span style="color: #88C0D0;"> max</span><span style="color: #ECEFF4;">(</span><span>max_seen</span><span style="color: #ECEFF4;">,</span><span> the_count</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    return</span><span style="color: #B48EAD;"> 42</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #88C0D0;">count_collatz_upto</span><span style="color: #ECEFF4;">(</span><span style="color: #B48EAD;">5000000</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #88C0D0;">print</span><span style="color: #ECEFF4;">(&quot;</span><span style="color: #EBCB8B;">\n</span><span style="color: #A3BE8C;">Done</span><span style="color: #ECEFF4;">&quot;,</span><span> max_seen</span><span style="color: #ECEFF4;">)</span></span></code></pre><div class="src-block-caption">
+  <span class="src-block-number">Code Snippet 2:</span>
+  <code>collatz_check.py</code>
+</div>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="rust"><span class="giallo-l"><span style="color: #81A1C1;">fn</span><span style="color: #88C0D0;"> count_collatz</span><span style="color: #ECEFF4;">(</span><span>n</span><span style="color: #81A1C1;">:</span><span style="color: #8FBCBB;"> u64</span><span style="color: #ECEFF4;">)</span><span style="color: #81A1C1;"> -&gt;</span><span style="color: #8FBCBB;"> u64</span><span style="color: #ECEFF4;"> {</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    let mut</span><span> cnt</span><span style="color: #81A1C1;"> =</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">;</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    let mut</span><span> num</span><span style="color: #81A1C1;"> =</span><span> n</span><span style="color: #ECEFF4;">;</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    while</span><span> num</span><span style="color: #81A1C1;"> !=</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;"> {</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">        if</span><span> num</span><span style="color: #81A1C1;"> %</span><span style="color: #B48EAD;"> 2</span><span style="color: #81A1C1;"> ==</span><span style="color: #B48EAD;"> 0</span><span style="color: #ECEFF4;"> {</span></span>
+<span class="giallo-l"><span>            num</span><span style="color: #81A1C1;"> /=</span><span style="color: #B48EAD;"> 2</span><span style="color: #ECEFF4;">;</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        }</span><span style="color: #81A1C1;"> else</span><span style="color: #ECEFF4;"> {</span></span>
+<span class="giallo-l"><span>            num</span><span style="color: #81A1C1;"> =</span><span> num</span><span style="color: #81A1C1;"> *</span><span style="color: #B48EAD;"> 3</span><span style="color: #81A1C1;"> +</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">;</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">        }</span></span>
+<span class="giallo-l"><span>        cnt</span><span style="color: #81A1C1;"> +=</span><span style="color: #B48EAD;"> 1</span><span style="color: #ECEFF4;">;</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    }</span></span>
+<span class="giallo-l"><span>    cnt</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #81A1C1;">fn</span><span style="color: #88C0D0;"> count_collatz_upto</span><span style="color: #ECEFF4;">(</span><span>n</span><span style="color: #81A1C1;">:</span><span style="color: #8FBCBB;"> u64</span><span style="color: #ECEFF4;">)</span><span style="color: #81A1C1;"> -&gt;</span><span style="color: #8FBCBB;"> u64</span><span style="color: #ECEFF4;"> {</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    let mut</span><span> max_seen</span><span style="color: #81A1C1;"> =</span><span style="color: #B48EAD;"> 0</span><span style="color: #ECEFF4;">;</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    for</span><span> i</span><span style="color: #81A1C1;"> in</span><span style="color: #B48EAD;"> 1</span><span style="color: #81A1C1;">..</span><span>n</span><span style="color: #ECEFF4;"> {</span></span>
+<span class="giallo-l"><span>        max_seen</span><span style="color: #81A1C1;"> =</span><span> max_seen</span><span style="color: #81A1C1;">.</span><span style="color: #88C0D0;">max</span><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">count_collatz</span><span style="color: #ECEFF4;">(</span><span>i</span><span style="color: #ECEFF4;">));</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    }</span></span>
+<span class="giallo-l"><span>    max_seen</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #81A1C1;">fn</span><span style="color: #88C0D0;"> main</span><span style="color: #ECEFF4;">() {</span></span>
+<span class="giallo-l"><span style="color: #88C0D0;font-weight: bold;">    println!</span><span style="color: #ECEFF4;">(&quot;</span><span style="color: #A3BE8C;">Done </span><span style="color: #EBCB8B;">{}</span><span style="color: #ECEFF4;">&quot;,</span><span style="color: #88C0D0;"> count_collatz_upto</span><span style="color: #ECEFF4;">(</span><span style="color: #B48EAD;">5000000</span><span style="color: #ECEFF4;">));</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">}</span></span></code></pre><div class="src-block-caption">
+  <span class="src-block-number">Code Snippet 3:</span>
+  <code>collatz_check.rs</code>
+</div>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="julia"><span class="giallo-l"><span style="color: #81A1C1;">function</span><span style="color: #88C0D0;"> count_collatz</span><span>(n</span><span style="color: #81A1C1;">::</span><span style="color: #8FBCBB;">Int</span><span>)</span></span>
+<span class="giallo-l"><span>    cnt </span><span style="color: #81A1C1;">=</span><span style="color: #B48EAD;"> 1</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    while</span><span> n </span><span style="color: #81A1C1;">!=</span><span style="color: #B48EAD;"> 1</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">        if</span><span> n </span><span style="color: #81A1C1;">%</span><span style="color: #B48EAD;"> 2</span><span style="color: #81A1C1;"> ==</span><span style="color: #B48EAD;"> 0</span></span>
+<span class="giallo-l"><span>            n </span><span style="color: #81A1C1;">=</span><span> n </span><span style="color: #81A1C1;">÷</span><span style="color: #B48EAD;"> 2</span></span>
+<span class="giallo-l"><span>            cnt </span><span style="color: #81A1C1;">+=</span><span style="color: #B48EAD;"> 1</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">        else</span></span>
+<span class="giallo-l"><span>            n </span><span style="color: #81A1C1;">=</span><span style="color: #B48EAD;"> 3</span><span style="color: #81A1C1;"> *</span><span> n </span><span style="color: #81A1C1;">+</span><span style="color: #B48EAD;"> 1</span></span>
+<span class="giallo-l"><span>            cnt </span><span style="color: #81A1C1;">+=</span><span style="color: #B48EAD;"> 1</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">        end</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    end</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    return</span><span> cnt</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>max_seen </span><span style="color: #81A1C1;">=</span><span style="color: #B48EAD;"> 0</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">function</span><span style="color: #88C0D0;"> count_collatz_upto</span><span>(n</span><span style="color: #81A1C1;">::</span><span style="color: #8FBCBB;">Int</span><span>)</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    for</span><span> i </span><span style="color: #81A1C1;">in</span><span style="color: #B48EAD;"> 1</span><span style="color: #81A1C1;">:</span><span>n</span><span style="color: #81A1C1;">-</span><span style="color: #B48EAD;">1</span></span>
+<span class="giallo-l"><span>        the_count </span><span style="color: #81A1C1;">=</span><span style="color: #88C0D0;"> count_collatz</span><span>(i)</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">        global</span><span> max_seen </span><span style="color: #81A1C1;">=</span><span style="color: #88C0D0;"> max</span><span>(max_seen</span><span style="color: #ECEFF4;">,</span><span> the_count)</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    end</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    return</span><span style="color: #B48EAD;"> 42</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">end</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #88C0D0;">count_collatz_upto</span><span>(</span><span style="color: #B48EAD;">5000000</span><span>)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #88C0D0;">println</span><span>(</span><span style="color: #ECEFF4;">&quot;</span><span style="color: #EBCB8B;">\n</span><span style="color: #A3BE8C;">Done </span><span style="color: #ECEFF4;">&quot;,</span><span> max_seen)</span></span></code></pre><div class="src-block-caption">
+  <span class="src-block-number">Code Snippet 4:</span>
+  <code>collatz_check.jl</code>
+</div>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="javascript"><span class="giallo-l"><span style="color: #81A1C1;">function</span><span style="color: #88C0D0;"> countCollatz</span><span style="color: #ECEFF4;">(</span><span>n</span><span style="color: #ECEFF4;">) {</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  let</span><span> cnt</span><span style="color: #81A1C1;"> =</span><span style="color: #B48EAD;"> 1</span><span style="color: #81A1C1;">;</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  while</span><span> (n</span><span style="color: #81A1C1;"> !==</span><span style="color: #B48EAD;"> 1</span><span>)</span><span style="color: #ECEFF4;"> {</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">    if</span><span> (n</span><span style="color: #81A1C1;"> %</span><span style="color: #B48EAD;"> 2</span><span style="color: #81A1C1;"> ===</span><span style="color: #B48EAD;"> 0</span><span>)</span><span style="color: #ECEFF4;"> {</span></span>
+<span class="giallo-l"><span>      n</span><span style="color: #81A1C1;"> =</span><span> n</span><span style="color: #81A1C1;"> /</span><span style="color: #B48EAD;"> 2</span><span style="color: #81A1C1;">;</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    }</span><span style="color: #81A1C1;"> else</span><span style="color: #ECEFF4;"> {</span></span>
+<span class="giallo-l"><span>      n</span><span style="color: #81A1C1;"> =</span><span style="color: #B48EAD;"> 3</span><span style="color: #81A1C1;"> *</span><span> n</span><span style="color: #81A1C1;"> +</span><span style="color: #B48EAD;"> 1</span><span style="color: #81A1C1;">;</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">    }</span></span>
+<span class="giallo-l"><span>    cnt</span><span style="color: #81A1C1;">++;</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  }</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  return</span><span> cnt</span><span style="color: #81A1C1;">;</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #81A1C1;">function</span><span style="color: #88C0D0;"> countCollatzUpto</span><span style="color: #ECEFF4;">(</span><span>n</span><span style="color: #ECEFF4;">) {</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  let</span><span> maxSeen</span><span style="color: #81A1C1;"> =</span><span style="color: #B48EAD;"> 0</span><span style="color: #81A1C1;">;</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  for</span><span> (</span><span style="color: #81A1C1;">let</span><span> i</span><span style="color: #81A1C1;"> =</span><span style="color: #B48EAD;"> 1</span><span style="color: #81A1C1;">;</span><span> i</span><span style="color: #81A1C1;"> &lt;</span><span> n</span><span style="color: #81A1C1;">;</span><span> i</span><span style="color: #81A1C1;">++</span><span>)</span><span style="color: #ECEFF4;"> {</span></span>
+<span class="giallo-l"><span>    maxSeen</span><span style="color: #81A1C1;"> =</span><span> Math</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">max</span><span>(maxSeen</span><span style="color: #ECEFF4;">,</span><span style="color: #88C0D0;"> countCollatz</span><span>(i))</span><span style="color: #81A1C1;">;</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  }</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">  return</span><span> maxSeen</span><span style="color: #81A1C1;">;</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>console</span><span style="color: #ECEFF4;">.</span><span style="color: #88C0D0;">log</span><span>(</span><span style="color: #ECEFF4;">`</span><span style="color: #EBCB8B;">\n</span><span style="color: #A3BE8C;">Done </span><span style="color: #81A1C1;">${</span><span style="color: #88C0D0;">countCollatzUpto</span><span style="color: #ECEFF4;">(</span><span style="color: #B48EAD;">5000000</span><span style="color: #ECEFF4;">)</span><span style="color: #81A1C1;">}</span><span style="color: #ECEFF4;">`</span><span>)</span><span style="color: #81A1C1;">;</span></span></code></pre><div class="src-block-caption">
+  <span class="src-block-number">Code Snippet 5:</span>
+  <code>collatz_check.js</code>
+</div>
+<h2 id="the-results">The results</h2>
+<p>I ran these programs on my M1 Pro MacBook Pro. Here’s what I got:</p>
+<style>.table-nocaption table { text-align: right;  }</style>
+<div class="ox-hugo-table table-nocaption">
+<table><thead><tr><th>Language</th><th>Time (seconds)</th></tr></thead><tbody>
+<tr><td>Racket</td><td>4.68</td></tr>
+<tr><td>Python</td><td>34.27</td></tr>
+<tr><td>Rust</td><td>3.03</td></tr>
+<tr><td>Julia</td><td>2.34</td></tr>
+<tr><td>JavaScript</td><td>11.92</td></tr>
+</tbody></table>
+</div>
+<p>In graphical form:</p>
+<div class="figure">
+  <p><img src="/img/benchmark_shootout.svg" alt="" /></p>
+
+  
+</div>
+<p>Wow! I did not expect Python to get so pummeled by everything else! It makes sense that Julia with its sweet JIT engine is the fastest. Rust does well—no surprise there. (Note that I’m not counting compilation time here—all the more impressive for Julia!) Racket holds its own though, coming in third place by a wide margin. If you did take Rust’s compile time into account, I think that would make it switch places with Racket. Of course, you use Rust for compile-once-run-lots sorts of scenarios.</p>
+<h2 id="discussion">Discussion</h2>
+<p>Are these authoritative? No, of course not. This is a simple synthetic benchmark. I don’t consider myself expert programmer in <em>any</em> of these languages, so there are likely some performance tweaks that could make the respective language’s benchmark run faster. (Maybe I should in Racket… it’s kind of hard to consider yourself an expert in a language when its creator works down the hall from you though.)</p>
+<p>That said, I hope this dispels the myth that functional languages are <em>necessarily</em> slow. That is not the case. If Python is fast enough for your use-case, then there’s no reason you shouldn’t consider using Racket on performance grounds.</p>
+<p>Library support is a different matter: of all the programming that goes on in the world, the majority is probably just gluing libraries together to do the thing you want. This is a good thing: it means we’re not reinventing so many wheels and people are getting good work done.</p>
+<p>That said, there’s plenty of exciting work for which no library exists! If you find yourself in one of these exciting cases, consider using the tool of maximum power: in this regard, nothing beats Racket for its flexibility and <a href="/posts/2023-10-17_fearless_macros/">extensibility</a>.</p>
+<h2 id="bonus-building-the-graph-in-racket">Bonus: building the graph in Racket</h2>
+<p>I love the Racket <a class="link-external" rel="external" href="https://docs.racket-lang.org/plot/">Plot</a> library. So easy to use, so powerful. If you run it inside of DrRacket, the graphs are actually interactive: you can rotate 3D graphs and zoom in on sections of 2D graphs. So neat!</p>
+<p>Here’s the code I used to generate the above graph:</p>
+<pre class="giallo" style="color: #D8DEE9; background-color: #2E3440;"><code data-lang="racket"><span class="giallo-l"><span style="color: #81A1C1;">#lang</span><span> racket</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">require</span><span> plot</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #81A1C1;">define</span><span> *data*</span><span style="color: #ECEFF4;"> (</span><span style="color: #88C0D0;">list</span><span style="color: #ECEFF4;"> #(</span><span style="color: #A3BE8C;">&quot;Racket&quot;</span><span style="color: #B48EAD;"> 4.68</span><span style="color: #ECEFF4;">) #(</span><span style="color: #A3BE8C;">&quot;Python&quot;</span><span style="color: #B48EAD;"> 34.27</span><span style="color: #ECEFF4;">) #(</span><span style="color: #A3BE8C;">&quot;Rust&quot;</span><span style="color: #B48EAD;"> 3.03</span><span style="color: #ECEFF4;">) #(</span><span style="color: #A3BE8C;">&quot;Julia&quot;</span><span style="color: #B48EAD;"> 2.34</span><span style="color: #ECEFF4;">) #(</span><span style="color: #A3BE8C;">&quot;JavaScript&quot;</span><span style="color: #B48EAD;"> 11.92</span><span style="color: #ECEFF4;">)))</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">(</span><span style="color: #88C0D0;">parameterize</span><span style="color: #ECEFF4;"> ([</span><span>plot-font-face</span><span style="color: #A3BE8C;"> &quot;Charter&quot;</span><span style="color: #ECEFF4;">]</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">               [</span><span>plot-font-size</span><span style="color: #B48EAD;"> 14.0</span><span style="color: #ECEFF4;">]</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">               [</span><span>plot-x-ticks</span><span style="color: #ECEFF4;"> (</span><span>linear-ticks</span><span style="color: #81A1C1;"> #:number</span><span style="color: #B48EAD;"> 10</span><span style="color: #81A1C1;"> #:divisors</span><span style="color: #88C0D0;"> &#39;</span><span style="color: #ECEFF4;">(</span><span style="color: #B48EAD;">1 2 5</span><span style="color: #ECEFF4;">))])</span></span>
+<span class="giallo-l"><span style="color: #ECEFF4;">  (</span><span>plot</span><span style="color: #ECEFF4;"> (</span><span style="color: #88C0D0;">list</span><span style="color: #ECEFF4;"> (</span><span>discrete-histogram</span><span style="color: #ECEFF4;"> (</span><span style="color: #88C0D0;">reverse</span><span> *data*</span><span style="color: #ECEFF4;">)</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">                                  #:gap</span><span style="color: #B48EAD;"> 0.3</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">                                  #:invert? #true</span><span style="color: #ECEFF4;">))</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">        #:title</span><span style="color: #A3BE8C;"> &quot;Simple benchmark results&quot;</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">        #:out-kind</span><span style="color: #A3BE8C;"> &#39;svg</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">        #:out-file</span><span style="color: #A3BE8C;"> &quot;benchmark_shootout.svg&quot;</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">        #:x-max</span><span style="color: #B48EAD;"> 35</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">        #:x-label</span><span style="color: #A3BE8C;"> &quot;Seconds&quot;</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">        #:width</span><span style="color: #B48EAD;"> 800</span></span>
+<span class="giallo-l"><span style="color: #81A1C1;">        #:height</span><span style="color: #B48EAD;"> 200</span><span style="color: #ECEFF4;">))</span></span></code></pre>

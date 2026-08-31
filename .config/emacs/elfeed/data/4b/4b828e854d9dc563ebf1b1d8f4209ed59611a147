@@ -1,0 +1,21 @@
+<p>
+Protesilaos Stavrou (Prot) has a <a href="https://protesilaos.com/codelog/2026-07-02-emacs-french-input-method-jinx-spell/">very nice video</a> on writing foreign languages with Emacs. The main problem for Latin languages are the diacritical marks. Other languages, such as Greek, Russian, and Chinese, have completely different alphabets. In either case, Emacs has us covered.
+</p>
+<p>
+Prot writes Greek, English, French, and (possibly) Spanish so being able to handle all these languages easily is important to him. His video shows us how he does it. The video is in two parts:
+</p>
+<ol class="org-ol">
+<li>Using the Emacs input method mechanism and</li>
+<li>Multilingual spellchecking.</li>
+</ol>
+<p>
+In the first part, Prot demonstrates how to switch between the normal input method—that is, the characters your keyboard normally sends—and another input method that maps to characters from another language.
+</p>
+<p>
+He uses French as an example and shows one way (the postfix method) to add the diacritical marks that French uses. I use the same method for Spanish and like it. It&rsquo;s easy and natural. The only thing that takes a bit of getting used to is using an accent character in a non-diacritical way. For example, when writing with the <code>spanish-postfix</code> method, <code>e'</code> results in é but if you want to write something like &ldquo;he&rsquo;s&rdquo; you have to input <code>he''s</code> .
+</p>
+<p>
+The second part of the video considers multilingual spellchecking. For that, Prot uses <a href="https://github.com/minad/jinx/blob/main/README.org">jinx</a>, which is pretty much like the normal spell checking in Emacs except you can check multiple languages. It will underline spelling errors as usual and you can have it offer suggestions for correcting those errors.
+</p>
+<p>
+I wish I&rsquo;d seen Prot&rsquo;s video before I started studying Spanish. It would have saved me a lot of time figuring things out on my own. If you have a need to use Emacs to write in another language, you should definitely take a look at Prot&rsquo;s video.</p>

@@ -1,0 +1,7 @@
+<p>Just updated <a href="https://github.com/karthink/popper">Popper for Emacs</a> with hinting in the echo area:</p>
+<figure><img src="https://karthinks.com/img/popper-echo-demo.svg" width="900px"/>
+</figure>
+
+<p>When you toggle a popup, popups for the current context are listed in the echo area along with keyboard hints (<code>M-1</code> through <code>M-9</code> by default) to switch to them instantly. The listing is in the order in which the popups are displayed with <code>popper-cycle</code>.  <a href="https://user-images.githubusercontent.com/8607532/135746395-dfe3b3e8-9d5a-4309-b521-9555a34bb73d.mp4">Here</a> is a demo of this in action.</p>
+<p>There is a dispatch feature included that is currently undocumented. When this transient keymap is active, you can kill any of the popups directly by prefixing the key for that popup with <code>k</code>, <em>i.e.</em> <code>k M-2</code> to kill the second popup in line. Similarly, <code>^ M-2</code> will raise the second popup to being a regular buffer, <em>i.e.</em> persistent and not affected by Popper commands. As usual most of this behaviour is customizable.</p>
+<p>The echo area display can be noisy and annoying if you don&rsquo;t need it, so it&rsquo;s disabled by default and can be activated as the separate minor mode <code>popper-echo-mode</code>. I added it tentatively, but I find myself using it all the time to switch popup buffers quickly.</p>

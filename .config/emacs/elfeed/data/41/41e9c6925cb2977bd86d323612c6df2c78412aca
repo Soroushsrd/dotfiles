@@ -1,0 +1,113 @@
+<p>Elfeed, the feed reader for Emacs, is built on several clever ideas. The basic mode of interaction in Elfeed is through search, specifying what kinds of feeds you want to peruse at the moment. This removes the distinction between an inbox and a search result, which works surprisingly well with the expressive search syntax. The second is integration: search results can be stored as regular bookmarks, and jumping to the bookmark from anywhere in Emacs will run the corresponding query and present you with fresh results. The third is organizing by tags instead of folders. Web services like Gmail use some of these concepts (and probably pioneered them too), but the difference between web-based readers and Emacs in speed, customizability, general hackability and use is night and day.</p>
+<p>Elfeed&rsquo;s default interface has all the right pieces, but I found it needed just a <em>little tweaking</em> to fit what I expect from a feed reader.</p>
+<h2 id="display-the-feed-list-and-current-entry-in-a-split-pane-setup">Display the feed list and current entry in a split pane setup <sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>:</h2>
+<p>Elfeed has two kinds of views: The <code>search</code> view which shows feed entries matching a search query, and the <code>show</code> view to read a specific entry. By default only one of these is active at a time, but a more useful split-pane setup is a few tweaks away:</p>
+<video width="700" style="display:block; margin: 0 auto;" autoplay controls loop>
+<source src="https://karthinks.com/img/elfeed-split-pane-small.mp4" type="video/mp4">
+<p>Your browser does not support the video tag.</p>
+</video>
+<p>Stay in the search view and preview entries.</p>
+<p>There are only two pieces to this. The first is to specify the function we want Elfeed to use to display the buffer with the current entry. In this case write our own <code>elfeed-display-buffer</code> to set the height.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">setq</span> <span style="color:#963">elfeed-show-entry-switch</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">elfeed-display-buffer</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">elfeed-display-buffer</span> (<span style="color:#963">buf</span> <span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">act</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#963">pop-to-buffer</span> <span style="color:#963">buf</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#963">set-window-text-height</span> (<span style="color:#06b;font-weight:bold">get-buffer-window</span>) (<span style="color:#06b;font-weight:bold">round</span> (<span style="color:#06b;font-weight:bold">*</span> <span style="color:#60e;font-weight:bold">0.7</span> (<span style="color:#963">frame-height</span>)))))
+</span></span></code></pre></div><p>A different but less self-contained way would be to set it to use the built in <code>pop-to-buffer</code> but add an entry to <code>display-buffer-alist</code> as an instruction on what to do with elfeed entry buffers.</p>
+<p>The second is to set up a keybinding to advance to the next or previous feed in the search window, with a little  elbow grease. <sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span><span style="color:#888">;; -*- lexical-binding: t -*-</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">defun</span> <span style="color:#963">elfeed-search-show-entry-pre</span> (<span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">lines</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Returns a function to scroll forward or back in the Elfeed
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">  search results, displaying entries without switching to them.&#34;</span>
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">lambda</span> (<span style="color:#963">times</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">interactive</span> <span style="background-color:#fff0f0">&#34;p&#34;</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#06b;font-weight:bold">forward-line</span> (<span style="color:#06b;font-weight:bold">*</span> <span style="color:#963">times</span> (<span style="color:#007020">or</span> <span style="color:#963">lines</span> <span style="color:#00d;font-weight:bold">0</span>)))
+</span></span><span style="display:flex;"><span>        (<span style="color:#06b;font-weight:bold">recenter</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#06b;font-weight:bold">call-interactively</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">elfeed-search-show-entry</span>)
+</span></span><span style="display:flex;"><span>        (<span style="color:#06b;font-weight:bold">select-window</span> (<span style="color:#06b;font-weight:bold">previous-window</span>))
+</span></span><span style="display:flex;"><span>        (<span style="color:#007020">unless</span> <span style="color:#963">elfeed-search-remain-on-entry</span> (<span style="color:#06b;font-weight:bold">forward-line</span> <span style="color:#00d;font-weight:bold">-1</span>))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">elfeed-search-mode-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;n&#34;</span>) (<span style="color:#963">elfeed-search-show-entry-pre</span> <span style="color:#00d;font-weight:bold">+1</span>))
+</span></span><span style="display:flex;"><span>  (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">elfeed-search-mode-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;p&#34;</span>) (<span style="color:#963">elfeed-search-show-entry-pre</span> <span style="color:#00d;font-weight:bold">-1</span>))
+</span></span><span style="display:flex;"><span>  (<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">elfeed-search-mode-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;M-RET&#34;</span>) (<span style="color:#963">elfeed-search-show-entry-pre</span>))
+</span></span></code></pre></div><h2 id="navigate-the-entire-database-with-the-space-bar">Navigate the entire database with the space bar</h2>
+<p>Alternatively, you might prefer to stay in the &ldquo;show&rdquo; window and just go through each entry by content instead of header. You can use the space bar to scroll the view or move to the next entry as appropriate.</p>
+<video width="700" style="display:block; margin: 0 auto;" autoplay controls loop>
+<source src="https://karthinks.com/img/elfeed-space-nav-small.mp4" type="video/mp4">
+<p>Your browser does not support the video tag.</p>
+</video>
+<p>Go forward (scroll or next entry) with <code>SPC</code>, back with <code>S-SPC</code></p>
+<p>Google Reader had one button navigation, and it is a level of laziness I have aspired to since.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">elfeed-scroll-up-command</span> (<span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">arg</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Scroll up or go to next feed item in Elfeed&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">interactive</span> <span style="background-color:#fff0f0">&#34;^P&#34;</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">scroll-error-top-bottom</span> <span style="color:#036;font-weight:bold">nil</span>))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">condition-case-unless-debug</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">scroll-up-command</span> <span style="color:#963">arg</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#f00;font-weight:bold">error</span> (<span style="color:#963">elfeed-show-next</span>)))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">elfeed-scroll-down-command</span> (<span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">arg</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;Scroll up or go to next feed item in Elfeed&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">interactive</span> <span style="background-color:#fff0f0">&#34;^P&#34;</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">scroll-error-top-bottom</span> <span style="color:#036;font-weight:bold">nil</span>))
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">condition-case-unless-debug</span> <span style="color:#036;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>        (<span style="color:#963">scroll-down-command</span> <span style="color:#963">arg</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#f00;font-weight:bold">error</span> (<span style="color:#963">elfeed-show-prev</span>)))))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">elfeed-show-mode-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;SPC&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;elfeed-scroll-up-command</span>)
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">elfeed-show-mode-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;S-SPC&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;elfeed-scroll-down-command</span>)
+</span></span></code></pre></div><h2 id="easier-tagging">Easier tagging</h2>
+<p>By default you can tag an entry from the search results by typing &ldquo;<code>+</code>&rdquo; followed by the tag name. This is too much work for a central organizational feature, so a little helper sorts things out.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">elfeed-tag-selection-as</span> (<span style="color:#963">mytag</span>)
+</span></span><span style="display:flex;"><span>    <span style="background-color:#fff0f0">&#34;Returns a function that tags an elfeed entry or selection as
+</span></span></span><span style="display:flex;"><span><span style="background-color:#fff0f0">MYTAG&#34;</span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#007020">lambda</span> ()
+</span></span><span style="display:flex;"><span>      <span style="background-color:#fff0f0">&#34;Toggle a tag on an Elfeed search selection&#34;</span>
+</span></span><span style="display:flex;"><span>      (<span style="color:#007020">interactive</span>)
+</span></span><span style="display:flex;"><span>      (<span style="color:#963">elfeed-search-toggle-all</span> <span style="color:#963">mytag</span>)))
+</span></span></code></pre></div><p>Tag with a single letter keybind:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">elfeed-search-mode-map</span> <span style="background-color:#fff0f0">&#34;l&#34;</span> (<span style="color:#963">elfeed-tag-selection-as</span> <span style="color:#a60;background-color:#fff0f0">&#39;readlater</span>))
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">elfeed-search-mode-map</span> <span style="background-color:#fff0f0">&#34;d&#34;</span> (<span style="color:#963">elfeed-tag-selection-as</span> <span style="color:#a60;background-color:#fff0f0">&#39;junk</span>))
+</span></span></code></pre></div><h2 id="open-feeds-in-emacs">Open feeds in Emacs</h2>
+<p>Elfeed will open links to feeds in your default browser with &ldquo;<code>b</code>&rdquo;. But for text heavy posts or to look up something specific I often want to open them in place in Emacs:</p>
+<video style="center" style="center" width="700" autoplay controls loop>
+<source src="https://karthinks.com/img/elfeed-open-eww-small.mp4" type="video/mp4">
+<p>Your browser does not support the video tag.</p>
+</video>
+<p>Quick-preview links in <code>eww</code>.</p>
+<p>Instead of writing a function to do this from scratch, we set <code>eww</code> (Emacs&rsquo; built in web browser) as the default in a short-lived <code>let</code> binding and let the usual <code>browse-url</code> functions handle the rest:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">elfeed-show-eww-open</span> (<span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">use-generic-p</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;open with eww&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">interactive</span> <span style="background-color:#fff0f0">&#34;P&#34;</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">browse-url-browser-function</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">eww-browse-url</span>))
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">elfeed-show-visit</span> <span style="color:#963">use-generic-p</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">elfeed-search-eww-open</span> (<span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">use-generic-p</span>)
+</span></span><span style="display:flex;"><span>  <span style="background-color:#fff0f0">&#34;open with eww&#34;</span>
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">interactive</span> <span style="background-color:#fff0f0">&#34;P&#34;</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#007020">let</span> ((<span style="color:#963">browse-url-browser-function</span> <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">eww-browse-url</span>))
+</span></span><span style="display:flex;"><span>    (<span style="color:#963">elfeed-search-browse-url</span> <span style="color:#963">use-generic-p</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">elfeed-show-mode-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;B&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;efleed-show-eww-open</span>)
+</span></span><span style="display:flex;"><span>(<span style="color:#06b;font-weight:bold">define-key</span> <span style="color:#963">elfeed-search-mode-map</span> (<span style="color:#963">kbd</span> <span style="background-color:#fff0f0">&#34;B&#34;</span>) <span style="color:#a60;background-color:#fff0f0">&#39;efleed-search-eww-open</span>)
+</span></span></code></pre></div><p>We can take this idea further. The following snippet will ensure that Emacs (and thus Elfeed) defaults to opening Youtube links in <code>mpv</code> (or the video player of your choice), cutting the browser out of the loop entirely. <sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-emacs-lisp" data-lang="emacs-lisp"><span style="display:flex;"><span>(<span style="color:#007020">setq</span> <span style="color:#963">browse-url-browser-function</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#333">&#39;</span>((<span style="background-color:#fff0f0">&#34;https:\\/\\/www\\.youtu\\.*be.&#34;</span> <span style="color:#333">.</span> <span style="color:#963">browse-url-mpv</span>)
+</span></span><span style="display:flex;"><span>        (<span style="background-color:#fff0f0">&#34;.&#34;</span> <span style="color:#333">.</span> <span style="color:#963">browse-url-generic</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>(<span style="color:#007020">defun</span> <span style="color:#963">browse-url-mpv</span> (<span style="color:#963">url</span> <span style="color:#038;font-weight:bold">&amp;optional</span> <span style="color:#963">single</span>)
+</span></span><span style="display:flex;"><span>  (<span style="color:#06b;font-weight:bold">start-process</span> <span style="background-color:#fff0f0">&#34;mpv&#34;</span> <span style="color:#036;font-weight:bold">nil</span> <span style="background-color:#fff0f0">&#34;mpv&#34;</span> (<span style="color:#963">shell-quote-argument</span> <span style="color:#963">url</span>)))
+</span></span></code></pre></div><div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>There is <a href="https://github.com/algernon/elfeed-goodies">Elfeed Goodies</a>, a package on github that provides a split pane setup to Elfeed. But it&rsquo;s rather large for what it does, has a dependency I don&rsquo;t need (<code>popwin.el</code>) for a single function and provides much else that I have no use for.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>A previous version of this write-up used macros instead of closures for the helpers. This simpler solution was suggested by <a href="https://old.reddit.com/r/emacs/comments/goh2nw/lazy_elfeed/frgbn1h/"><code>/u/nv-elisp</code> on Reddit</a>.&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p><code>mpv</code> requires <a href="https://github.com/ytdl-org/youtube-dl">Youtube-dl</a> to play youtube videos.&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>

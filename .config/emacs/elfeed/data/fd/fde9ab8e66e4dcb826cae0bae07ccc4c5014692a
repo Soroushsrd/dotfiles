@@ -1,0 +1,293 @@
+<p>This is a dual purpose post: I’ve released <a href="https://docs.zizmor.sh/release-notes/#1130">zizmor v1.13.0</a>,
+and zizmor has turned one year old<sup id="fnref:count"><a href="#fn:count" class="footnote" rel="footnote" role="doc-noteref">1</a></sup>!</p>
+
+<p>This release isn’t the biggest one ever, but it does include some nice
+changes (many of which were contributed or suggested by zizmor’s increasingly
+large community). Highlights include:</p>
+
+<ul>
+  <li>
+    <p>A new (pedantic-level) <a href="https://docs.zizmor.sh/audits/#undocumented-permissions">undocumented-permissions</a> audit rule, which flags
+explicit permission grants (like <code class="language-plaintext highlighter-rouge">id-token: write</code>) that lack an explanatory
+comment.</p>
+
+    <p>Many thanks to <a href="https://github.com/johnbillion">@johnbillion</a> for contributing this!</p>
+  </li>
+  <li>
+    <p>(Long requested) support for disabling individual audit rules entirely, via
+<code class="language-plaintext highlighter-rouge">rules.&lt;id&gt;.disable</code> in the configuration.</p>
+  </li>
+  <li>
+    <p>Support for auto-fixing many of the <a href="https://docs.zizmor.sh/audits/#obfuscation">obfuscation</a> audit’s findings, including
+a brand new constant expression evaluator for <a href="https://crates.io/crates/github-actions-expressions">github-actions-expressions</a>
+that can unroll many common cases of obfuscated GitHub Actions expressions.</p>
+
+    <p>Many thanks to <a href="https://github.com/mostafa">@mostafa</a> for contributing this, along with so much else of
+  zizmor’s auto-fix functionality over the last few releases!</p>
+  </li>
+  <li>
+    <p>Support for “grouped” configurations, which resolve a long-standing
+architectural limitation in how zizmor loads and applies a user’s
+configuration.</p>
+
+    <p>The TL;DR of this change is that versions of zizmor prior to 1.13.0
+  could only ever load a <em>single</em> configuration file per invocation, which
+  meant that invocations like <code class="language-plaintext highlighter-rouge">zizmor dir/repoA dir/repoB</code> wouldn’t honor
+  any configuration files in <code class="language-plaintext highlighter-rouge">dir/repoA</code> or <code class="language-plaintext highlighter-rouge">dir/repoB</code>. This has been
+  changed so that each input <em>group</em> (i.e. each input argument to <code class="language-plaintext highlighter-rouge">zizmor</code>)
+  loads its own isolated configuration.</p>
+
+    <p>In practice, this should have no effect on typical users, since the average
+  user likely only runs <code class="language-plaintext highlighter-rouge">zizmor .</code> or <code class="language-plaintext highlighter-rouge">zizmor org/repo</code>. But it’s something
+  to be aware of (and will likely benefit you) if you’re a bulk user!</p>
+  </li>
+</ul>
+
+<p>These changes build on a lot of other recent (v1.10.0 and later) improvements,
+which could easily be the subject of a much longer post. But I’d like to focus
+the rest of this post on some numbers for and reflections on the past year of
+zizmor’s growth.</p>
+
+<h2 id="by-the-numbers">By the numbers<a href="#by-the-numbers" class="header-anchor" aria-label="Permalink to by-the-numbers">#</a></h2>
+
+<p>As of today (September 12, 2025), zizmor has:</p>
+
+<ul>
+  <li>
+    <p>26 unique <a href="https://docs.zizmor.sh/audits/">audit rules</a>, encompassing a wide range of reactive and proactive
+security checks for GitHub Actions workflows and action definitions.</p>
+
+    <p>This is up from 10 rules in the first tagged release (v0.1.0),
+  which predates the changelog. It also undercounts the growth of zizmor’s
+  complexity and feature set, since many of the rules have been
+  <a href="/2025/08/14/Fun-with-finite-state-transducers">significantly enhanced</a> over time.</p>
+  </li>
+  <li>
+    <p><em>Just</em> over 3000 stars on GitHub, growing from close to zero at the
+start of the year. Most of that growth was in the shape of a “hockey stick”
+during the first few months, but growth has been steady overall:</p>
+
+    <p><img src="/assets/star-history-2025912.png" alt="A frozen look at zizmor's star history." /></p>
+  </li>
+  <li>
+    <p>About <a href="https://clickpy.clickhouse.com/dashboard/zizmor">3.2 million downloads</a> from PyPI <em>alone</em>, just barely squeaking us
+into the top 10,000 most-downloaded packages on PyPI<sup id="fnref:num"><a href="#fn:num" class="footnote" rel="footnote" role="doc-noteref">2</a></sup>.</p>
+
+    <p>Potentially more interesting is the <em>growth</em> in PyPI downloads:
+  around 1 in 5 of those downloads (633K precisely) were in the last month
+  <em>alone</em>.</p>
+
+    <p>Notably, PyPI is just one of several distribution channels for zizmor:
+  the <a href="https://github.com/zizmorcore/zizmor/pkgs/container/zizmor">official Docker image</a> has another ~140K downloads, the
+  <a href="https://formulae.brew.sh/formula/zizmor">Homebrew formula</a> has another ~50K, <a href="https://anaconda.org/conda-forge/zizmor">conda-forge</a> has another ~90K,
+  and so forth. And these are only the ones I can easily track!</p>
+  </li>
+  <li>
+    <p><a href="https://docs.zizmor.sh/trophy-case/">So, so many</a> cool downstream users: cURL, CPython, PyPI itself,
+ Rust, Rustls, Sigstore, Anubis, and many others are all running zizmor in
+ their CI/CD to proactively catch potential security issues.</p>
+
+    <p>In addition to these projects (who humble me with their use), I’ve
+ also been thrilled to see entire <em>communities</em> and <em>companies</em> adopt and/or
+ recommend zizmor: <a href="https://www.pyopensci.org/blog/python-packaging-security-publish-pypi.html">pyOpenSci</a>, <a href="https://grafana.com/blog/2025/06/26/how-to-detect-vulnerable-github-actions-at-scale-with-zizmor/">Grafana Labs</a>, and <a href="https://www.wiz.io/blog/github-actions-security-guide">Wiz</a> have all
+ publicly recommended zizmor based on their own experience or expertise.</p>
+  </li>
+  <li>
+    <p>Roughly 50 <a href="https://github.com/zizmorcore/zizmor/graphs/contributors">contributors</a>, excluding myself and bots, along with
+several dozen “regulars” who file bug reports and feature requests.</p>
+
+    <p>This number is <em>easily</em> the most satisfying of the above: it’s a far
+  cry from the project’s start, when I wasn’t sure if anyone would
+  ever use it, let alone contribute to it.</p>
+  </li>
+</ul>
+
+<h2 id="reflections">Reflections<a href="#reflections" class="header-anchor" aria-label="Permalink to reflections">#</a></h2>
+
+<p>Some thoughts and observations from the past year.</p>
+
+<h3 id="people-like-to-use-zizmor">People <strong>like</strong> to use zizmor<a href="#people-like-to-use-zizmor" class="header-anchor" aria-label="Permalink to people-like-to-use-zizmor">#</a></h3>
+
+<p>People <strong>like</strong> to use zizmor, even though it’s a security tool!
+Crazy!</p>
+
+<p>Most people, <em>including myself</em>, <a href="/2022/12/28/ReDoS-vulnerabilities-and-misaligned-incentives">hate security tools</a>: they are,
+as a class, frustrating to install and configure, obtuse to run,
+and are arrogantly incorrect in their assumption of user tolerance
+for signal over noise.</p>
+
+<p>My own negative experiences with security tooling made me hesitant
+to build zizmor in the open: I was worried that (1) no one would use it,
+or (2) lots of people would use it <em>in anger</em>, and hate it (and me)
+for it.</p>
+
+<p>To my surprise, this didn’t happen! The overwhelming response to zizmor
+has been positive: I’ve had a lot of people thank me for building it,
+and <em>specifically</em> for making it pleasant to use. I’ve tried to reflect
+on <em>what</em> exactly I did to succeed in not eliciting a “hate” reaction
+to zizmor, and the following things come to mind:</p>
+
+<ul>
+  <li>
+    <p>It’s <strong>very easy</strong> to install and run: distributing it via PyPI
+  (even though it’s a pure Rust binary) means that it’s a single
+  <code class="language-plaintext highlighter-rouge">uvx zizmor</code> or <code class="language-plaintext highlighter-rouge">pip install zizmor</code> away for most users.</p>
+  </li>
+  <li>
+    <p>It’s <strong>very fast</strong> by default: offline runs take tens of
+  milliseconds for representative inputs; online runs are slower,
+  but still fast enough to outpace typical CI/CD setups. In other
+  words: people very rarely <em>wait</em> for zizmor to complete, or
+  in the worst case wait no longer than they’re already waiting for the
+  rest of their CI/CD.</p>
+  </li>
+  <li>
+    <p>It <strong>strikes the right balance</strong> with its <a href="https://docs.zizmor.sh/usage/#using-personas">persona</a> design: the default
+  (“<em>regular</em>”) persona prioritizes signal over noise, while letting users
+  opt into more noisy personae (like <em>pedantic</em> and <em>auditor</em>) as they
+  please.</p>
+
+    <p>One outcome from this choice which has been (pleasantly) surprising
+  is seeing users <em>opt into</em> a more sensitive persona than the default,
+  including even enforcing zizmor at the <em>pedantic</em> or <em>auditor</em> level
+  in their CI/CD.</p>
+
+    <p>I didn’t expect this (I expected most users to
+  ignore non-default personae), and it suggests that zizmor’s other
+  usability-first design decisions afford us a “pain budget” that
+  users are willing to spend on more sensitive checks.</p>
+  </li>
+</ul>
+
+<h3 id="acting-as-a-forcing-function-on-github">Acting as a forcing function (on GitHub)<a href="#acting-as-a-forcing-function-on-github" class="header-anchor" aria-label="Permalink to acting-as-a-forcing-function-on-github">#</a></h3>
+
+<p>On a very basic level, I don’t really <em>want</em> zizmor to exist: what I <em>really</em>
+want is a CI/CD system that’s <strong>secure by construction</strong>, and that doesn’t require
+static analysis to be bolted onto it for a degree of safety. By analogy:
+I want the Rust of CI/CD, not C or C++ with a layer of <a href="https://clang.llvm.org/docs/AddressSanitizer.html">ASan</a> slapped
+on top.</p>
+
+<p><a href="/2023/09/22/GitHub-Actions-could-be-so-much-better">GitHub Actions <em>could</em> have been that system</a> (and arguably still could be),
+but there appears to be relatively little <strong>internal</strong> political<sup id="fnref:leadership"><a href="#fn:leadership" class="footnote" rel="footnote" role="doc-noteref">3</a></sup>
+appetite within GitHub for making that happen<sup id="fnref:framing"><a href="#fn:framing" class="footnote" rel="footnote" role="doc-noteref">4</a></sup>.</p>
+
+<p>In this framing, I’ve come to see zizmor as an <strong>external</strong> forcing function
+on GitHub: a low-friction, low-complexity tool that reveals GitHub Actions’
+security flaws is <em>also</em> a tool that gives the hardworking engineers inside
+of GitHub the kind of political ammunition they need to convince their leadership
+to prioritize the product itself.</p>
+
+<p>I’m not conceited enough to think that zizmor (or I) alone am the only
+such external forcing function: there are many others, including entire
+companies seeking to capitalize on GitHub Actions’ flaws. However, I do think
+the last year of zizmor’s development has seen GitHub place more
+public emphasis on security improvements to GitHub Actions<sup id="fnref:improvements"><a href="#fn:improvements" class="footnote" rel="footnote" role="doc-noteref">5</a></sup>, and I would
+like to think that zizmor has played at least a small part in that.</p>
+
+<h3 id="the-future">The future<a href="#the-future" class="header-anchor" aria-label="Permalink to the-future">#</a></h3>
+
+<p>Six months ago, I would have probably said that zizmor is <strong>mostly done</strong>:
+I was happy with its core design and set of audits, and I was having trouble
+personally imagining what else would be <em>reasonable</em> to add to it.</p>
+
+<p>But then, stuff kept happening! zizmor’s user base has continued to identify
+new things that zizmor <em>should</em> be doing, and have continued to make
+contributions towards those things. They’ve also identified new <em>ways</em>
+in which zizmor should operate: the <a href="https://docs.zizmor.sh/usage/#auto-fixing-results">auto-fix mode</a> (v1.10.0) and <a href="https://docs.zizmor.sh/integrations/#ides">LSP support</a>
+(v1.11.0) are just two examples of this.</p>
+
+<p>This has made me less certain about what “done” will look like for zizmor:
+it’s clear to me that a <em>lot</em> of other people have (very good!) ideas
+about what zizmor can and should do to make the GitHub Actions ecosystem
+safer, and I’m looking forward to helping to realize those ideas.</p>
+
+<p>Some specific things I see on the horizon:</p>
+
+<ul>
+  <li>
+    <p>More <em>interprocedural</em> analysis: zizmor is largely “intraprocedural” in the
+moment, in the sense the it analyzes individual inputs (workflows or action
+definitions) in isolation.</p>
+
+    <p>This approach makes zizmor simple, but it also
+  leaves us with an partial picture of <em>e.g.</em> a repository’s overall CI/CD
+  posture. As a simple example: the <a href="https://docs.zizmor.sh/audits/#unpinned-uses">unpinned-uses</a> audit will correctly
+  flag any unpinned action usages, but it won’t detect <em>transitively</em>
+  unpinned usages that cross input boundaries.</p>
+  </li>
+  <li>
+    <p>Better support for large-scale users: it’s increasingly clear to me that
+a significant portion (and increasing) portion of zizmor’s userbase is
+security teams within bigger open source projects (and companies), who
+want to use zizmor as part of “estate management” for dozens, hundreds,
+or even thousands of individual repositories.</p>
+
+    <p>zizmor <em>itself</em> doesn’t struggle to operate in these settings, but
+  large scales make it harder to triage and incrementally address
+  zizmor’s findings. I’m not sure exactly what an improved UX for
+  bulk triage will look like, but some kind of <a href="https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps">GitHub App</a> integration
+  seems worth exploring<sup id="fnref:risks"><a href="#fn:risks" class="footnote" rel="footnote" role="doc-noteref">6</a></sup>.</p>
+  </li>
+  <li>
+    <p>A bigger architectural reevaluation: zizmor’s current architecture is
+<em>naïve</em> in the sense that individual audits don’t share or re-use
+computation between each other. For example, two audits that both evaluate
+GitHub Actions expressions will independently re-parse those expressions
+rather than caching that reusing that work.</p>
+
+    <p>This is not a performance issue at zizmor’s current audit count, but will
+  likely eventually become one. When this happens, I’ll likely need to think
+  about a larger architectural change that allows audits to either share
+  computed analysis state <em>or</em> push more analysis state into zizmor’s
+  input collection phase.</p>
+
+    <p>Another (unrelated) architectural change that’ll likely eventually need
+  to happen involves <a href="https://crates.io/crates/serde_yaml"><code class="language-plaintext highlighter-rouge">serde_yaml</code></a>, which zizmor currently uses extensively:
+  its deprecated status is a long-term maintenance risk. My hope is that
+  alternatives (like <a href="https://crates.io/crates/saphyr">saphyr</a>, which I’ve been following) will become
+  sufficiently mature and feature-rich in the medium-long term to enable
+  fully replacing <code class="language-plaintext highlighter-rouge">serde_yaml</code> (and potentially even some of our
+  use of <a href="https://crates.io/crates/tree-sitter-yaml"><code class="language-plaintext highlighter-rouge">tree-sitter-yaml</code></a> in <em>e.g.</em> <a href="https://crates.io/crates/yamlpath"><code class="language-plaintext highlighter-rouge">yamlpath</code></a> and <a href="https://crates.io/crates/yamlpatch"><code class="language-plaintext highlighter-rouge">yamlpatch</code></a>.).</p>
+  </li>
+</ul>
+
+<hr />
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:count">
+      <p>It depends on how you count: zizmor’s first commit was roughly
+      13 months ago, while its first tagged release (v0.1.0) was
+      roughly 11 months ago. So I’m splitting the two and saying it’s
+      been one year. <a href="#fnref:count" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:num">
+      <p>Number #9,047 as of time of writing. <a href="#fnref:num" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:leadership">
+      <p>Read: product leadership. I have a great deal of faith in and respect
+           for GitHub’s engineers, who seem to be uniformly upset about the
+           slow-but-accelerating degradation of GitHub’s product quality. <a href="#fnref:leadership" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:framing">
+      <p>A more cynical framing would be that GitHub has entered the
+        “value strip-mining” phase of its product lifecycle, where
+        offerings like GitHub Actions are kept alive <em>just enough</em> to meet
+        contractual obligations and serve as a staging bed for the next
+        round of “innovation” (read: AI in more places). Fixing longstanding
+        flaws in GitHub Actions’ design and security model would
+        not benefit this phase, so it is not prioritized. <a href="#fnref:framing" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:improvements">
+      <p>Off the top of my head: <a href="https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/immutable-releases">immutable actions/releases</a>,
+             <a href="/2025/06/11/github-actions-policies-dumb-bypass">fixing action policies</a>, <a href="https://securitylab.github.com/resources/github-actions-new-patterns-and-mitigations/">acknowledging</a> how dangerous
+             <code class="language-plaintext highlighter-rouge">workflow_run</code> is, &amp;c. <a href="#fnref:improvements" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:risks">
+      <p>This avenue of exploration is not without risks: my experience has
+      been that many security tools that choose to go the “app” integration
+      route end up as Yet Another Infernal Dashboard that security teams
+      dread actually using. <a href="#fnref:risks" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
