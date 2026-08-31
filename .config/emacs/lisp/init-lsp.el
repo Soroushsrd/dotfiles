@@ -11,10 +11,30 @@
 (use-package consult)
 (use-package embark)
 (use-package embark-consult :after (embark consult))
-(use-package company
-  :hook (after-init . global-company-mode)
-  :config (setq company-idle-delay 0.0
-                company-minimum-prefix-length 1))
+(use-package corfu
+  :init
+  (global-corfu-mode)
+  (corfu-popupinfo-mode)
+  :config
+  (setq corfu-auto t
+        corfu-auto-delay 0.1
+        corfu-auto-prefix 1
+        corfu-cycle t
+        corfu-popupinfo-delay '(0.5 . 0.2)))
+
+(use-package cape
+  :init
+  (add-hook 'completion-at-point-functions #'cape-file)
+  (add-hook 'completion-at-point-functions #'cape-dabbrev))
+
+(use-package nerd-icons-corfu
+  :after corfu
+  :config
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+;; (use-package company
+;;   :hook (after-init . global-company-mode)
+;;   :config (setq company-idle-delay 0.0
+;;                 company-minimum-prefix-length 1))
 
 ;;;; LSP — lsp-mode
 (setq read-process-output-max (* 3 1024 1024)) ; 3mb, rust-analyzer is chatty
@@ -25,6 +45,7 @@
   :hook ((rustic-mode  . eglot-ensure)
          (rust-ts-mode . eglot-ensure)
          (c-mode       . eglot-ensure)
+         (tuareg-mode  . eglot-ensure)
          (c++-mode     . eglot-ensure)
          (c-ts-mode    . eglot-ensure)
          (c++-ts-mode  . eglot-ensure)
@@ -43,9 +64,18 @@
                                :closureReturnTypeHints (:enable "always")
                                :parameterHints (:enable t)
                                :chainingHints (:enable t)
-                               :lifetimeElisionHints (:enable "skip_trivial")))))
+                               :lifetimeElisionHints (:enable "skip_trivial")))
+                  :ocamllsp
+                  (:inlayHints
+                   (:hintFunctionParams t
+                                        :hintPatternVariables t
+                                        :hintLetBindings t)
+                   :extendedHover (:enable t)
+                   :codelens (:enable t))))
   (add-to-list 'eglot-server-programs
                '(rust-ts-mode . ("rust-analyzer")))
+  (add-to-list 'eglot-server-programs
+               '((tuareg-mode caml-mode) . ("ocamllsp")))
   (add-to-list 'eglot-server-programs
                '(cmake-mode . ("neocmakelsp" "--stdio")))
   (add-to-list 'eglot-server-programs

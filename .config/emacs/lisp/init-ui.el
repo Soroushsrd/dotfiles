@@ -21,7 +21,7 @@
   ;; centaur-tabs-label-fixed-length   8)  ; pads label to fixed width → more breathing room
   :config
   (centaur-tabs-mode t)
-  (centaur-tabs-change-fonts "CaskaydiaCove Nerd Font Propo" 110)  ; function call goes here
+  (centaur-tabs-change-fonts my/font-family 110)  ; function call goes here
   (centaur-tabs-headline-match)
   (centaur-tabs-group-by-projectile-project)
   (defun centaur-tabs-hide-tab (x)
@@ -62,37 +62,36 @@
 ;; (use-package doom-themes
 ;;   :ensure t
 ;;   :config
-;;   (load-theme 'doom-monokai-octagon t))
+;;   (load-theme 'doom-nord t))
 
 ;; (load-theme 'sexy t)
 ;; for kanagawa only
 (use-package autothemer
   :ensure t)
 (load-theme 'kanagawa t)
-(with-eval-after-load 'company
-  (custom-set-faces
-   '(company-tooltip
-     ((t (:background "#223249" :foreground "#DCD7BA"))))
-   '(company-tooltip-selection
-     ((t (:background "#2D4F67" :foreground "#C8C093" :weight bold))))
-   '(company-tooltip-common
-     ((t (:foreground "#7E9CD8" :weight bold))))
-   '(company-tooltip-common-selection
-     ((t (:foreground "#7FB4CA" :weight bold))))
-   '(company-tooltip-annotation
-     ((t (:foreground "#957FB8"))))
-   '(company-tooltip-annotation-selection
-     ((t (:foreground "#98BB6C"))))
-   '(company-scrollbar-bg ((t (:background "#16161D"))))
-   '(company-scrollbar-fg ((t (:background "#54546D"))))))
+;; (with-eval-after-load 'company
+;;   (custom-set-faces
+;;    '(company-tooltip
+;;      ((t (:background "#223249" :foreground "#DCD7BA"))))
+;;    '(company-tooltip-selection
+;;      ((t (:background "#2D4F67" :foreground "#C8C093" :weight bold))))
+;;    '(company-tooltip-common
+;;      ((t (:foreground "#7E9CD8" :weight bold))))
+;;    '(company-tooltip-common-selection
+;;      ((t (:foreground "#7FB4CA" :weight bold))))
+;;    '(company-tooltip-annotation
+;;      ((t (:foreground "#957FB8"))))
+;;    '(company-tooltip-annotation-selection
+;;      ((t (:foreground "#98BB6C"))))
+;;    '(company-scrollbar-bg ((t (:background "#16161D"))))
+;;    '(company-scrollbar-fg ((t (:background "#54546D"))))))
 ;;
 ;; (load-theme 'sexy t)
 ;; (load-theme 'gruber-darker t)
-
-(use-package base16-theme
-  :defer t)
-;; :config
-;; (load-theme 'base16-tender t))
+;; (use-package base16-theme
+;;   :ensure t
+;;   :config
+;;   (load-theme 'base16-spaceduck t))
 
 
 ;; Override Nord's background with the deep slate from your image

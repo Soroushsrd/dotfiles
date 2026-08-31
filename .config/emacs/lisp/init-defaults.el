@@ -2,6 +2,7 @@
 
 ;;; Code:
 ;;;; Sane defaults
+(setq frame-resize-pixelwise t)
 (setq-default indent-tabs-mode nil
               tab-width 4
               fill-column 100)
@@ -31,14 +32,37 @@
 (setq display-line-numbers-type 'absolute)
 (global-display-line-numbers-mode)
 
+;;;; opam
+(let ((opam-bin (expand-file-name "~/.opam/default/bin"))
+      (opam-lib (expand-file-name "~/.opam/default/lib")))
+  (when (file-directory-p opam-bin)
+    (add-to-list 'exec-path opam-bin)
+    (setenv "PATH" (concat opam-bin path-separator (getenv "PATH")))
+    (setenv "OPAM_SWITCH_PREFIX" (expand-file-name "~/.opam/default"))
+    (setenv "CAML_LD_LIBRARY_PATH"
+            (concat opam-lib "/stublibs" path-separator
+                    opam-lib "/ocaml/stublibs" path-separator
+                    opam-lib "/ocaml"))))
+
 ;;;; Fonts
+;; (defvar my/font-family "Robotomono Nerd Font Propo")
+(defvar my/font-family "Jetbrainsmono Nerd Font Propo")
 (set-face-attribute 'default nil
-                    ;; :family "RobotoMono Nerd Font"
-                    :family "JetBrainsMono Nerd Font"
-                    :height 130 :weight 'medium)
+                    :family my/font-family
+                    ;; :family "JetBrainsMono Nerd Font"
+                    :height 140
+                    :weight 'bold)
 (set-face-attribute 'fixed-pitch nil
-                    :family "JetBrainsMono Nerd Font" :weight 'medium)
+                    :family my/font-family
+                    :height 1.0
+                    :weight 'bold
+                    :slant 'italic)
+(set-face-attribute 'variable-pitch nil
+                    :family "Inter"
+                    :height 1.0)
+
 (setq-default line-spacing 0.15)
+
 ;;;; Clipboard (Wayland)
 (setq wl-copy-process nil)
 
@@ -69,7 +93,7 @@
   (setq project-find-functions
         (cons 'project-try-vc (remq 'project-try-vc project-find-functions)))
   (setq project-vc-extra-root-markers
-        '("mix.exs" "build.zig" "compile_commands.json" ".project")))
+        '("dune-project" "mix.exs" "build.zig" "compile_commands.json" ".project")))
 (setopt xterm-update-cursor t)
 
 (provide 'init-defaults)

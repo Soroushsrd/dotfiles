@@ -3,6 +3,7 @@
 (setq native-comp-async-report-warnings-errors 'silent)
 (setq package-enable-at-startup nil)
 (setq gc-cons-threshold most-positive-fixnum)
+(setq package-vc-allow-build-commands t)
 (add-hook 'emacs-startup-hook
           (lambda () (setq gc-cons-threshold (* 64 1024 1024))))
 (setq inhibit-startup-message t

@@ -2,6 +2,42 @@
 
 ;;;; Code:
 ;;;; Language modes
+;;;; OCaml
+(use-package tuareg
+  :mode (("\\.mli?\\'" . tuareg-mode)
+         ("\\.eliomi?\\'" . tuareg-mode))
+  :config
+  (setq tuareg-indent-align-with-first-arg t
+        tuareg-match-patterns-aligned t))
+
+(use-package dune)  ; dune / dune-project files
+
+(use-package utop
+  :hook (tuareg-mode . utop-minor-mode)
+  :config
+  (setq utop-command "opam exec -- dune utop . -- -emacs"))
+
+(defun my/ocaml-fmt-on-save ()
+  "Format the current OCaml buffer via eglot (ocamllsp → ocamlformat)."
+  (when (and (derived-mode-p 'tuareg-mode)
+             (eglot-managed-p))
+    (eglot-format)))
+(add-hook 'before-save-hook #'my/ocaml-fmt-on-save)
+(defun my/dune-fmt-on-save ()
+  "Format dune files via `dune format-dune-file'."
+  (when (derived-mode-p 'dune-mode)
+    (let ((tmp (make-temp-file "dune-fmt")))
+      (unwind-protect
+          (when (zerop (call-process-region (point-min) (point-max)
+                                            "dune" nil `((:file ,tmp) nil) nil
+                                            "format-dune-file"))
+            (let ((pos (point)))
+              (erase-buffer)
+              (insert-file-contents tmp)
+              (goto-char (min pos (point-max)))))
+        (delete-file tmp)))))
+(add-hook 'before-save-hook #'my/dune-fmt-on-save)
+
 (use-package cmake-mode
   :mode (("CMakeLists\\.txt\\'" . cmake-mode)
          ("\\.cmake\\'" . cmake-mode)))

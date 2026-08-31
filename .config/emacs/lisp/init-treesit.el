@@ -13,9 +13,6 @@
 (setopt treesit-enabled-modes t)
 (setq treesit-font-lock-level 4)
 (setq rustic-treesitter-derive t)  ; rustic uses rust-ts-mode as base
-;; (add-to-list 'major-mode-remap-alist '(rust-mode . rust-ts-mode))
-;; (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
-;; (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
 (setopt c-ts-mode-enable-doxygen t)              ; new in 31
 (setopt rust-ts-mode-fontify-number-suffix-as-type t)
 
