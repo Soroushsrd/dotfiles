@@ -2,10 +2,10 @@ font-family = JetBrainsMono NFM SemiBold
 # font-family = CaskaydiaCove Nerd Font Propo
 # font-family = SFMono Nerd Font
 # gtk-gsk-renderer = default
-font-size = 12
+font-size = 13
 font-style-bold = true
 title = ""
-theme = "Kanagawa Wave"
+theme = "Argonaut"
 shell-integration = none
 # shell-integration-features = no-cursor,sudo,no-title
 cursor-style = block_hollow
@@ -44,7 +44,6 @@ keybind = alt+q=close_surface
 keybind = alt+n=new_window
 # Tab management - using Alt + number for direct access
 keybind = alt+t=new_tab
-keybind = alt+x=next_tab
 keybind = alt+p=previous_tab
 # keybind = alt+comma=move_tab:-1
 # keybind = alt+period=move_tab:1
