@@ -115,15 +115,14 @@ hl.bind(mainMod .. " + T", hl.dsp.window.float({ action = "toggle" }), { descrip
 -- exposes only change_id / move / rename / swap_monitors / toggle_special
 -- (hl.meta.lua:932-938). Nothing covers allfloat.
 --
--- ML4W 2.16 hit the same wall and solved it by shelling out:
---     hl.dsp.exec_cmd("~/.config/ml4w/scripts/ml4w-toggle-allfloat")
--- You do not have that script (it is 2.16-only), but you DO have an
--- equivalent that was sitting unused in your tree:
---     old/scripts/toggleallfloat.sh  ->  `hyprctl dispatch workspaceopt allfloat`
--- So the dispatcher still exists in the compositor, it is just not exposed
--- to Lua. Routing through hyprctl is the same trick upstream uses.
+-- `workspaceopt` is gone from the compositor entirely as of 0.56 — it is not
+-- reachable via hyprctl either. scripts/toggleallfloat.sh now reimplements it:
+-- it reads the active workspace's windows and applies
+-- hl.dsp.window.float{window=..., action="enable"|"disable"} to each,
+-- picking the action so a fully-floating workspace tiles and anything else
+-- floats.
 --
--- I did NOT test this script: running it would flip every window in your
+-- I did NOT run the script end to end: it would flip every window in the
 -- live session to floating.
 hl.bind(
 	mainMod .. " + SHIFT + T",
