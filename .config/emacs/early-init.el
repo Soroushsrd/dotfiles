@@ -1,6 +1,7 @@
 ;;; early-init.el -*- lexical-binding: t; -*-
 ;; Silence native comp warning pop ups(logged to *Warnings*)
 (setq native-comp-async-report-warnings-errors 'silent)
+(setq load-prefer-newer t)
 (setq package-enable-at-startup nil)
 (setq gc-cons-threshold most-positive-fixnum)
 (setq package-vc-allow-build-commands t)
