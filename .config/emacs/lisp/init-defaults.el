@@ -50,7 +50,7 @@
 (set-face-attribute 'default nil
                     :family my/font-family
                     ;; :family "JetBrainsMono Nerd Font"
-                    :height 140
+                    :height 130
                     :weight 'bold)
 (set-face-attribute 'fixed-pitch nil
                     :family my/font-family

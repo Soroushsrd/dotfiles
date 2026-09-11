@@ -18,7 +18,6 @@
         centaur-tabs-show-new-tab-button  nil
         centaur-tabs-cycle-scope          'tabs
         centaur-tabs-adjust-buffer-order  'right)
-  ;; centaur-tabs-label-fixed-length   8)  ; pads label to fixed width → more breathing room
   :config
   (centaur-tabs-mode t)
   (centaur-tabs-change-fonts my/font-family 110)  ; function call goes here
@@ -69,22 +68,6 @@
 (use-package autothemer
   :ensure t)
 (load-theme 'kanagawa t)
-;; (with-eval-after-load 'company
-;;   (custom-set-faces
-;;    '(company-tooltip
-;;      ((t (:background "#223249" :foreground "#DCD7BA"))))
-;;    '(company-tooltip-selection
-;;      ((t (:background "#2D4F67" :foreground "#C8C093" :weight bold))))
-;;    '(company-tooltip-common
-;;      ((t (:foreground "#7E9CD8" :weight bold))))
-;;    '(company-tooltip-common-selection
-;;      ((t (:foreground "#7FB4CA" :weight bold))))
-;;    '(company-tooltip-annotation
-;;      ((t (:foreground "#957FB8"))))
-;;    '(company-tooltip-annotation-selection
-;;      ((t (:foreground "#98BB6C"))))
-;;    '(company-scrollbar-bg ((t (:background "#16161D"))))
-;;    '(company-scrollbar-fg ((t (:background "#54546D"))))))
 ;;
 ;; (load-theme 'sexy t)
 ;; (load-theme 'gruber-darker t)
@@ -93,18 +76,10 @@
 ;;   :config
 ;;   (load-theme 'base16-spaceduck t))
 
+(use-package doric-themes
+  :ensure t
+  :demand t)
 
-;; Override Nord's background with the deep slate from your image
-;; (custom-set-faces
-;;  '(default ((t (:background "#162635"))))
-;;  '(fringe  ((t (:background "#162635"))))
-;;  '(tab-line ((t (:background "#1A3042" :foreground "#162635"))))
-;;  '(line-number ((t (:background "#162635"))))
-;;  '(centaur-tabs-selected
-;;    ((t (:background "#1A3042" :foreground "#A5D4DE"))))
-;;  '(centaur-tabs-unselected
-;;    ((t (:background "#162635" :foreground "#618D9D"))))
-;;  '(mode-line ((t (:background "#1A3042")))))
 
 (use-package nerd-icons
   :config
