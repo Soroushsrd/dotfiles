@@ -27,14 +27,23 @@
   (add-hook 'completion-at-point-functions #'cape-file)
   (add-hook 'completion-at-point-functions #'cape-dabbrev))
 
-(use-package nerd-icons-corfu
-  :after corfu
+(use-package corfu
+  :init
+  (setq global-corfu-minibuffer
+        (lambda ()
+          (not (memq this-command
+                     '(evil-ex
+                       evil-ex-search-forward
+                       evil-ex-search-backward
+                       evil-ex-search-word-forward
+                       evil-ex-search-word-backward)))))
+  (global-corfu-mode)
+  (corfu-popupinfo-mode)
   :config
-  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
-;; (use-package company
-;;   :hook (after-init . global-company-mode)
-;;   :config (setq company-idle-delay 0.0
-;;                 company-minimum-prefix-length 1))
+  (setq corfu-auto t
+        corfu-auto-delay 0.1
+        corfu-auto-prefix 1
+        corfu-cycle t))
 
 ;;;; LSP — lsp-mode
 (setq read-process-output-max (* 3 1024 1024)) ; 3mb, rust-analyzer is chatty
@@ -48,6 +57,7 @@
          (tuareg-mode  . eglot-ensure)
          (c++-mode     . eglot-ensure)
          (c-ts-mode    . eglot-ensure)
+         (qml-ts-mode  . eglot-ensure)
          (c++-ts-mode  . eglot-ensure)
          (eglot-managed-mode . eglot-inlay-hints-mode))
   :init
@@ -78,6 +88,12 @@
                '((tuareg-mode caml-mode) . ("ocamllsp")))
   (add-to-list 'eglot-server-programs
                '(cmake-mode . ("neocmakelsp" "--stdio")))
+  (add-to-list 'eglot-server-programs
+               `((qml-ts-mode :language-id "qml")
+                 . (,(or (executable-find "qmlls")
+                         (executable-find "qmlls6")
+                         "qmlls")
+                    "-E")))
   (add-to-list 'eglot-server-programs
                '((c-mode c++-mode c-ts-mode c++-ts-mode) .
                  ("clangd"
@@ -136,12 +152,13 @@
   (set-face-attribute 'eldoc-box-border nil :background "#7E9CD8")
   (set-face-attribute 'child-frame-border nil :background "#7E9CD8"))
 
-;; 16 cells of top offset centers the box on a TTY; scale it down there.
 (defun my/eldoc-box-offset (fn &rest args)
   (let ((eldoc-box-offset (if (display-graphic-p) '(16 16 16) '(2 2 1))))
     (apply fn args)))
+
 (advice-add 'eldoc-box--default-upper-corner-position-function
             :around #'my/eldoc-box-offset)
+
 ;; Upstream measures with `window-text-pixel-size' and clamps against
 ;; (- (frame-pixel-width parent) 32). On a TTY those units are character
 ;; cells, so the box collapses to one row. Count visible lines instead.
@@ -196,6 +213,7 @@
 (when (featurep 'tty-child-frames)
   (standard-display-unicode-special-glyphs)
   (tty-tip-mode 1))          ; tooltips in the terminal
+
 (unless (display-graphic-p)
   (prettify-special-glyphs-mode 1))  ; nicer truncation/continuation glyphs
 

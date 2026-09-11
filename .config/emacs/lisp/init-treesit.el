@@ -6,6 +6,7 @@
       '((cpp  "https://github.com/tree-sitter/tree-sitter-cpp")
         (c    "https://github.com/tree-sitter/tree-sitter-c")
         (tlaplus "https://github.com/tlaplus-community/tree-sitter-tlaplus")
+        (qmljs "https://github.com/yuja/tree-sitter-qmljs" "master")
         (rust "https://github.com/tree-sitter/tree-sitter-rust")
         (toml "https://github.com/tree-sitter/tree-sitter-toml")))
 

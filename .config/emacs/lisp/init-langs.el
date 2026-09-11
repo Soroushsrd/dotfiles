@@ -2,6 +2,22 @@
 
 ;;;; Code:
 ;;;; Language modes
+;;;; QML / quickshell
+(defun my/qml-setup ()
+  "Buffer-local tweaks for QML."
+  (setq-local electric-indent-chars '(?\n ?\( ?\) ?{ ?} ?\[ ?\] ?\; ?,)))
+
+(use-package qml-ts-mode
+  :vc (:url "https://github.com/xhcoding/qml-ts-mode" :rev :newest)
+  :ensure t
+  :mode "\\.qml\\'"
+  :hook (qml-ts-mode . my/qml-setup)
+  :config
+  (setq qml-ts-mode-indent-offset 4))
+
+;; quickshell's qmldir files
+(add-to-list 'auto-mode-alist '("\\(?:\\`\\|/\\)qmldir\\'" . conf-unix-mode))
+
 ;;;; OCaml
 (use-package tuareg
   :mode (("\\.mli?\\'" . tuareg-mode)
@@ -118,7 +134,24 @@
                                     (eglot-managed-p))
                            (eglot-reconnect (eglot-current-server)))))))))))
 
+(defvar my/qmlformat (or (executable-find "qmlformat")
+                         (executable-find "qmlformat6")))
 
+(defun my/qml-fmt-on-save ()
+  "Format the current QML buffer via qmlformat."
+  (when (and (derived-mode-p 'qml-ts-mode) my/qmlformat)
+    (let ((tmp (make-temp-file "qmlfmt" nil ".qml")))
+      (unwind-protect
+          (progn
+            (write-region (point-min) (point-max) tmp nil 'silent)
+            (when (zerop (call-process my/qmlformat nil nil nil "-i" tmp))
+              (let ((pos (point)))
+                (erase-buffer)
+                (insert-file-contents tmp)
+                (goto-char (min pos (point-max))))))
+        (delete-file tmp)))))
+
+(add-hook 'before-save-hook #'my/qml-fmt-on-save)
 (add-hook 'before-save-hook #'my/rust-fmt-on-save)
 (add-hook 'after-save-hook #'my/auto-cmake-on-save)
 (add-hook 'before-save-hook #'my/clang-fmt-on-save)
