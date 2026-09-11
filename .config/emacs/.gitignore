@@ -1,6 +1,7 @@
 elpa/
 elpa-*/
 custom.el
+lisp/escape-dashboard.el
 straight/
 eln-cache/
 *.elc
@@ -27,3 +28,7 @@ custom.el
 eshell/
 .cache/
 var/
+elfeed/*
+elfeed/data/
+tree-sitter/
+projects/
