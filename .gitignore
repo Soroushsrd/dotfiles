@@ -1,10 +1,12 @@
 .config/emacs/elfeed/index
-~/dotfiles/.config/ml4w/cache/
-~/dotfiles/.config/emacs/elpa/*
-~/dotfiles/.config/emacs/auto-save-list/*
-~/dotfiles/.config/emacs/.cache/*
-~/dotfiles/.config/emacs/eln-cache/*
-~/dotfiles/.config/emacs/elfeed/*
-~/dotfiles/.config/emacs/lisp/escape-dashboard.el
+.config/ml4w/cache/
+.config/emacs/elpa/*
+.config/emacs/auto-save-list/*
+.config/emacs/.cache/*
+.config/emacs/eln-cache/*
+.config/emacs/elfeed/*
+.config/emacs/lisp/escape-dashboard.el
 config/emacs/places.eld
+config/emacs/projects
+.config/waybar
 
