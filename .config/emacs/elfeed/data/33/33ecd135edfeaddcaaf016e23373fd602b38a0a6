@@ -1,1 +1,0 @@
-Following from my containerd posts last year and my previous work on obuilder backends for macOS and QEMU, this post extends obuilder to use the Host Compute System (HCS) and containerd on Windows.

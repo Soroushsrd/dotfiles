@@ -1,7 +1,0 @@
-<p>One of the main emphases of my recent posts has been that I believe shipping generators would solve
-a lot of user problems by making it easy to write imperative iterative code, and especially to make
-that iterative code interact well with asynchrony and fallibility as well. One thing that frustrates
-me about the situation is that generators have been nearly ready to ship for years now, but very
-little visible progress has been made. In particular, the core compiler transform to take a
-generator and produce a state machine already exists, because it’s exactly how async functions are
-implemented.</p>

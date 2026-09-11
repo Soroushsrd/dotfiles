@@ -1,1 +1,0 @@
-The O in OCaml is for its object-oriented extension, but I needed a way to emulate the constraints of inheritance without it. This raised some interesting design questions about how to do it using only the core ML language.

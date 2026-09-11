@@ -1,1 +1,0 @@
-FreeBSD 15.0 has been out for a while, with issue#1036 pending resolution. The CI update is easy, but the CI worker rosemary needed an upgrade and new base images first.

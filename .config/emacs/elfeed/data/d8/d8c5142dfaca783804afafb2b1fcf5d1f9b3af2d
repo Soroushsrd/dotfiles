@@ -1,7 +1,0 @@
-<p>It’s been nearly two and half years since I was an active contributor to the Rust project. There are
-some releases that I’ve been very excited about since then, and I’m heartened by <a href="http://smallcultfollowing.com/babysteps/blog/2023/01/20/rust-in-2023-growing-up/">Niko’s recent blog
-post</a> emphasizing stability and polish over grand new projects. But I’ve also felt a certain
-apprehension at a lot of the directions the project has taken, which has often occupied my thoughts.
-From that preoccupation this blog post has emerged, hopefully the first in a series over the next
-few weeks outlining my thoughts on the design of Rust in 2023, especially in connection to async,
-and I hope its impact will be chiefly positive.</p>

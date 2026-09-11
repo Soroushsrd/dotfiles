@@ -1,7 +1,0 @@
-<p>In <a href="https://without.boats/blog/the-registers-of-rust">a previous post</a>, I established the notion of “registers” - code in Rust can be
-written in different registers, and it’s important to adequately support all registers. I
-specifically discussed the low-level interface of the AsyncIterator trait, about which there is
-currently a debate. The interface it currently has is a method called <code>poll_next</code>, which is a “poll”
-method like <code>Future::poll</code>. Poll methods are very “low-level” and are harder to write correctly than
-async functions. Some people would like to see <code>AsyncIterator</code> shifted to have an async next method,
-simply the “asyncified” <code>Iterator</code> trait.</p>

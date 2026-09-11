@@ -1,1 +1,0 @@
-Following on from the Arm32 multicore backend, I have now ported the remaining two 32-bit architectures to OCaml 5 with multicore support: i386 and PowerPC 32-bit (PPC32).

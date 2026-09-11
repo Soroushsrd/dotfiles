@@ -1,11 +1,10 @@
-.DS_Store
-.idea
-*.log
-tmp/
-
+.config/emacs/elfeed/index
 ~/dotfiles/.config/ml4w/cache/
 ~/dotfiles/.config/emacs/elpa/*
 ~/dotfiles/.config/emacs/auto-save-list/*
 ~/dotfiles/.config/emacs/.cache/*
 ~/dotfiles/.config/emacs/eln-cache/*
+~/dotfiles/.config/emacs/elfeed/*
+~/dotfiles/.config/emacs/lisp/escape-dashboard.el
+config/emacs/places.eld
 

@@ -31,4 +31,6 @@ var/
 elfeed/*
 elfeed/data/
 tree-sitter/
-projects/
+projects
+places.eld
+escape-progress.el

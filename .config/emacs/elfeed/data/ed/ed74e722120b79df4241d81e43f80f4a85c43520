@@ -1,1 +1,0 @@
-Recently opam-repo-ci jobs started failing on openSUSE Leap 15.6. The error looked like a disk space problem with thousands of lines of tar: Cannot mkdir: No such file or directory during the copy step. However, the file system wasn’t full.

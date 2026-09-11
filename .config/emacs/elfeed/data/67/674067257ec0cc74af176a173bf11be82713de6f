@@ -1,6 +1,0 @@
-<p>Today I made a new release of the <a href="https://github.com/ringbahn/iou">iou</a> library, which contains idiomatic Rust bindings to the
-<a href="https://github.com/axboe/liburing">liburing</a> library. This library allows users to manipulate the new <a href="https://kernel.dk/io_uring.pdf">io-uring</a>
-interface for asynchronous IO on Linux. For more context, you can read <a href="https://without.boats/blog/iou">my previous post on the
-first release of iou last year</a>.</p>
-<p>This new release greatly expands the API of iou, introduces some valuable improvements, and contains
-some breakages. I figured I would let this blog post serve as some basic release notes.</p>

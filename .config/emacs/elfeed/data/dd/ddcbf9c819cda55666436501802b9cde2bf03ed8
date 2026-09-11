@@ -1,1 +1,0 @@
-How we restructured TESSERA's geospatial embeddings from millions of individual numpy files into sharded Zarr v3 stores for efficient HTTP streaming, enabling everything from single-pixel mobile lookups to regional-scale analysis with just a couple of range requests.

@@ -1,4 +1,0 @@
-<p>In <a href="../ringbahn-ii">the previous post</a> in this series, I wrote about how the core state machine of
-<a href="https://github.com/ringbahn/ringbahn">ringbahn</a> is implemented. In this post I want to talk about another central concept in
-ringbahn: <strong>&ldquo;drivers&rdquo;</strong>, external libraries which determine how ringbahn schedules IO operations
-over an io-uring instance.</p>

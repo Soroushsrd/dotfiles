@@ -1,8 +1,0 @@
-<p>A variation on my previous design for <a href="https://without.boats/blog/pinned-places">pinned places</a> has occurred to me that would
-be more consistent with Rust&rsquo;s existing feature set.</p>
-<p>The most outlandish aspect of the previous design was the notion of &ldquo;pinned fields,&rdquo; which support
-pinned projection. This is quite different from how field projection normally works in Rust: if you
-have a mutable reference to a struct, you can get a mutable reference to its field, period. (I know
-Niko Matsakis has recently explored ideas that would change this; this post won&rsquo;t go into any deep
-consideration of that proposal.) I&rsquo;ve come up with a design which would have similar properties,
-instead of introducing a kind of field marker.</p>

@@ -1,4 +1,0 @@
-<p>In <a href="../io-uring">my previous post,</a> I discussed the new io-uring interface for Linux, and how to create
-a safe API for using io-uring from Rust. In the time since that post, I have implemented a prototype
-of such an API. The crate is called <a href="https://github.com/withoutboats/ringbahn"><strong>ringbahn</strong></a>, and it is intended to enable users to
-perform IO on io-uring without any risk of memory unsafety.</p>

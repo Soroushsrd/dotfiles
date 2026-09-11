@@ -1,8 +1,0 @@
-<p>In <a href="https://without.boats/blog/changing-the-rules-of-rust">my previous post</a>, I described the idea of using an edition mechanism to introduce a new
-auto trait. I wrote that the compiler would need to create an &ldquo;unbreakable firewall&rdquo; to prevent
-using <code>!Leak</code> types from the new edition with code from the old edition that assumes values of all
-types can be leaked.</p>
-<p>The response has been pretty optimistic that ensuring this would be possible, even though I wrote in
-the post myself that I &ldquo;despair&rdquo; over how difficult it was. I&rsquo;ve received a great example from Ariel
-Ben-Yehuda which demonstrates how this problem is more difficult to solve than you would probably
-think.</p>

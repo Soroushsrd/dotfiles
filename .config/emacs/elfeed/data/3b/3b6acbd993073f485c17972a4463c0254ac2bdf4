@@ -1,4 +1,0 @@
-<p><a href="../ringbahn">Last time</a> I wrote about <a href="https://github.com/withoutboats/ringbahn">ringbahn</a>, a safe API for using io-uring from Rust.
-I wrote that I would soon write a series of posts about the mechanism that makes ringbahn work. In
-the first post in that series, I want to look at the core state machine of ringbahn which makes it
-memory safe. The key types involved are the <a href="https://docs.rs/ringbahn/0.0.0-experimental.3/ringbahn/struct.Ring.html">Ring</a> and <a href="https://docs.rs/crate/ringbahn/0.0.0-experimental.3/source/src/completion.rs">Completion</a> types.</p>

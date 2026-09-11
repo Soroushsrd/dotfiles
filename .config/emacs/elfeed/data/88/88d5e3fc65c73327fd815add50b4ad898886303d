@@ -1,6 +1,0 @@
-<p>It&rsquo;s hard to believe that its been more than 3 years since I opened <a href="https://github.com/rust-lang/rfcs/pull/2000">RFC 2000</a>, which defined
-the const generics for Rust. At the same time, reading the RFC thread, there&rsquo;s also been a huge
-amount of change in this area: for one thing, at the time the RFC was written, const fns weren&rsquo;t
-stable, and consts weren&rsquo;t even being evaluated using miri yet. There&rsquo;s been a lot of work over the
-years on the const generics feature, but still nothing has shipped. However, I think we have defined
-a very useful subset of const generics which is stable enough to ship in the near term.</p>

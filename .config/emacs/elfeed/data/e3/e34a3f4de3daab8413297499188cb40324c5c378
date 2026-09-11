@@ -1,6 +1,0 @@
-<p>I wanted to follow up my <a href="https://without.boats/blog/poll-next">previous post</a> with a small note elaborating on the use of
-coroutines for asynchrony and iteration from a more abstract perspective. I realized the point I
-made about <code>AsyncIterator</code> being the product of <code>Iterator</code> and <code>Future</code> makes a bit more sense if
-you also consider the &ldquo;base case&rdquo; - a block of code that is neither asynchronous nor iterative.</p>
-<p>It&rsquo;s also an excuse to draw another fun ASCII diagram, and I&rsquo;ve got to put that Berkeley Mono
-license to good use.</p>

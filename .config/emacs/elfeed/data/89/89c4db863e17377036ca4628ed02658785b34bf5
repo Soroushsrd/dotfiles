@@ -1,6 +1,0 @@
-<p>A bit over a year ago, I wrote some <a href="../notes-on-a-smaller-rust">notes on a &ldquo;smaller Rust&rdquo;</a> - a higher level language
-that would take inspiration from some of Rust&rsquo;s type system innovations, but would be simpler by
-virtue of targeting a domain with less stringent requirements for user control and performance.
-During my time of unemployment this year, I worked on sketching out what a language like that would
-look like in a bit more detail. I wanted to write a bit about what new conclusions I&rsquo;ve come to
-during that time.</p>

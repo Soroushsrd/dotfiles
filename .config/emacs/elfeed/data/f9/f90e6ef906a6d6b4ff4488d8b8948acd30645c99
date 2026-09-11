@@ -1,1 +1,0 @@
-A few years ago I wrote about setting up Emacs for OCaml development. Back then the recommended stack was tuareg-mode + merlin-mode, with Merlin providing the bulk of the IDE experience. A lot has changed since then – the OCaml tooling has evolved considerably, and I’ve been working on some new tools myself. Time for an update.

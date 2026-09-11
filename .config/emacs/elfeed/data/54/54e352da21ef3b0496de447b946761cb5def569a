@@ -1,4 +1,0 @@
-<p>I managed to get the Dart VM to compile to WebAssembly so that I can compile Dart programs in the browser. Dart ships with a basic ARM interpreter and by using that, hot reload works directly in the browser.</p>
-<p>It's 7.6 MB gzipped and there's no server running behind it, so I was able to host it directly on github pages.</p>
-<p><a href="https://github.com/modulovalue/dart-live" rel="ugc">https://github.com/modulovalue/dart-live</a></p>
-<p><a href="https://lobste.rs/s/qwoixg/dart_live_compiler_vm_analyzer_hot_reload">Comments</a></p>

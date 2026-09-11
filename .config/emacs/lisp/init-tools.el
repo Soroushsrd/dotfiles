@@ -5,19 +5,7 @@
 (use-package reader
   :load-path "~/.config/emacs/elpa/emacs-reader"
   :mode ("\\.\\(epub\\|mobi\\|fb2\\|cbz\\|xps\\)\\'" . reader-mode))
-;; (use-package pdf-tools
-;;   :ensure t
-;;   :mode ("\\.pdf\\'" . pdf-view-mode)
-;;   :config
-;;   (pdf-tools-install :no-query)
-;;   (setq pdf-view-display-size 'fit-page
-;;         pdf-view-use-scaling t
-;;         pdf-view-resize-factor 1.1
-;;         pdf-annot-activate-created-annotations t)
-;;   ;; global-display-line-numbers-mode breaks the image display
-;;   (add-hook 'pdf-view-mode-hook (lambda () (display-line-numbers-mode -1)))
-;;   ;; recolor pages to match doom-nord instead of blinding you
-;;   (add-hook 'pdf-view-mode-hook #'pdf-view-themed-minor-mode))
+
 (use-package saveplace-pdf-view
   :ensure t
   :after pdf-tools
@@ -139,7 +127,6 @@
   (setq vterm-kill-buffer-on-exit t)
   (add-hook 'vterm-exit-functions #'my/vterm-exit-cleanup))
 
-;; (require 'article)
 (use-package elfeed
   :commands (elfeed elfeed-update)
   :config

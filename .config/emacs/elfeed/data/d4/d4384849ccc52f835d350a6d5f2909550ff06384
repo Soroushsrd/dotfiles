@@ -1,1 +1,0 @@
-In my previous post, I described running Claude Code as a non-interactive agent by feeding it a runbook via NOTES.md, letting it SSH into workers, diagnose problems, and commit its findings back to git.

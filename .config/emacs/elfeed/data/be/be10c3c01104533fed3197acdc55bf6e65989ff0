@@ -1,1 +1,0 @@
-A few days after retiring opam 2.0 from the build pipeline, ocaml-ci Jon noticed that some jobs were failing. I immediately concluded that the removal was to blame, but it wasn’t.

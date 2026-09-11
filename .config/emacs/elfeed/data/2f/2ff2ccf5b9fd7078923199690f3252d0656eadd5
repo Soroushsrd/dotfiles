@@ -1,1 +1,0 @@
-Following my previous CPU vs GPU post I started thinking about what the ONNX inference engine actually did and if it could be replicated in OxCaml with SIMD.

@@ -1,1 +1,0 @@
-Following from post last week about obuilder and Windows Host Compute Services, I am pleased to report that this is now running on OCaml-CI. In this early phase, I have enabled testing only on Windows 2025 with OCaml 5.4 and opam 2.5 using the MinGW toolchain.

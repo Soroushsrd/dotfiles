@@ -1,1 +1,0 @@
-OCurrent has always been Lwt-based but what would it take to migrate it to Eio? The pipeline DSL itself is incremental computation over Current.t, but the engine, the cache, every plugin’s BUILDER/PUBLISHER, the web UI, and capnp-rpc were all built on Lwt.t.

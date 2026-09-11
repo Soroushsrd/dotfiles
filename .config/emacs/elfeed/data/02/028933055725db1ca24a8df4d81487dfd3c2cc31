@@ -1,9 +1,0 @@
-<p>One of the most famous anecdotes that forms the basis of the United States&rsquo; political self-identity
-is the story of an interaction between Benjamin Franklin and Elizabeth Willing Powel after the
-Constitutional Convention of 1787, which established the United States&rsquo; present form of government.
-Powel asked Franklin what sort of government the U.S. was to have, to which he replied: <strong>&ldquo;a
-republic, if you can keep it.&rdquo;</strong></p>
-<p>Given the self-conscious references to &ldquo;constitutions&rdquo; and &ldquo;checks and balances&rdquo; in the Rust
-project&rsquo;s recent <a href="https://github.com/rust-lang/rfcs/pull/3392">governance RFC</a> and the discourse around it, some further reflection on
-this quote and its implications about governance as such might now be appropriate for the project
-and its community.</p>

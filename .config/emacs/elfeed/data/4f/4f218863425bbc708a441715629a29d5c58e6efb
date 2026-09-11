@@ -1,9 +1,0 @@
-<p>If you visit the site today, you&rsquo;ll notice it looks quite a bit
-different.  I&rsquo;ve decided to switch from my old antiquated Octopress to
-a plain Jekyll-based one. The most immediate of this is that Rust code
-highlighting looks much better, and I get access to modern
-Github-flavored markdown. =) Since I understand plain Jekyll a bit
-more, I&rsquo;ll hopefully also be able to customize the appearance somewhat
-&ndash; but for now I&rsquo;m just going with the basic theme.</p>
-<p>If I&rsquo;ve done everything right &ndash; unlikely &ndash; then all the old links
-will still work. Let me know if you notice anything amiss!</p>

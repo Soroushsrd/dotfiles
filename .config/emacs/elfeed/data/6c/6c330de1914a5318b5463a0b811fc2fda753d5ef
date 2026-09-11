@@ -1,1 +1,0 @@
-My typical OCaml development workflow starts with git clone ..., then opam switch create . 5.4.1 --deps-only followed by dune build. This creates a local _opam directory containing the compiler and all dependencies. It works well, but the _opam directories add up, and the build takes time.

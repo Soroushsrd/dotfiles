@@ -1,7 +1,0 @@
-<p>I want to wrap up my consideration of the idea of adding new auto traits to Rust with some notes
-from a conversation I had with Ariel Ben-Yehuda.</p>
-<p>You can read these two previous posts for context:</p>
-<ul>
-<li><a href="https://without.boats/blog/changing-the-rules-of-rust">Changing the rules of Rust</a></li>
-<li><a href="https://without.boats/blog/follow-up-to-changing-the-rules-of-rust">Follow up to &ldquo;Changing the rules of Rust&rdquo;</a></li>
-</ul>

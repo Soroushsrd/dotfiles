@@ -1,1 +1,0 @@
-mtelvers/day10 can now export build results as multi-layer OCI images, where each opam package becomes its own layer.

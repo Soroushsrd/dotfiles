@@ -1,1 +1,0 @@
-This post describes how to set up a CI for an opam overlay repository using day10 on a self-hosted GitHub Actions runner, with GitHub’s merge queue to gate PRs on build regressions.
