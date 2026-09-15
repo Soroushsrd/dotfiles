@@ -13,37 +13,30 @@
 (use-package embark-consult :after (embark consult))
 (use-package corfu
   :init
+  (setq global-corfu-minibuffer
+        (lambda ()
+          (not (or (bound-and-true-p vertico--input)
+                   (eq (current-local-map) read-passwd-map)
+                   (memq this-command
+                         '(evil-ex
+                           evil-ex-search-forward
+                           evil-ex-search-backward
+                           evil-ex-search-word-forward
+                           evil-ex-search-word-backward))))))
   (global-corfu-mode)
-  (corfu-popupinfo-mode)
   :config
   (setq corfu-auto t
         corfu-auto-delay 0.1
         corfu-auto-prefix 1
         corfu-cycle t
-        corfu-popupinfo-delay '(0.5 . 0.2)))
+        corfu-popupinfo-delay '(0.5 . 0.2))
+  (corfu-popupinfo-mode))
 
 (use-package cape
   :init
   (add-hook 'completion-at-point-functions #'cape-file)
   (add-hook 'completion-at-point-functions #'cape-dabbrev))
 
-(use-package corfu
-  :init
-  (setq global-corfu-minibuffer
-        (lambda ()
-          (not (memq this-command
-                     '(evil-ex
-                       evil-ex-search-forward
-                       evil-ex-search-backward
-                       evil-ex-search-word-forward
-                       evil-ex-search-word-backward)))))
-  (global-corfu-mode)
-  (corfu-popupinfo-mode)
-  :config
-  (setq corfu-auto t
-        corfu-auto-delay 0.1
-        corfu-auto-prefix 1
-        corfu-cycle t))
 
 ;;;; LSP — lsp-mode
 (setq read-process-output-max (* 3 1024 1024)) ; 3mb, rust-analyzer is chatty
@@ -136,6 +129,12 @@
         eldoc-echo-area-prefer-doc-buffer nil
         eldoc-idle-delay 0.1))
 
+(add-to-list 'display-buffer-alist
+             '("\\`\\*eldoc\\(\\*\\| for \\)"
+               (display-buffer-no-window)
+               (allow-no-window . t)))
+
+
 (use-package eldoc-box
   :after eldoc
   :config
@@ -145,12 +144,12 @@
         (lambda () (if (display-graphic-p) 600 (max 8 (/ (frame-height) 3))))
         eldoc-box-offset '(16 16 16))
   ;; visible cursor inside the child frame (upstream sets cursor-type to nil)
-  (setf (alist-get 'cursor-type eldoc-box-frame-parameters) 'box)
-  ;; distinct background so the frame reads as a popup on a TTY
-  (setf (alist-get 'background-color eldoc-box-frame-parameters) "#223249")
-  (set-face-attribute 'eldoc-box-body nil :background "#223249" :foreground "#DCD7BA")
-  (set-face-attribute 'eldoc-box-border nil :background "#7E9CD8")
-  (set-face-attribute 'child-frame-border nil :background "#7E9CD8"))
+  (setf (alist-get 'cursor-type eldoc-box-frame-parameters) 'box))
+;; distinct background so the frame reads as a popup on a TTY
+;; (setf (alist-get 'background-color eldoc-box-frame-parameters) "#223249")
+;; (set-face-attribute 'eldoc-box-body nil :background "#223249" :foreground "#DCD7BA")
+;; (set-face-attribute 'eldoc-box-border nil :background "#7E9CD8")
+;; (set-face-attribute 'child-frame-border nil :background "#7E9CD8"))
 
 (defun my/eldoc-box-offset (fn &rest args)
   (let ((eldoc-box-offset (if (display-graphic-p) '(16 16 16) '(2 2 1))))
