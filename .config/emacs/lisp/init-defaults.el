@@ -46,12 +46,12 @@
 
 ;;;; Fonts
 ;; (defvar my/font-family "Robotomono Nerd Font Propo")
-(defvar my/font-family "Jetbrainsmono Nerd Font Propo")
+(defvar my/font-family "JetBrainsMono Nerd Font")
 (set-face-attribute 'default nil
                     :family my/font-family
                     ;; :family "JetBrainsMono Nerd Font"
                     :height 130
-                    :weight 'bold)
+                    :weight 'semibold)
 (set-face-attribute 'fixed-pitch nil
                     :family my/font-family
                     :height 1.0
