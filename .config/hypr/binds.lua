@@ -61,7 +61,7 @@ hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("neovide"), { description = "Open Neo
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"), { description = "Lock screen" })
 -- old: bind = ALT, e, exec, ~/.local/bin/emacs-31.1   (your edit)
 -- NOTE: hard-coded version in the path. If you upgrade Emacs this breaks.
-hl.bind("ALT + E", hl.dsp.exec_cmd("~/.local/bin/emacs-31.1"), { description = "Open Emacs" })
+hl.bind("ALT + E", hl.dsp.exec_cmd("emacs"), { description = "Open Emacs" })
 
 -- old: bind = $mainMod, w, exec, ~/.config/ml4w/settings/browser.sh
 -- DEPENDENCY: ~/.config/ml4w/settings/browser.sh (present; contains "firefox")

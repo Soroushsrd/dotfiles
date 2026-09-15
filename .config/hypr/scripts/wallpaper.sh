@@ -95,11 +95,11 @@ if [ -f $wallpapereffect ]; then
         echo ":: Loading wallpaper $generatedversions/$effect-$wallpaperfilename with effect $effect"
         echo ":: Setting wallpaper with $used_wallpaper"
         touch $waypaperrunning
-        swww img "$used_wallpaper" --transition-type fade --transition-duration 2
+        awww img "$used_wallpaper" --transition-type fade --transition-duration 2
     else
         echo ":: Wallpaper effect is set to off"
         echo ":: Setting wallpaper with $used_wallpaper"
-        swww img "$used_wallpaper" --transition-type fade --transition-duration 2
+        awww img "$used_wallpaper" --transition-type fade --transition-duration 2
     fi
 else
     effect="off"

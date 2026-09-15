@@ -35,142 +35,142 @@
 -- =====================================================================
 
 hl.on("hyprland.start", function()
-    -- -----------------------------------------------------------------
-    -- from old/hyprland.conf:62 — was at the top level, not in
-    -- autostart.conf. Kept first because everything downstream that talks
-    -- to systemd user services wants these in the activation environment.
-    -- -----------------------------------------------------------------
-    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
+	-- -----------------------------------------------------------------
+	-- from old/hyprland.conf:62 — was at the top level, not in
+	-- autostart.conf. Kept first because everything downstream that talks
+	-- to systemd user services wants these in the activation environment.
+	-- -----------------------------------------------------------------
+	hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
 
-    -- -----------------------------------------------------------------
-    -- XDG portals + waybar
-    --
-    -- old: exec-once = ~/.config/hypr/scripts/xdg.sh
-    --
-    -- NOTE — this one script does three jobs: it killalls every portal
-    -- implementation, restarts pipewire/wireplumber/portals, and then at
-    -- the very end (after `sleep 2`) runs ~/.config/waybar/launch.sh.
-    -- So your status bar start is buried inside the portal script. That is
-    -- stock ML4W 2.9.x behaviour, not something you did.
-    --
-    -- ML4W 2.16 unpicked this: it inlines the two systemctl calls in
-    -- autostart.lua and starts waybar as its own line. I have NOT
-    -- restructured it — xdg.sh is unchanged and still does both, and
-    -- splitting it would be a behaviour change beyond the migration.
-    -- Just be aware that if waybar fails to start, look in xdg.sh.
-    -- -----------------------------------------------------------------
-    hl.exec_cmd("~/.config/hypr/scripts/xdg.sh")
+	-- -----------------------------------------------------------------
+	-- XDG portals + waybar
+	--
+	-- old: exec-once = ~/.config/hypr/scripts/xdg.sh
+	--
+	-- NOTE — this one script does three jobs: it killalls every portal
+	-- implementation, restarts pipewire/wireplumber/portals, and then at
+	-- the very end (after `sleep 2`) runs ~/.config/waybar/launch.sh.
+	-- So your status bar start is buried inside the portal script. That is
+	-- stock ML4W 2.9.x behaviour, not something you did.
+	--
+	-- ML4W 2.16 unpicked this: it inlines the two systemctl calls in
+	-- autostart.lua and starts waybar as its own line. I have NOT
+	-- restructured it — xdg.sh is unchanged and still does both, and
+	-- splitting it would be a behaviour change beyond the migration.
+	-- Just be aware that if waybar fails to start, look in xdg.sh.
+	-- -----------------------------------------------------------------
+	hl.exec_cmd("~/.config/hypr/scripts/xdg.sh")
 
-    -- -----------------------------------------------------------------
-    -- Polkit authentication agent
-    -- old: exec-once=/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
-    -- Verified present.
-    -- -----------------------------------------------------------------
-    hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
+	-- -----------------------------------------------------------------
+	-- Polkit authentication agent
+	-- old: exec-once=/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+	-- Verified present.
+	-- -----------------------------------------------------------------
+	hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
 
-    -- -----------------------------------------------------------------
-    -- Wallpaper
-    --
-    -- old: exec-once = swww-daemon
-    --      exec-once = ~/.config/hypr/scripts/wallpaper-restore.sh
-    --
-    -- TODO(dependency): you are on `swww`. ML4W 2.16 moved to `awww-daemon`
-    -- (see ml4w-ref autostart.lua) and to `ml4w-wallpaper-app --restore`.
-    -- Your swww + wallpaper-restore.sh pair is installed and working, so it
-    -- is carried over as-is. Do not mix the two.
-    --
-    -- wallpaper-restore.sh reads ~/.config/ml4w/cache/current_wallpaper and
-    -- falls back to ~/wallpaper/default.jpg, then calls
-    -- ~/.config/hypr/scripts/wallpaper.sh.
-    -- -----------------------------------------------------------------
-    hl.exec_cmd("swww-daemon")
-    hl.exec_cmd("~/.config/hypr/scripts/wallpaper-restore.sh")
+	-- -----------------------------------------------------------------
+	-- Wallpaper
+	--
+	-- old: exec-once = swww-daemon
+	--      exec-once = ~/.config/hypr/scripts/wallpaper-restore.sh
+	--
+	-- TODO(dependency): you are on `swww`. ML4W 2.16 moved to `awww-daemon`
+	-- (see ml4w-ref autostart.lua) and to `ml4w-wallpaper-app --restore`.
+	-- Your swww + wallpaper-restore.sh pair is installed and working, so it
+	-- is carried over as-is. Do not mix the two.
+	--
+	-- wallpaper-restore.sh reads ~/.config/ml4w/cache/current_wallpaper and
+	-- falls back to ~/wallpaper/default.jpg, then calls
+	-- ~/.config/hypr/scripts/wallpaper.sh.
+	-- -----------------------------------------------------------------
+	hl.exec_cmd("awww-daemon")
+	hl.exec_cmd("~/.config/hypr/scripts/wallpaper-restore.sh")
 
-    -- -----------------------------------------------------------------
-    -- Notification daemon
-    -- old: exec-once = swaync
-    -- The two layer rules in rules.lua (swaync-control-center /
-    -- swaync-notification-window) depend on this being swaync specifically.
-    -- -----------------------------------------------------------------
-    hl.exec_cmd("swaync")
+	-- -----------------------------------------------------------------
+	-- Notification daemon
+	-- old: exec-once = swaync
+	-- The two layer rules in rules.lua (swaync-control-center /
+	-- swaync-notification-window) depend on this being swaync specifically.
+	-- -----------------------------------------------------------------
+	hl.exec_cmd("swaync")
 
-    -- -----------------------------------------------------------------
-    -- GTK settings (theme, icons, font, dark-mode preference)
-    -- old: exec-once = ~/.config/hypr/scripts/gtk.sh
-    -- -----------------------------------------------------------------
-    hl.exec_cmd("~/.config/hypr/scripts/gtk.sh")
+	-- -----------------------------------------------------------------
+	-- GTK settings (theme, icons, font, dark-mode preference)
+	-- old: exec-once = ~/.config/hypr/scripts/gtk.sh
+	-- -----------------------------------------------------------------
+	hl.exec_cmd("~/.config/hypr/scripts/gtk.sh")
 
-    -- -----------------------------------------------------------------
-    -- Cursor theme
-    -- old: old/conf/cursor.conf — that file's ENTIRE contents was this one
-    -- exec-once line, so the file has no separate module here.
-    --
-    -- NOTE: the size 24 must stay in step with XCURSOR_SIZE in env.lua.
-    -- -----------------------------------------------------------------
-    hl.exec_cmd("hyprctl setcursor Bibata-Modern-Ice 24")
+	-- -----------------------------------------------------------------
+	-- Cursor theme
+	-- old: old/conf/cursor.conf — that file's ENTIRE contents was this one
+	-- exec-once line, so the file has no separate module here.
+	--
+	-- NOTE: the size 24 must stay in step with XCURSOR_SIZE in env.lua.
+	-- -----------------------------------------------------------------
+	hl.exec_cmd("hyprctl setcursor Bibata-Modern-Ice 24")
 
-    -- -----------------------------------------------------------------
-    -- Idle daemon (starts hyprlock)
-    -- old: exec-once = hypridle
-    -- Per your instruction, hypridle.conf / hyprlock.conf are left as .conf
-    -- and untouched. hypridle reads its own config, independent of this
-    -- migration, so nothing to do.
-    -- -----------------------------------------------------------------
-    hl.exec_cmd("hypridle")
+	-- -----------------------------------------------------------------
+	-- Idle daemon (starts hyprlock)
+	-- old: exec-once = hypridle
+	-- Per your instruction, hypridle.conf / hyprlock.conf are left as .conf
+	-- and untouched. hypridle reads its own config, independent of this
+	-- migration, so nothing to do.
+	-- -----------------------------------------------------------------
+	hl.exec_cmd("hypridle")
 
-    -- -----------------------------------------------------------------
-    -- Clipboard history
-    -- old: exec-once = wl-paste --watch cliphist store
-    -- Feeds the SUPER+V bind (cliphist.sh) in binds.lua.
-    -- -----------------------------------------------------------------
-    hl.exec_cmd("wl-paste --watch cliphist store")
+	-- -----------------------------------------------------------------
+	-- Clipboard history
+	-- old: exec-once = wl-paste --watch cliphist store
+	-- Feeds the SUPER+V bind (cliphist.sh) in binds.lua.
+	-- -----------------------------------------------------------------
+	hl.exec_cmd("wl-paste --watch cliphist store")
 
-    -- -----------------------------------------------------------------
-    -- ML4W autostart
-    -- old: exec-once = ~/.config/ml4w/scripts/ml4w-autostart.sh
-    --
-    -- DEPENDENCY: ~/.config/ml4w/scripts/ml4w-autostart.sh (present,
-    -- 2.9.8.3 name). It does two things:
-    --   1. runs ~/.config/ml4w/version/compare.sh (version nag)
-    --   2. `flatpak run com.ml4w.welcome` unless
-    --      ~/.cache/ml4w-welcome-autostart exists
-    --
-    -- TODO(dependency): renamed to `ml4w-autostart` (no .sh) in 2.16, and
-    -- 2.16 additionally redirects its output to a log. Your 2.9.8.3 copy
-    -- exists and works. See MIGRATION.md §1.
-    --
-    -- TODO(decision): step 1 compares your installed ML4W version against
-    -- upstream. Since this migration hand-converts the config, that nag is
-    -- now actively unhelpful — accepting an ML4W update would overwrite
-    -- ~/.config/hypr with 2.16's Lua files and discard this work. Consider
-    -- `touch ~/.cache/ml4w-welcome-autostart` to silence the welcome app,
-    -- or dropping this line entirely.
-    -- -----------------------------------------------------------------
-    hl.exec_cmd("~/.config/ml4w/scripts/ml4w-autostart.sh")
+	-- -----------------------------------------------------------------
+	-- ML4W autostart
+	-- old: exec-once = ~/.config/ml4w/scripts/ml4w-autostart.sh
+	--
+	-- DEPENDENCY: ~/.config/ml4w/scripts/ml4w-autostart.sh (present,
+	-- 2.9.8.3 name). It does two things:
+	--   1. runs ~/.config/ml4w/version/compare.sh (version nag)
+	--   2. `flatpak run com.ml4w.welcome` unless
+	--      ~/.cache/ml4w-welcome-autostart exists
+	--
+	-- TODO(dependency): renamed to `ml4w-autostart` (no .sh) in 2.16, and
+	-- 2.16 additionally redirects its output to a log. Your 2.9.8.3 copy
+	-- exists and works. See MIGRATION.md §1.
+	--
+	-- TODO(decision): step 1 compares your installed ML4W version against
+	-- upstream. Since this migration hand-converts the config, that nag is
+	-- now actively unhelpful — accepting an ML4W update would overwrite
+	-- ~/.config/hypr with 2.16's Lua files and discard this work. Consider
+	-- `touch ~/.cache/ml4w-welcome-autostart` to silence the welcome app,
+	-- or dropping this line entirely.
+	-- -----------------------------------------------------------------
+	hl.exec_cmd("~/.config/ml4w/scripts/ml4w-autostart.sh")
 
-    -- -----------------------------------------------------------------
-    -- Cleanup
-    -- old: exec-once = ~/.config/hypr/scripts/cleanup.sh
-    --
-    -- NOTE: cleanup.sh removes ~/.cache/gamemode. But gamemode.sh (bound to
-    -- SUPER+ALT+G) writes its flag to ~/.config/ml4w/settings/gamemode-enabled,
-    -- NOT ~/.cache/gamemode. The two have drifted apart, so this cleanup is
-    -- a no-op and a gamemode session that ends uncleanly will still think
-    -- it is enabled at next login. Pre-existing; not touched, since you did
-    -- not list it among the bugs to fix.
-    -- -----------------------------------------------------------------
-    hl.exec_cmd("~/.config/hypr/scripts/cleanup.sh")
+	-- -----------------------------------------------------------------
+	-- Cleanup
+	-- old: exec-once = ~/.config/hypr/scripts/cleanup.sh
+	--
+	-- NOTE: cleanup.sh removes ~/.cache/gamemode. But gamemode.sh (bound to
+	-- SUPER+ALT+G) writes its flag to ~/.config/ml4w/settings/gamemode-enabled,
+	-- NOT ~/.cache/gamemode. The two have drifted apart, so this cleanup is
+	-- a no-op and a gamemode session that ends uncleanly will still think
+	-- it is enabled at next login. Pre-existing; not touched, since you did
+	-- not list it among the bugs to fix.
+	-- -----------------------------------------------------------------
+	hl.exec_cmd("~/.config/hypr/scripts/cleanup.sh")
 
-    -- -----------------------------------------------------------------
-    -- Dock
-    -- old: exec-once = ~/.config/nwg-dock-hyprland/launch.sh
-    --
-    -- NOTE: this is currently a NO-OP on your machine. launch.sh checks for
-    -- ~/.config/ml4w/settings/dock-disabled and that flag file exists (I
-    -- verified it, 0 bytes). It prints ":: Dock disabled" and exits.
-    -- Carried over anyway so that deleting the flag restores the dock.
-    -- -----------------------------------------------------------------
-    hl.exec_cmd("~/.config/nwg-dock-hyprland/launch.sh")
+	-- -----------------------------------------------------------------
+	-- Dock
+	-- old: exec-once = ~/.config/nwg-dock-hyprland/launch.sh
+	--
+	-- NOTE: this is currently a NO-OP on your machine. launch.sh checks for
+	-- ~/.config/ml4w/settings/dock-disabled and that flag file exists (I
+	-- verified it, 0 bytes). It prints ":: Dock disabled" and exits.
+	-- Carried over anyway so that deleting the flag restores the dock.
+	-- -----------------------------------------------------------------
+	hl.exec_cmd("~/.config/nwg-dock-hyprland/launch.sh")
 end)
 
 -- =====================================================================
