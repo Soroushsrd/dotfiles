@@ -63,3 +63,6 @@ hl.env("OZONE_PLATFORM", "wayland")
 -- via XWayland will now start as native Wayland clients. If an Electron app
 -- misbehaves after this migration, this line is the first thing to revert.
 hl.env("ELECTRON_OZONE_PLATFORM_HINT", "wayland")
+
+-- Default terminal for apps/scripts that honour $TERMINAL
+hl.env("TERMINAL", "ghostty")

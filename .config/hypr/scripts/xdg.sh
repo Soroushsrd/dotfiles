@@ -24,8 +24,31 @@ killall -e xdg-desktop-portal
 dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=hyprland
 
 # Stop all services
-systemctl --user stop pipewire
-systemctl --user stop wireplumber
+#
+# NOTE: pipewire / pipewire-pulse / wireplumber are deliberately NOT restarted
+# here any more. This block used to read:
+#
+#     systemctl --user stop pipewire
+#     systemctl --user stop wireplumber
+#     ... (later) ...
+#     systemctl --user start pipewire
+#     systemctl --user start wireplumber
+#
+# which is stock ML4W 2.9.x and is wrong in three ways:
+#
+#   1. It never stopped pipewire-pulse, so the Pulse shim kept running against
+#      a pipewire daemon that was being torn down underneath it.
+#   2. pipewire.socket / pipewire-pulse.socket stay active across a `stop`, so
+#      anything touching audio in that window socket-activates pipewire again
+#      and races the explicit `start` below.
+#   3. wireplumber is Requires= / After= pipewire.service. Stopping pipewire
+#      already stops wireplumber, and restarting them by hand in this order
+#      regularly left wireplumber attached to the wrong instance - devices
+#      half-enumerated, defaults not applied, jack detection dead.
+#
+# None of it is necessary: all three units are socket- and bus-activated and
+# come up with the session on their own. Removing this is what stops the audio
+# stack from coming up broken at login.
 systemctl --user stop xdg-desktop-portal
 systemctl --user stop xdg-desktop-portal-gnome
 systemctl --user stop xdg-desktop-portal-kde
@@ -47,9 +70,7 @@ fi
 /usr/lib/xdg-desktop-portal &
 sleep $_sleep2
 
-# Start required services
-systemctl --user start pipewire
-systemctl --user start wireplumber
+# Start required services (see the note above re: pipewire / wireplumber)
 systemctl --user start xdg-desktop-portal
 systemctl --user start xdg-desktop-portal-hyprland
 

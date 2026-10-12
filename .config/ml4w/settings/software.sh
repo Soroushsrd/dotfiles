@@ -1,1 +1,1 @@
-$(cat ~/.config/ml4w/settings/terminal.sh) --class dotfiles-floating -e pacseek
+ghostty --class=com.ml4w.dotfiles.floating -e pacseek

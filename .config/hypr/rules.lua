@@ -266,7 +266,8 @@ hl.window_rule({
 -- bind. Kept because you may still launch things with that class by hand.
 hl.window_rule({
     name  = "dotfiles-float",
-    match = { class = "dotfiles-floating" },
+    -- com.ml4w.dotfiles.floating: Ghostty requires a valid GTK app id (needs a dot)
+    match = { class = "^(dotfiles-floating|com\\.ml4w\\.dotfiles\\.floating)$" },
     float = true, size = "700 1000", center = true,
 })
 

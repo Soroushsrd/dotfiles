@@ -1,1 +1,1 @@
-kitty yazi 
+ghostty -e yazi

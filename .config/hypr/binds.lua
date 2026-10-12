@@ -53,15 +53,22 @@ local SETTINGS = "~/.config/ml4w/settings"
 -- ---------------------------------------------------------------------
 
 -- old: bind = ALT, RETURN, exec, ~/.config/ml4w/settings/terminal.sh
--- DEPENDENCY: ~/.config/ml4w/settings/terminal.sh (present; contains "kitty")
-hl.bind("ALT + RETURN", hl.dsp.exec_cmd(SETTINGS .. "/terminal.sh"), { description = "Open the terminal" })
+-- DEPENDENCY: ~/.config/ml4w/settings/terminal.sh (present; contains "ghostty")
+-- `+new-window` asks the already-running Ghostty instance (systemd user
+-- service app-com.mitchellh.ghostty.service, D-Bus activated if it is not
+-- up) for a window, instead of cold-starting a new process each time.
+-- To go back to kitty: hl.dsp.exec_cmd(SETTINGS .. "/terminal.sh") with
+-- terminal.sh containing "kitty".
+hl.bind("ALT + RETURN", hl.dsp.exec_cmd("ghostty +new-window"), { description = "Open the terminal" })
 
 -- old: bind = $mainMod, e, exec, neovide   (your edit; stock ML4W had no such bind)
-hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("neovide"), { description = "Open Neovide" })
+-- hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("neovide"), { description = "Open Neovide" })
+hl.bind("ALT + F", hl.dsp.exec_cmd("elfeed2"), { description = "Open Elfeed2" })
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"), { description = "Lock screen" })
 -- old: bind = ALT, e, exec, ~/.local/bin/emacs-31.1   (your edit)
--- NOTE: hard-coded version in the path. If you upgrade Emacs this breaks.
-hl.bind("ALT + E", hl.dsp.exec_cmd("emacs"), { description = "Open Emacs" })
+-- Neovim needs a terminal to run in, so launch it inside Ghostty.
+hl.bind("ALT + E", hl.dsp.exec_cmd("emacs"), { description = "Open emacs" })
+hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("ghostty -e nvim"), { description = "Open Neovim in Ghostty" })
 
 -- old: bind = $mainMod, w, exec, ~/.config/ml4w/settings/browser.sh
 -- DEPENDENCY: ~/.config/ml4w/settings/browser.sh (present; contains "firefox")
@@ -419,45 +426,54 @@ hl.bind(
 -- so the Lua key string is just the bare keysym.
 --
 -- SEMANTIC NOTE: the originals were plain `bind`, with no `l` (locked) flag,
--- so volume and brightness did NOT work while the screen was locked.
--- ml4w-ref marks its media keys `{ locked = true, repeating = true }`.
--- I have NOT added that — it would be a behaviour change you did not ask
--- for. If you want volume keys to work under hyprlock, add
--- `locked = true` to the opts table.
+-- so volume and brightness did NOT work while the screen was locked. That
+-- omission was carried over verbatim by the migration and has since been
+-- reverted deliberately, at your request: these binds now carry
+-- `locked = true` (they fire while hyprlock is up, which is what you want
+-- from a volume key) and, where a repeat is meaningful, `repeating = true`
+-- (hyprlang `binde`) so holding the key ramps instead of stepping 5% per
+-- press. This matches ml4w-ref.
+--
+-- `repeating` is deliberately NOT set on the two mute toggles: auto-repeat on
+-- a toggle just flips it back and forth for as long as the key is held.
 -- ---------------------------------------------------------------------
 
 hl.bind(
 	"XF86MonBrightnessUp",
 	hl.dsp.exec_cmd("brightnessctl -q s +10%"),
-	{ description = "Increase brightness by 10%" }
+	{ locked = true, repeating = true, description = "Increase brightness by 10%" }
 )
 hl.bind(
 	"XF86MonBrightnessDown",
 	hl.dsp.exec_cmd("brightnessctl -q s 10%-"),
-	{ description = "Reduce brightness by 10%" }
+	{ locked = true, repeating = true, description = "Reduce brightness by 10%" }
 )
 
 hl.bind(
 	"XF86AudioRaiseVolume",
 	hl.dsp.exec_cmd("pactl set-sink-mute @DEFAULT_SINK@ 0 && pactl set-sink-volume @DEFAULT_SINK@ +5%"),
-	{ description = "Increase volume by 5%" }
+	{ locked = true, repeating = true, description = "Increase volume by 5%" }
 )
 hl.bind(
 	"XF86AudioLowerVolume",
 	hl.dsp.exec_cmd("pactl set-sink-mute @DEFAULT_SINK@ 0 && pactl set-sink-volume @DEFAULT_SINK@ -5%"),
-	{ description = "Reduce volume by 5%" }
+	{ locked = true, repeating = true, description = "Reduce volume by 5%" }
 )
-hl.bind("XF86AudioMute", hl.dsp.exec_cmd("pactl set-sink-mute @DEFAULT_SINK@ toggle"), { description = "Toggle mute" })
+hl.bind(
+	"XF86AudioMute",
+	hl.dsp.exec_cmd("pactl set-sink-mute @DEFAULT_SINK@ toggle"),
+	{ locked = true, description = "Toggle mute" }
+)
 hl.bind(
 	"XF86AudioMicMute",
 	hl.dsp.exec_cmd("pactl set-source-mute @DEFAULT_SOURCE@ toggle"),
-	{ description = "Toggle microphone" }
+	{ locked = true, description = "Toggle microphone" }
 )
 
-hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { description = "Audio play/pause" })
-hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl pause"), { description = "Audio pause" })
-hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), { description = "Audio next" })
-hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { description = "Audio previous" })
+hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true, description = "Audio play/pause" })
+hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl pause"), { locked = true, description = "Audio pause" })
+hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), { locked = true, description = "Audio next" })
+hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true, description = "Audio previous" })
 
 -- DEPENDENCY: ~/.config/ml4w/settings/calculator.sh (present; "gnome-calculator")
 hl.bind("XF86Calculator", hl.dsp.exec_cmd(SETTINGS .. "/calculator.sh"), { description = "Open calculator" })
