@@ -13,6 +13,9 @@
 (let ((dir (expand-file-name "~/.local/bin")))
   (add-to-list 'exec-path dir)
   (setenv "PATH" (concat dir ":" (getenv "PATH"))))
+(let ((dir (expand-file-name "~/.cargo/bin")))   ; emacs-lsp-booster
+  (add-to-list 'exec-path dir)
+  (setenv "PATH" (concat dir ":" (getenv "PATH"))))
 
 
 ;;;; Package setup
