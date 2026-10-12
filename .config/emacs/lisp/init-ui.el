@@ -58,27 +58,86 @@
   :after dired)
 
 ;;;; Theme + modeline
-;; (use-package doom-themes
-;;   :ensure t
-;;   :config
-;;   (load-theme 'doom-nord t))
-
-;; (load-theme 'sexy t)
 ;; for kanagawa only
-(use-package autothemer
-  :ensure t)
-(load-theme 'kanagawa t)
-;;
-;; (load-theme 'sexy t)
-;; (load-theme 'gruber-darker t)
-;; (use-package base16-theme
-;;   :ensure t
-;;   :config
-;;   (load-theme 'base16-spaceduck t))
-
-(use-package doric-themes
+;; (use-package autothemer
+;;   :ensure t)
+;; (load-theme 'kanagawa t)
+(use-package base16-theme
   :ensure t
-  :demand t)
+  :demand t
+  :init
+  (setq base16-theme-256-color-source 'colors)   ; MUST be before load-theme
+  :config
+  (load-theme 'base16-spaceduck t))
+;; (use-package kusanagi-theme
+;;   :vc (:url "https://github.com/LionyxML/kusanagi-theme"
+;; 	        :rev :newest)
+;;   :config
+;;   (load-theme 'kusanagi t))
+;; (load-theme 'sexy t)
+;; (load-theme 'sexy-light t)
+;; (load-theme 'gruber-darker t)
+
+;; (use-package solarized-theme   ; provides solarized-gruvbox-light
+;;   :ensure t
+;;   :config (load-theme 'solarized-gruvbox-light t))
+;; (use-package tokyo-night
+;;   :ensure t
+;;   :config (load-theme 'tokyo-night))
+
+(defvar my/bg     "#0e0f1d" "Dimmed buffer background.")
+(defvar my/gutter "#0a0a14" "Dimmed chrome: gutter, mode line, tab bar.")
+
+(defun my/dim-ui (&rest _)
+  "Darken the background, gutter, mode line and tab bar."
+  ;; buffer + gutter
+  (set-face-attribute 'default nil :background my/bg)
+  (set-face-attribute 'fringe  nil :background my/bg)
+  (set-face-attribute 'line-number nil
+                      :background my/gutter :foreground "#3c4270")
+  (set-face-attribute 'line-number-current-line nil
+                      :background my/gutter :foreground "#b3a1e6" :weight 'bold)
+  ;; mode line
+  (dolist (f '(mode-line mode-line-active))
+    (when (facep f)
+      (set-face-attribute f nil :background my/gutter :foreground "#ecf0c1"
+                          :box `(:line-width (1 . 1) :color ,my/gutter))))
+  (set-face-attribute 'mode-line-inactive nil
+                      :background my/gutter :foreground "#686f9a"
+                      :box `(:line-width (1 . 1) :color ,my/gutter))
+  (with-eval-after-load 'doom-modeline
+    (set-face-attribute 'doom-modeline-bar nil :background "#b3a1e6")
+    (set-face-attribute 'doom-modeline-bar-inactive nil :background my/gutter))
+  ;; tab bar
+  (with-eval-after-load 'centaur-tabs
+    (set-face-attribute 'centaur-tabs-default nil
+                        :background my/gutter :foreground my/gutter)
+    (set-face-attribute 'centaur-tabs-unselected nil
+                        :background my/gutter :foreground "#686f9a")
+    (set-face-attribute 'centaur-tabs-selected nil
+                        :background my/bg :foreground "#ecf0c1")
+    (set-face-attribute 'centaur-tabs-unselected-modified nil
+                        :background my/gutter :foreground "#686f9a")
+    (set-face-attribute 'centaur-tabs-selected-modified nil
+                        :background my/bg :foreground "#b3a1e6")
+    (set-face-attribute 'centaur-tabs-active-bar-face nil :background "#b3a1e6")
+    (set-face-attribute 'centaur-tabs-modified-marker-selected nil
+                        :background my/bg :foreground "#e39400")
+    (set-face-attribute 'centaur-tabs-modified-marker-unselected nil
+                        :background my/gutter :foreground "#686f9a")
+    (centaur-tabs-headline-match)))
+
+(my/dim-ui)
+;; re-apply whenever a theme is (re-)enabled, e.g. the treemacs re-enable
+(add-hook 'enable-theme-functions #'my/dim-ui)
+
+(defun my/tty-transparent-bg (&optional frame)
+  "Let the terminal's own background show through on TTY FRAMEs."
+  (unless (display-graphic-p frame)
+    (set-face-background 'default "unspecified-bg" frame)))
+
+(add-hook 'window-setup-hook #'my/tty-transparent-bg)
+(add-hook 'server-after-make-frame-hook #'my/tty-transparent-bg)
 
 
 (use-package nerd-icons

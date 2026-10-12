@@ -347,6 +347,34 @@
    `(speedbar-highlight-face ((t (:background ,sexy-bg+1))))
    `(speedbar-selected-face ((t (:foreground ,sexy-red))))
    `(speedbar-tag-face ((t (:foreground ,sexy-yellow))))
+   ;; Treemacs
+   `(treemacs-root-face ((t ,(list :foreground sexy-niagara
+                                   :weight 'bold
+                                   :height 1.2))))
+   `(treemacs-directory-face ((t (:foreground ,sexy-niagara))))
+   `(treemacs-directory-collapsed-face ((t (:foreground ,sexy-niagara))))
+   `(treemacs-file-face ((t (:foreground ,sexy-fg))))
+   `(treemacs-tags-face ((t (:foreground ,sexy-quartz))))
+   `(treemacs-term-node-face ((t (:foreground ,sexy-yellow :weight bold))))
+   `(treemacs-help-title-face ((t (:foreground ,sexy-niagara :weight bold))))
+   `(treemacs-help-column-face ((t (:foreground ,sexy-yellow))))
+   `(treemacs-marked-file-face ((t ,(list :background sexy-bg+3
+                                          :foreground sexy-fg+1))))
+   `(treemacs-fringe-indicator-face ((t (:foreground ,sexy-yellow))))
+   `(treemacs-on-success-pulse-face ((t ,(list :background sexy-green
+                                               :foreground sexy-bg))))
+   `(treemacs-on-failure-pulse-face ((t ,(list :background sexy-red
+                                               :foreground sexy-bg))))
+
+   ;; Treemacs git states
+   `(treemacs-git-unmodified-face ((t (:foreground ,sexy-bg+4))))
+   `(treemacs-git-modified-face ((t (:foreground ,sexy-yellow))))
+   `(treemacs-git-added-face ((t (:foreground ,sexy-green))))
+   `(treemacs-git-untracked-face ((t (:foreground ,sexy-wisteria))))
+   `(treemacs-git-renamed-face ((t (:foreground ,sexy-niagara :italic t))))
+   `(treemacs-git-conflict-face ((t (:foreground ,sexy-red+1 :weight bold))))
+   `(treemacs-git-ignored-face ((t (:foreground ,sexy-bg+3))))
+   `(treemacs-git-commit-diff-face ((t (:foreground ,sexy-brown))))
 
    ;; Which Function
    `(which-func ((t (:foreground ,sexy-wisteria))))

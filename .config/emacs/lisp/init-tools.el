@@ -36,6 +36,8 @@
   (treemacs-filewatch-mode t)
   (treemacs-fringe-indicator-mode 'always)
   (treemacs-git-mode 'deferred))
+(with-eval-after-load 'treemacs
+  (mapc #'enable-theme (reverse custom-enabled-themes)))
 
 (use-package treemacs-evil  :after (treemacs evil))
 (use-package treemacs-nerd-icons

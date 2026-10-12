@@ -38,9 +38,18 @@
   (add-hook 'completion-at-point-functions #'cape-dabbrev))
 
 
-;;;; LSP — lsp-mode
+;;;; LSP — performance
 (setq read-process-output-max (* 3 1024 1024)) ; 3mb, rust-analyzer is chatty
-(setq gc-cons-threshold 100000000)
+
+;; GC only when idle: high threshold while typing, collect after 5s of idle,
+;; so no mid-keystroke pauses. Replaces the fixed gc-cons-threshold.
+(use-package gcmh
+  :ensure t
+  :hook (emacs-startup . gcmh-mode)
+  :config
+  (setq gcmh-high-cons-threshold (* 128 1024 1024)
+        gcmh-idle-delay 'auto
+        gcmh-auto-idle-delay-factor 10))
 ;;;; LSP — Eglot
 (use-package eglot
   :ensure nil ;; built-in
@@ -52,12 +61,14 @@
          (c-ts-mode    . eglot-ensure)
          (qml-ts-mode  . eglot-ensure)
          (c++-ts-mode  . eglot-ensure)
+         (typst-ts-mode . eglot-ensure)
          (eglot-managed-mode . eglot-inlay-hints-mode))
   :init
   (setq eglot-stay-out-of '(yasnippet))
   :config
   (setq eglot-connect-timeout 60
-        eglot-events-buffer-config '(:size 2000000 :format full)
+        ;; no JSON-RPC logging; set back to (:size 2000000 :format full) to debug
+        eglot-events-buffer-config '(:size 0 :format short)
         eglot-sync-connect 10
         eglot-send-changes-idle-time 0.1)
   (setq-default eglot-workspace-configuration
@@ -80,6 +91,8 @@
   (add-to-list 'eglot-server-programs
                '((tuareg-mode caml-mode) . ("ocamllsp")))
   (add-to-list 'eglot-server-programs
+               '(typst-ts-mode . ("tinymist")))
+  (add-to-list 'eglot-server-programs
                '(cmake-mode . ("neocmakelsp" "--stdio")))
   (add-to-list 'eglot-server-programs
                `((qml-ts-mode :language-id "qml")
@@ -98,6 +111,18 @@
                   "--fallback-style=llvm"
                   "--query-driver=/usr/bin/g++-*,/usr/bin/clang++-*"))))
 
+
+;; Wrap every eglot server in emacs-lsp-booster (cargo install
+;; --git https://github.com/blahgeek/emacs-lsp-booster): it buffers the
+;; server's output off the main thread so Emacs doesn't stall on big replies.
+;; io-only: Emacs 30+'s native JSON parser is fast, so only use it for I/O.
+(use-package eglot-booster
+  :vc (:url "https://github.com/jdtsmith/eglot-booster" :rev :newest)
+  :after eglot
+  :if (executable-find "emacs-lsp-booster")
+  :config
+  (setq eglot-booster-io-only t)
+  (eglot-booster-mode))
 
 ;; Inlay hint face
 (with-eval-after-load 'eglot
