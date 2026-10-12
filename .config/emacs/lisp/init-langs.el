@@ -68,6 +68,20 @@
 
 (use-package rustic
   :init (setq rustic-lsp-client 'eglot))
+;;;; Typst
+(use-package typst-ts-mode
+  :mode "\\.typ\\'"
+  :custom
+  (typst-ts-watch-options '("--open"))     ; C-c C-c w: live-recompile + open PDF
+  (typst-ts-mode-enable-raw-blocks-highlight t))
+
+(defun my/typst-fmt-on-save ()
+  "Format the current Typst buffer via eglot (tinymist → typstyle)."
+  (when (and (derived-mode-p 'typst-ts-mode)
+             (eglot-managed-p))
+    (eglot-format)))
+(add-hook 'before-save-hook #'my/typst-fmt-on-save)
+
 ;;;; Racket
 (use-package racket-mode
   :mode ("\\.rkt\\'" . racket-mode)
