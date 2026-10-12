@@ -13,7 +13,7 @@
 
         "modules-left": [
 	    "custom/appmenuicon",
-            "hyprland/workspaces",
+            "ext/workspaces",
             "hyprland/submap",
             "hyprland/window",
         ],
@@ -325,19 +325,45 @@
             "tooltip": true,
         },
 
-        "hyprland/workspaces": {
-            "disable-scroll-wraparound": true,
-            "smooth-scrolling-threshold": 4,
-            "enable-bar-scroll": true,
+        // Workspaces - ext/workspaces, NOT hyprland/workspaces.
+        //
+        // hyprland/workspaces switches workspaces by writing the legacy IPC
+        // string "dispatch workspace N" to Hyprland's socket. Since the config
+        // was migrated to Lua, Hyprland evaluates that string as Lua
+        // (hl.dispatch(workspace N)) and rejects it as a syntax error, so every
+        // click was a no-op. That string is hardcoded in waybar and the module
+        // has no on-click override. See Waybar #5008 / #5316 and Hyprland
+        // discussion #14255 - upstream considers the legacy syntax gone for
+        // good, with no compat shim, so this cannot be fixed in hyprland.lua.
+        //
+        // ext/workspaces uses the ext-workspace-v1 Wayland protocol instead
+        // (Hyprland implements ext_workspace_manager_v1), so "activate" goes
+        // over the protocol and never touches hyprctl.
+        //
+        // Differences vs hyprland/workspaces, all cosmetic:
+        //   - {name} is the Hyprland workspace name; {id} is a waybar-internal
+        //     index, so sort by name, not by id.
+        //   - it sets .active / .urgent / .hidden, but NOT .visible, .empty or
+        //     .persistent. On one monitor .visible == .active, and style.css
+        //     only leans on .active / .urgent / .visible.
+        //   - "show-special" has no equivalent; "ignore-hidden": false is the
+        //     nearest thing.
+        //   - no built-in scroll, so scroll is wired below through the new
+        //     hl.dsp dispatcher syntax.
+        "ext/workspaces": {
             "format": "{icon}",
-            "show-special": true,
-            "special-visible-only": false,
             "format-icons": {
                 "magic": "",
                 "zellij": "",
                 "10": "󰊴",
                 "lock": "",
             },
+            "on-click": "activate",
+            "all-outputs": true,
+            "sort-by-name": true,
+            "ignore-hidden": false,
+            "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus{workspace=\"r-1\"}'",
+            "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus{workspace=\"r+1\"}'",
         },
 
         "pulseaudio#output": {

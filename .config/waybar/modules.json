@@ -7,10 +7,42 @@
 //
 {
   // Workspaces
-  "hyprland/workspaces": {
+  // Workspaces - use "ext/workspaces" in a theme's modules list, NOT
+  // "hyprland/workspaces".
+  //
+  // hyprland/workspaces switches workspaces by writing the legacy IPC string
+  // "dispatch workspace N" to Hyprland's socket. With the config migrated to
+  // Lua, Hyprland evaluates that string as Lua (hl.dispatch(workspace N)) and
+  // rejects it as a syntax error, so clicks are silently no-ops. The string is
+  // hardcoded in waybar and the module has no on-click override, so there is
+  // nothing to fix here or in hyprland.lua - see Waybar #5008 / #5316 and
+  // Hyprland discussion #14255.
+  //
+  // ext/workspaces speaks the ext-workspace-v1 Wayland protocol, which
+  // Hyprland implements, so "activate" never touches hyprctl. It has no
+  // built-in scroll, hence the explicit on-scroll bindings.
+  //
+  // The block below is kept only so that a theme still listing
+  // "hyprland/workspaces" renders; its clicks will not work.
+  "ext/workspaces": {
     "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus{workspace=\"r-1\"}'",
     "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus{workspace=\"r+1\"}'",
     "on-click": "activate",
+    "active-only": false,
+    "all-outputs": true,
+    "sort-by-name": true,
+    "ignore-hidden": false,
+    "format": "{icon}",
+    "format-icons": {
+      "urgent": "",
+      "active": "",
+      "default": ""
+    },
+  },
+
+  "hyprland/workspaces": {
+    "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus{workspace=\"r-1\"}'",
+    "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus{workspace=\"r+1\"}'",
     "active-only": false,
     "all-outputs": true,
     "format": "{}",
