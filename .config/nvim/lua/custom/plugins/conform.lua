@@ -1,0 +1,73 @@
+return { -- Autoformat
+  'stevearc/conform.nvim',
+  event = { 'BufWritePre' },
+  cmd = { 'ConformInfo' },
+  keys = {
+    {
+      '<leader>cf',
+      function()
+        require('conform').format { async = true, lsp_format = 'fallback' }
+      end,
+      mode = '',
+      desc = '[C]ode [F]ormat buffer',
+    },
+  },
+  opts = {
+    notify_on_error = false,
+    format_on_save = function(bufnr)
+      local disable_filetypes = {}
+      local lsp_format_opt
+      if disable_filetypes[vim.bo[bufnr].filetype] then
+        lsp_format_opt = 'never'
+      else
+        lsp_format_opt = 'fallback'
+      end
+      return {
+        timeout_ms = 500,
+        lsp_format = lsp_format_opt,
+      }
+    end,
+    formatters_by_ft = {
+      lua = { 'stylua' },
+      javascript = { 'biome' },
+      typescript = { 'biome' },
+      javascriptreact = { 'biome' },
+      typescriptreact = { 'biome' },
+      -- blade = { 'blade-formatter' },
+      -- python = { 'black' },
+      cpp = { 'clang-format' },
+      c = { 'clang-format' },
+      cmake = { 'cmake_format' },
+      asm = { 'asmfmt' },
+      go = { 'gofmt' },
+      rust = { 'rustfmt' },
+      svelte = { 'prettier' },
+      ocaml = { 'ocamlformat' },
+    },
+    formatters = {
+      prettier = {
+        prepend_args = function(_, ctx)
+          if vim.bo[ctx.buf].filetype == 'svelte' then
+            return { '--plugin', '/usr/lib/node_modules/svelte-language-server/node_modules/prettier-plugin-svelte/plugin.js' }
+          end
+          return {}
+        end,
+      },
+      ['clang-format'] = {
+        command = 'clang-format',
+        prepend_args = {
+          '--style=file', -- Use .clang-format file if available
+          '--fallback-style=LLVM',
+        },
+      },
+      ['ocamlformat'] = {
+        '--if-then-else',
+        'vertical',
+        '--break-cases',
+        'fit-or-vertical',
+        '--type-decl',
+        'sparse',
+      },
+    },
+  },
+}
