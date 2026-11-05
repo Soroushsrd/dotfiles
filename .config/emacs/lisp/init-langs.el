@@ -18,6 +18,28 @@
 ;; quickshell's qmldir files
 (add-to-list 'auto-mode-alist '("\\(?:\\`\\|/\\)qmldir\\'" . conf-unix-mode))
 
+(use-package go-mode
+  :ensure t
+  :mode "\\.go\\'"
+  :hook ((go-mode . my/go-setup)
+         (go-ts-mode . my/go-setup)
+         (go-dot-mod-mode . eglot-ensure)
+         (go-dot-work-mode . eglot-ensure)
+         (go-mod-ts-mode . eglot-ensure)
+         (go-work-ts-mode . eglot-ensure)))
+
+(defun my/go-before-save ()
+  "Format Go source using gopls, leaving import organization manual."
+  (when (eglot-managed-p)
+    (eglot-format-buffer)))
+
+(defun my/go-setup ()
+  "Enable Go indentation, formatting, and language server support."
+  (setq-local tab-width 8
+              indent-tabs-mode t
+              flycheck-eglot-exclusive t)
+  (add-hook 'before-save-hook #'my/go-before-save -10 t)
+  (eglot-ensure))
 ;;;; OCaml
 (use-package tuareg
   :mode (("\\.mli?\\'" . tuareg-mode)
@@ -82,8 +104,10 @@
     (eglot-format)))
 (add-hook 'before-save-hook #'my/typst-fmt-on-save)
 
+
 ;;;; Racket
 (use-package racket-mode
+  :if (executable-find "racket")
   :mode ("\\.rkt\\'" . racket-mode)
   :hook ((racket-mode . racket-xp-mode)          ; background check + xref + eldoc
          (racket-repl-mode . racket-xp-mode))

@@ -80,11 +80,20 @@ hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(SETTINGS .. "/browser.sh"), { descrip
 
 -- old: bind = $mainMod SHIFT, M, exec, ~/.config/hypr/scripts/toggle-screen.sh
 -- Your own script (not ML4W). Toggles eDP-1 off/on and shuffles workspaces
--- to HDMI-A-1. Hard-codes both connector names, matching monitors.lua.
+-- to the active external display (any connector; eDP-1 is still hard-coded).
 hl.bind(
 	mainMod .. " + SHIFT + M",
 	hl.dsp.exec_cmd(HYPRSCRIPTS .. "/toggle-screen.sh"),
 	{ description = "Toggle laptop screen" }
+)
+
+-- Escape hatch for a stale external output (NVIDIA sometimes misses an HDMI
+-- unplug, leaving a phantom monitor holding workspaces). Runtime-only; reload
+-- the config or relogin to bring a real external display back.
+hl.bind(
+	mainMod .. " + SHIFT + X",
+	hl.dsp.exec_cmd(HYPRSCRIPTS .. "/laptop-only.sh"),
+	{ description = "Laptop screen only (drop external outputs)" }
 )
 
 -- old: bind = $mainMod, Q, killactive
@@ -329,12 +338,12 @@ hl.bind(
 	{ description = "Open waybar theme switcher" }
 )
 
--- old: bind = $mainMod CTRL, S, exec, flatpak run com.ml4w.settings
+-- old: bind = $mainMod CTRL, S, exec, ghostty -e nvim ~/.config/hypr/hyprland.lua
 -- TODO(dependency): flatpak app, ML4W 2.9.x era. In 2.16 the settings app
 -- was replaced. Verify `flatpak list | grep com.ml4w.settings`.
 hl.bind(
 	mainMod .. " + CTRL + S",
-	hl.dsp.exec_cmd("flatpak run com.ml4w.settings"),
+	hl.dsp.exec_cmd("ghostty -e nvim ~/.config/hypr/hyprland.lua"),
 	{ description = "Open ML4W Dotfiles Settings app" }
 )
 
@@ -490,14 +499,14 @@ hl.bind("XF86Calculator", hl.dsp.exec_cmd(SETTINGS .. "/calculator.sh"), { descr
 -- "dotfiles-float" rule in rules.lua, so if you restore the AppImage or
 -- point this at something else, the float rule still applies.
 --
--- The live replacement for this is SUPER+CTRL+S (flatpak run com.ml4w.settings),
+-- The live replacement for this is SUPER+CTRL+S (ghostty -e nvim ~/.config/hypr/hyprland.lua),
 -- which is bound above and does work.
 
 -- ---------------------------------------------------------------------
 -- Keyboard backlight (MacBook)
 --
--- old: bind = , code:238, exec, brightnessctl -d smc::kbd_backlight s +10
---      bind = , code:237, exec, brightnessctl -d smc::kbd_backlight s 10-
+-- old: bind = , code:238, exec, brightnessctl -d asus::kbd_backlight s +1
+--      bind = , code:237, exec, brightnessctl -d asus::kbd_backlight s 1-
 --
 -- TODO(unverified) — RAW KEYCODE SYNTAX.
 -- In hyprlang, `code:238` means "evdev keycode 238" and is a documented
@@ -511,19 +520,19 @@ hl.bind("XF86Calculator", hl.dsp.exec_cmd(SETTINGS .. "/calculator.sh"), { descr
 -- keyboard are XF86KbdBrightnessUp / XF86KbdBrightnessDown — try those.
 -- Confirm with `wev` or `hyprctl devices` before swapping.
 --
--- Note also `smc::kbd_backlight` is the Apple SMC LED device; this pair is
+-- Note also `asus::kbd_backlight` is the Apple SMC LED device; this pair is
 -- machine-specific in the same way monitors.lua is. It is left here rather
 -- than moved because it is a keybinding, but be aware of it if you ever
 -- share this config with another machine.
 -- ---------------------------------------------------------------------
 
 hl.bind(
-	"code:238",
-	hl.dsp.exec_cmd("brightnessctl -d smc::kbd_backlight s +10"),
+	"XF86KbdBrightnessUp",
+	hl.dsp.exec_cmd("brightnessctl -d asus::kbd_backlight s +1"),
 	{ description = "Increase keyboard backlight" }
 )
 hl.bind(
-	"code:237",
-	hl.dsp.exec_cmd("brightnessctl -d smc::kbd_backlight s 10-"),
+	"XF86KbdBrightnessDown",
+	hl.dsp.exec_cmd("brightnessctl -d asus::kbd_backlight s 1-"),
 	{ description = "Reduce keyboard backlight" }
 )

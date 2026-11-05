@@ -1,2 +1,3 @@
-# $(cat ~/.config/ml4w/settings/terminal.sh) --class dotfiles-floating -e ~/.config/ml4w/scripts/installupdates.sh
-ghostty --title="dotfiles-floating" -e ~/.config/ml4w/scripts/installupdates.sh
+#!/usr/bin/env bash
+# Floating terminal (matches the "dotfiles-float" rule in hypr/rules.lua).
+ghostty --class=com.ml4w.dotfiles.floating -e ~/.config/ml4w/scripts/installupdates.sh

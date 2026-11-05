@@ -11,8 +11,7 @@
   (setq evil-split-window-below t)
   (setq evil-vsplit-window-right t)
   :config
-  (evil-mode 1)
-  (global-evil-surround-mode 1))
+  (evil-mode 1))
 
 (use-package evil-collection
   :after evil

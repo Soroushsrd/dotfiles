@@ -50,6 +50,12 @@
   (setq gcmh-high-cons-threshold (* 128 1024 1024)
         gcmh-idle-delay 'auto
         gcmh-auto-idle-delay-factor 10))
+;;;; Snippets — Eglot only advertises LSP snippetSupport when yasnippet is
+;;;; loaded. With it, completing a function inserts `foo(arg1, arg2)' with
+;;;; TAB-able placeholders instead of just `foo'.
+(use-package yasnippet
+  :hook (eglot-managed-mode . yas-minor-mode))
+
 ;;;; LSP — Eglot
 (use-package eglot
   :ensure nil ;; built-in
@@ -63,8 +69,6 @@
          (c++-ts-mode  . eglot-ensure)
          (typst-ts-mode . eglot-ensure)
          (eglot-managed-mode . eglot-inlay-hints-mode))
-  :init
-  (setq eglot-stay-out-of '(yasnippet))
   :config
   (setq eglot-connect-timeout 60
         ;; no JSON-RPC logging; set back to (:size 2000000 :format full) to debug

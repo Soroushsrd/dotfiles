@@ -1,1 +1,1 @@
-flameshot
+swappy

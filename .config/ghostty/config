@@ -5,7 +5,7 @@ font-family = JetBrainsMono NFM SemiBold
 font-size = 13
 font-style-bold = true
 title = ""
-theme = "Argonaut"
+theme = "Duckbones"
 shell-integration = none
 # shell-integration-features = no-cursor,sudo,no-title
 cursor-style = block_hollow
@@ -69,3 +69,6 @@ quit-after-last-window-closed = false
 
 
 
+
+# Default interactive shell
+command = /usr/bin/nu --login

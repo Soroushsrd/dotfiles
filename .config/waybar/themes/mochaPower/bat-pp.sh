@@ -10,7 +10,7 @@ refresh() {
     # RATE=$(echo "$BATTERY" | awk '/energy-rate/ {print $2}' | tr -d '%')
     # EOL="Empty in: \n$(echo "$BATTERY" | awk '/time to empty/ {for (i=4; i<=NF; i++) printf $i (i<NF?" ":"\n")}')"
 
-    BATPATH="/sys/class/power_supply/BAT0"
+    BATPATH="/sys/class/power_supply/BAT1"
 
     PERCENT=$(cat "$BATPATH/capacity")
     STATE=$(cat "$BATPATH/status")

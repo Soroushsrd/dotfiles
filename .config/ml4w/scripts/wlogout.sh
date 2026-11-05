@@ -1,6 +1,16 @@
-# res_w=$(hyprctl -j monitors | jq '.[] | select(.focused==true) | .width')
-# res_h=$(hyprctl -j monitors | jq '.[] | select(.focused==true) | .height')
-# h_scale=$(hyprctl -j monitors | jq '.[] | select(.focused==true) | .scale' | sed 's/\.//')
-# echo "res_h=$res_h  h_scale=$h_scale  margin=$((res_h * 27 / h_scale))"
-# w_margin=$((res_h * 27 / h_scale))
-wlogout -b 5 -T 400 -B 400
+#!/usr/bin/env bash
+set -euo pipefail
+# Reuse the existing launcher theme without requiring the legacy wlogout package.
+choice=$(printf 'Lock\nSuspend\nLog out\nReboot\nShut down\n' | rofi -dmenu -i -p 'Power') || exit 0
+case "$choice" in
+ Lock) exec hyprlock ;;
+ Suspend) loginctl lock-session; exec systemctl suspend ;;
+ 'Log out'|Reboot|'Shut down')
+  answer=$(printf 'Cancel\nConfirm\n' | rofi -dmenu -i -p "$choice?") || exit 0
+  [[ "$answer" == Confirm ]] || exit 0
+  case "$choice" in
+   'Log out') hyprctl dispatch 'hl.dsp.exit()' ;;
+   Reboot) systemctl reboot ;;
+   'Shut down') systemctl poweroff ;;
+  esac ;;
+esac

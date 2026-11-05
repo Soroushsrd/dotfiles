@@ -1,0 +1,10 @@
+If:
+  PathMatch: /home/rusty/Codes/Work/zaban/include/.*
+CompileFlags:
+  Remove: [-std=*]
+  Add:
+    - -std=gnu++26
+    - -I/home/rusty/Codes/Work/zaban/include
+    - -I/home/rusty/Codes/Work/zaban/build/x64/debug/include
+    - -I/home/rusty/Codes/Work/zaban/build/x64/debug/_deps/zirsakht-src/include
+    - -I/home/rusty/Codes/Work/zaban/build/x64/debug/_deps/zirsakht-build/include

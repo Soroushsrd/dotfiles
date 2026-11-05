@@ -68,12 +68,13 @@
   :init
   (setq base16-theme-256-color-source 'colors)   ; MUST be before load-theme
   :config
-  (load-theme 'base16-spaceduck t))
-;; (use-package kusanagi-theme
-;;   :vc (:url "https://github.com/LionyxML/kusanagi-theme"
-;; 	        :rev :newest)
-;;   :config
-;;   (load-theme 'kusanagi t))
+  (condition-case err
+      (load-theme 'base16-kanagawa t)
+    ;; (load-theme 'base16-soft-server)
+    (error
+     (mapc #'disable-theme custom-enabled-themes)
+     (message "Base16 compatibility fallback: %s" (error-message-string err))
+     (load-theme 'spaceduck t))))
 ;; (load-theme 'sexy t)
 ;; (load-theme 'sexy-light t)
 ;; (load-theme 'gruber-darker t)
@@ -200,8 +201,8 @@
       (kbd "f") #'elfeed)))
 
 (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
-(require 'escape-dashboard)
-(add-hook 'emacs-startup-hook #'escape t)
+(when (require 'escape-dashboard nil t)
+  (add-hook 'emacs-startup-hook #'escape t))
 (with-eval-after-load 'dashboard
   (set-face-attribute 'dashboard-items-face nil :foreground 'unspecified))
 

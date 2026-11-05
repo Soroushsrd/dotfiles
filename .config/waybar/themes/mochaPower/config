@@ -31,7 +31,7 @@
 	    "custom/spacer4",
 	    "clock",
 	    "custom/notification",
-	    "custom/ml4w-welcome",
+	    
 	    "custom/exit",
 	],
 
@@ -48,7 +48,7 @@
 	    "tooltip-format-ethernet": " {ifname}\nIP: {ipaddr}\n up: {bandwidthUpBits} down: {bandwidthDownBits}",
 	    "tooltip-format-disconnected": "Disconnected",
 	    "max-length": 60,
-	    "on-click": "~/.config/ml4w/settings/networkmanager.sh",
+	    "on-click": "kitty -e nmtui",
 	    "on-click-right": "~/.config/ml4w/scripts/nm-applet.sh toggle",
 	  },
 	  // SwayNC
@@ -253,7 +253,7 @@
 	    "tooltip-format": "System resources"
 	},
 	"custom/ml4w-welcome": {
-	    "on-click": "flatpak run com.ml4w.sidebar",
+	    "on-click": "swaync-client -t -sw",
 	    "format": "󱗼",
 	    "tooltip-format": "Open ML4W Sidebar App"
 	},
@@ -272,6 +272,7 @@
 	    "return-type": "json",
 	    "exec": "~/.config/ml4w/scripts/updates.sh",
 	    "interval": 1800,
+	    "signal": 8,
 	    "on-click": "~/.config/ml4w/settings/installupdates.sh",
 	    "on-click-right": "~/.config/ml4w/settings/software.sh"
 	  },
@@ -380,7 +381,7 @@
                 "default": ["", ""],
             },
             "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
-            "on-click-right": "pwvucontrol & aplay ~/.config/sounds/interact.wav",
+            "on-click-right": "pavucontrol",
             "on-scroll-down": "sh -c 'vol=$(pactl get-sink-volume @DEFAULT_SINK@ | grep -oP \"\\d+(?=%)\" | head -1); if [ \"$vol\" -lt 100 ]; then pactl set-sink-volume @DEFAULT_SINK@ +2%; else pactl set-sink-volume @DEFAULT_SINK@ 110%; fi'",
             "on-scroll-up": "pactl set-sink-volume @DEFAULT_SINK@ -2%",
             "tooltip": true,

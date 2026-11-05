@@ -7,7 +7,7 @@
 (add-to-list 'custom-theme-load-path (expand-file-name "~/.config/emacs/themes/"))
 (add-to-list 'load-path              (expand-file-name "~/.config/emacs/themes/"))
 (load custom-file 'noerror)
-(let ((dir (expand-file-name "~/.rbenv/shims")))
+(let ((dir (expand-file-name "~/.local/share/nvim/mason/bin")))
   (add-to-list 'exec-path dir)
   (setenv "PATH" (concat dir ":" (getenv "PATH"))))
 (let ((dir (expand-file-name "~/.local/bin")))
@@ -24,6 +24,9 @@
       '(("gnu"    . "https://elpa.gnu.org/packages/")
         ("nongnu" . "https://elpa.nongnu.org/nongnu/")
         ("melpa"  . "https://melpa.org/packages/")))
+;; Racket autoloads require the optional Racket runtime even at activation.
+(unless (executable-find "racket")
+  (setq package-load-list (cons '(racket-mode nil) package-load-list)))
 (package-initialize)
 (unless package-archive-contents (package-refresh-contents))
 
@@ -43,7 +46,7 @@
 (my/load "init-evil")
 (my/load "init-lsp")
 (my/load "init-org")
-(my/load "escape-dashboard")
+(load (expand-file-name "lisp/escape-dashboard.el" user-emacs-directory) t t)
 (my/load "init-ui")
 (my/load "init-tools")
 (my/load "init-langs")

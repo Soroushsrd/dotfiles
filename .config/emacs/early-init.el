@@ -16,7 +16,7 @@
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 ;; Frame defaults (so they apply before the first frame draws)
-(add-to-list 'default-frame-alist '(alpha-background . 0.95))
+;; (add-to-list 'default-frame-alist '(alpha-background . 95))
 (setq native-comp-speed 2)
 (provide 'early-init)
 ;;; early-init.el ends here

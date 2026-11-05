@@ -1,0 +1,16 @@
+# Stow ignore list (replaces stow's built-in defaults, so those are repeated).
+\.git
+\.gitignore
+\.gitmodules
+\.stow-local-ignore
+^/README.*
+^/LICENSE.*
+^/sync-notes.*
+.+~
+\#.*\#
+
+# Kept in the repo for other machines, but not used on this one.
+^/\.config/(doom|dunst|fastfetch|nwg-dock-hyprland|ohmyposh|vim|xsettingsd|zshrc)
+^/\.zshrc
+^/\.Xresources
+^/\.gtkrc-2\.0

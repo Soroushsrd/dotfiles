@@ -1,13 +1,7 @@
-#!/bin/bash
-cache_file="$HOME/.cache/toggle_animation"
-if [[ $(cat $HOME/.config/hypr/conf/animation.conf) == *"disabled"* ]]; then
-    echo ":: Toggle blocked by disabled.conf variation."
+#!/usr/bin/env bash
+set -euo pipefail
+if hyprctl getoption animations:enabled -j | python -c 'import json,sys; sys.exit(not bool(json.load(sys.stdin).get("int")))'; then
+ hyprctl eval 'hl.config{animations={enabled=false}}'
 else
-    if [ -f $cache_file ]; then
-        hyprctl eval 'hl.config{animations={enabled=true}}'
-        rm $cache_file
-    else
-        hyprctl eval 'hl.config{animations={enabled=false}}'
-        touch $cache_file
-    fi
+ hyprctl eval 'hl.config{animations={enabled=true}}'
 fi

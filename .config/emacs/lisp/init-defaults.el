@@ -93,7 +93,18 @@
   (setq project-find-functions
         (cons 'project-try-vc (remq 'project-try-vc project-find-functions)))
   (setq project-vc-extra-root-markers
-        '("dune-project" "mix.exs" "build.zig" "compile_commands.json" ".project")))
+        '("go.mod" "go.work" "dune-project" "mix.exs" "build.zig" "compile_commands.json" ".project"))
+  ;; Modules must be found before VC (including modules inside a monorepo).
+  (defun my/project-find-go (dir)
+    "Find the nearest Go module or workspace containing DIR."
+    (when-let* ((root (locate-dominating-file
+                      dir (lambda (parent)
+                            (or (file-exists-p (expand-file-name "go.mod" parent))
+                                (file-exists-p (expand-file-name "go.work" parent)))))))
+      (cons 'go-module root)))
+  (cl-defmethod project-root ((project (head go-module)))
+    (cdr project))
+  (add-hook 'project-find-functions #'my/project-find-go))
 (setopt xterm-update-cursor t)
 
 (provide 'init-defaults)

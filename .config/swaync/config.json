@@ -56,27 +56,29 @@
             "image-radius": 0
         },
         "volume": {
-            "label": "󰕾"
+            "label": "\udb81\udd7e"
         },
         "backlight": {
-            "label": "󰃟"
+            "label": "\udb80\udcdf",
+            "device": "nvidia_wmi_ec_backlight",
+            "min": 1
         },
         "buttons-grid": {
             "actions": [
                 {
-                    "label": "",
+                    "label": "\uf023",
                     "command": "hyprlock"
                 },
                 {
-                    "label": "󰝟",
+                    "label": "\udb81\udf5f",
                     "command": "pactl set-sink-mute @DEFAULT_SINK@ toggle"
                 },
                 {
-                    "label": "󰂯",
+                    "label": "\udb80\udcaf",
                     "command": "blueman-manager"
                 },
                 {
-                    "label": "",
+                    "label": "\uf011",
                     "command": "bash -c $HOME/.config/ml4w/scripts/wlogout.sh"
                 }
             ]

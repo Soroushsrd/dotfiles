@@ -15,9 +15,10 @@ cachefile="$HOME/.config/ml4w/cache/current_wallpaper"
 
 # Get current wallpaper
 if [ -f "$cachefile" ]; then
-    sed -i "s|~|$HOME|g" "$cachefile"
-    wallpaper=$(cat $cachefile)
-    if [ -f $wallpaper ]; then
+    wallpaper=$(cat "$cachefile")
+    # Expand a saved home prefix without modifying the saved filename.
+    wallpaper=${wallpaper/#\~\//$HOME/}
+    if [ -f "$wallpaper" ]; then
         echo ":: Wallpaper $wallpaper exists"
     else
         echo ":: Wallpaper $wallpaper does not exist. Using default."
@@ -30,4 +31,4 @@ fi
 
 # Set wallpaper
 echo ":: Setting wallpaper with source image $wallpaper"
-~/.config/hypr/scripts/wallpaper.sh "$wallpaper"
+"$HOME/.config/hypr/scripts/wallpaper.sh" "$wallpaper"

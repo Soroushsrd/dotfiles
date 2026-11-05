@@ -1,8 +1,12 @@
 ;; init-tools.el -*- lexical-binding: t; -*-
 
 ;;; Code:
+(use-package codex
+  :vc (:url "https://github.com/benthamite/codex"))
 ;;;; PDF
 (use-package reader
+  :ensure nil
+  :if (locate-library "reader")
   :load-path "~/.config/emacs/elpa/emacs-reader"
   :mode ("\\.\\(epub\\|mobi\\|fb2\\|cbz\\|xps\\)\\'" . reader-mode))
 
@@ -181,7 +185,7 @@
 (use-package wakatime-mode
   :ensure t
   :init
-  (global-wakatime-mode)
+  (when (executable-find "wakatime-cli") (global-wakatime-mode))
   :config
   (setq wakatime-cli-path (expand-file-name "~/.wakatime/wakatime-cli")))
 

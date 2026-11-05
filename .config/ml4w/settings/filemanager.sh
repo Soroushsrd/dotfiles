@@ -1,1 +1,2 @@
-ghostty -e yazi
+#!/usr/bin/env bash
+exec ghostty -e yazi "$@"

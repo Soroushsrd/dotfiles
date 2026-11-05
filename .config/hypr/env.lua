@@ -66,3 +66,18 @@ hl.env("ELECTRON_OZONE_PLATFORM_HINT", "wayland")
 
 -- Default terminal for apps/scripts that honour $TERMINAL
 hl.env("TERMINAL", "ghostty")
+
+-- Prefer AMD for desktop rendering; retain NVIDIA for its external outputs.
+local function drm_card(pci)
+    local pipe = io.popen("readlink -f /dev/dri/by-path/pci-" .. pci .. "-card")
+    if not pipe then return nil end
+    local path = pipe:read("*l")
+    pipe:close()
+    return path
+end
+local amd = drm_card("0000:06:00.0")
+local nvidia = drm_card("0000:01:00.0")
+if amd then hl.env("AQ_DRM_DEVICES", amd .. (nvidia and (":" .. nvidia) or "")) end
+
+-- Shared authentication agent for Git clients launched from the desktop.
+hl.env("SSH_AUTH_SOCK", os.getenv("XDG_RUNTIME_DIR") .. "/ssh-agent.socket")
