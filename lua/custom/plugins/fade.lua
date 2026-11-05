@@ -1,5 +1,6 @@
 return {
   'Senal-D-A-Gunaratna/hyprfade.nvim',
+  cond = function() return vim.env.HYPRLAND_INSTANCE_SIGNATURE ~= nil end,
   lazy = false,
   priority = 1000,
   opts = {

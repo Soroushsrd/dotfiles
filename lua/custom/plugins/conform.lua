@@ -39,10 +39,20 @@ return { -- Autoformat
       c = { 'clang-format' },
       cmake = { 'cmake_format' },
       asm = { 'asmfmt' },
-      -- go = { 'gofmt' },
+      go = { 'gofmt' },
+      rust = { 'rustfmt' },
+      svelte = { 'prettier' },
       ocaml = { 'ocamlformat' },
     },
     formatters = {
+      prettier = {
+        prepend_args = function(_, ctx)
+          if vim.bo[ctx.buf].filetype == 'svelte' then
+            return { '--plugin', '/usr/lib/node_modules/svelte-language-server/node_modules/prettier-plugin-svelte/plugin.js' }
+          end
+          return {}
+        end,
+      },
       ['clang-format'] = {
         command = 'clang-format',
         prepend_args = {

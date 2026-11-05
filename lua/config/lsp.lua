@@ -97,11 +97,10 @@ function M.setup()
         '--completion-style=detailed',
         '--header-insertion=iwyu',
         '--header-insertion-decorators',
-        '--offset-encoding=utf-16',
         '--enable-config',
         '--pch-storage=memory', -- Faster PCH storage
         '--all-scopes-completion', -- Complete symbols from all scopes
-        '--function-arg-placeholders', -- Show function argument placeholders
+        '--function-arg-placeholders=true', -- Show function argument placeholders
         '--fallback-style=LLVM', -- Fallback formatting style
       },
       init_options = {
@@ -160,28 +159,19 @@ function M.setup()
       },
     },
 
-    cmake = {
-      filetypes = { 'cmake' },
-      highlight = true,
-      init_options = {
-        buildDirectory = 'build',
-      },
-      settings = {
-        cmake = {
-          configureOnOpen = true,
-        },
-      },
-    },
+    neocmake = {}, -- Upstream CMake language server; uses generated compile/build files.
     biome = {
       cmd = { 'biome', 'lsp-proxy' },
       filetypes = { 'javascript', 'javascriptreact', 'typescript', 'typescriptreact', 'json', 'html' },
-      root_dir = require('lspconfig').util.root_pattern('biome.json', 'biome.jsonc'),
+      root_markers = { 'biome.json', 'biome.jsonc', '.git' },
       single_file_support = true,
     },
     ts_ls = {
       cmd = { 'typescript-language-server', '--stdio' },
       filetypes = { 'javascript', 'javascriptreact', 'javascript.jsx', 'typescript', 'typescriptreact', 'typescript.tsx' },
-      root_dir = util.root_pattern('package.json', 'tsconfig.json', 'jsconfig.json', '.git'),
+      root_dir = function(bufnr, on_dir)
+        on_dir(vim.fs.root(bufnr, { 'tsconfig.json', 'jsconfig.json', 'package.json', '.git' }) or vim.fn.getcwd())
+      end,
       settings = {
         typescript = {
           inlayHints = {
@@ -228,47 +218,20 @@ function M.setup()
         duneDiagnostics = { enable = true },
       },
     },
+    gopls = {},
+    svelte = {
+      root_dir = function(bufnr, on_dir)
+        on_dir(vim.fs.root(bufnr, { 'svelte.config.js', 'svelte.config.ts', 'package.json', '.git' }) or vim.fn.getcwd())
+      end,
+    },
     rust_analyzer = {
-      capabilities = capabilities,
-      auto_attach = true,
       settings = {
-        inlayHints = {
-          enable = true,
-          typeHints = true,
-          parameterHints = true,
-          chainingHints = true,
-        },
-        checkOnSave = {
-          command = 'clippy',
-          extraArgs = { '--all', '---all-features' },
-          allTargets = false,
-        },
-        cargo = {
-          allFeatures = true,
-          loadOutDirsFromCheck = true,
-          runBuildScripts = true,
-        },
-        diagnostics = {
-          enable = true,
-          experimental = {
-            enable = true,
-          },
-        },
-        procMacro = {
-          enable = true,
-          attributes = {
-            enable = true,
-          },
-        },
-        experimental = {
-          procAttrMacros = false,
-        },
-        completion = {
-          addCallArgumentSnippets = true,
-          addCallParenthesis = true,
-          postfix = {
-            enable = true,
-          },
+        ['rust-analyzer'] = {
+          -- no extraArgs: cargo.allFeatures already makes rust-analyzer pass
+          -- --all-features, and cargo rejects the flag given twice.
+          check = { command = 'clippy' },
+          cargo = { allFeatures = true, buildScripts = { enable = true } },
+          procMacro = { enable = true },
         },
       },
     },
@@ -320,20 +283,20 @@ function M.setup()
     },
   }
 
-  require('mason').setup()
+  require('mason').setup { PATH = 'append' } -- Prefer official Arch binaries.
 
-  local ensure_installed = vim.tbl_keys(servers or {})
-  ensure_installed = vim.tbl_filter(function(name)
-    return name ~= 'ocamllsp'
-  end, ensure_installed)
-  vim.list_extend(ensure_installed, {
-    'stylua', -- Used to format Lua code
-  })
-  require('mason-tool-installer').setup { ensure_installed = ensure_installed }
-
-  -- mason-lspconfig just handles installation now; config/enabling
-  -- is done via the native vim.lsp.config/vim.lsp.enable API below.
-  require('mason-lspconfig').setup {}
+  -- Mason supplies only tools without an installed system equivalent.
+  local tools = {
+    ['neocmakelsp'] = 'neocmakelsp',
+    ['cmakelang'] = 'cmake-format',
+    ['emmet-ls'] = 'emmet-ls',
+  }
+  local missing = {}
+  for package, executable in pairs(tools) do
+    if vim.fn.executable(executable) == 0 then table.insert(missing, package) end
+  end
+  require('mason-tool-installer').setup { ensure_installed = missing }
+  require('mason-lspconfig').setup { automatic_enable = false }
 
   -- Register every server's config (works uniformly whether Mason
   -- installs the binary or it comes from elsewhere, like opam).
@@ -342,7 +305,13 @@ function M.setup()
     vim.lsp.config(server_name, server_opts)
   end
 
-  vim.lsp.enable(vim.tbl_keys(servers))
+  local enabled = vim.tbl_keys(servers)
+  enabled = vim.tbl_filter(function(name)
+    if name == 'ocamllsp' then return vim.fn.executable('opam') == 1 end
+    if name == 'zls' then return vim.fn.executable('zls') == 1 end
+    return true
+  end, enabled)
+  vim.lsp.enable(enabled)
 end
 
 return M

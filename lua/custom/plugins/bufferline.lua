@@ -63,6 +63,14 @@ return {
             return buffer.is_hovered and not buffer.is_focused
           end,
         },
+        -- Unsaved-changes marker: shown only while the buffer differs from disk.
+        {
+          text = function(buffer)
+            return buffer.is_modified and '● ' or ''
+          end,
+          fg = get_hex('DiagnosticInfo', 'fg'),
+          bold = true,
+        },
         {
           text = function(buffer)
             if buffer.diagnostics.errors ~= 0 then

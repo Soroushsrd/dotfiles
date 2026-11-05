@@ -1,5 +1,6 @@
 return { -- Highlight, edit, and navigate code
   'nvim-treesitter/nvim-treesitter',
+  branch = 'master', -- This configuration uses the legacy configs API.
   event = { 'BufReadPost', 'BufNewFile' },
   cmd = {
     'TSInstall',
@@ -29,7 +30,7 @@ return { -- Highlight, edit, and navigate code
       'typescript',
       'javascript',
       'tsx',
-      'zig',
+      'zig', 'go', 'gomod', 'rust', 'svelte', 'css', 'json',
     },
     -- Autoinstall languages that are not installed
     auto_install = true,
