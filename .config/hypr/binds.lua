@@ -67,7 +67,8 @@ hl.bind("ALT + F", hl.dsp.exec_cmd("elfeed2"), { description = "Open Elfeed2" })
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"), { description = "Lock screen" })
 -- old: bind = ALT, e, exec, ~/.local/bin/emacs-31.1   (your edit)
 -- Neovim needs a terminal to run in, so launch it inside Ghostty.
-hl.bind("ALT + E", hl.dsp.exec_cmd("emacs"), { description = "Open emacs" })
+-- hl.bind("ALT + E", hl.dsp.exec_cmd("emacs"), { description = "Open emacs" })
+hl.bind("ALT + E", hl.dsp.exec_cmd("neovide"), { description = "Open neovide" })
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("ghostty -e nvim"), { description = "Open Neovim in Ghostty" })
 
 -- old: bind = $mainMod, w, exec, ~/.config/ml4w/settings/browser.sh
